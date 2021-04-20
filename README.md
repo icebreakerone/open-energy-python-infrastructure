@@ -1,2 +1,5 @@
 # open-energy-python-infrastructure
-Exemplar data provider and client, as well as Python helpers to create same
+
+Data provider based on Flask that can be run locally with all certificate based security in place.
+
+Current status - HTTPS and client certificate auth working, but no OAUTH or FAPI validation.
