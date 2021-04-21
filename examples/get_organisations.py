@@ -1,8 +1,8 @@
-from ib1.openenergy.support import FAPISession
 import logging
 import pprint
 
-# Enable logging, both of our code and requests
+from ib1.openenergy.support import FAPISession
+
 logging.basicConfig(level=logging.DEBUG)
 
 # Configure a new FAPISession to use a previously generated key pair and client ID

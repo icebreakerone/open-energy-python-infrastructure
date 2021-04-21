@@ -16,6 +16,6 @@ setup(
     packages=find_namespace_packages(),
     install_requires=['requests', 'flask', 'pyopenssl'],
     entry_points={
-        'console_scripts': ['oe_test_provider=ib1.openenergy.support.app:run_simple_app']
+        'console_scripts': []
     }
 )
