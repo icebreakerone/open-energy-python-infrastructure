@@ -1,11 +1,11 @@
 import ssl
 from argparse import ArgumentParser
 import OpenSSL
+import requests
 import werkzeug.serving
 import logging
 from os.path import abspath, isfile
-
-logging.basicConfig(level=logging.INFO)
+from time import time, strftime, gmtime
 
 LOG = logging.getLogger('ib1.oe.support')
 
@@ -127,3 +127,82 @@ def run_app(app, *args,
 
     app.run(*args, ssl_context=ssl_context,
             request_handler=_PeerCertWSGIRequestHandler, **kwargs)
+
+
+class FAPISession:
+    """
+    Similar to a requests session, but handles management of a single access token. It acquires the token when required,
+    manages token expiry etc. Implicitly uses client-credentials, there's no user consent or similar involved.
+    """
+
+    def __init__(self, client_id, token_url, requested_scopes, private_key, certificate):
+        """
+        Build a new FAPI session. This doesn't immediately trigger any requests to the token
+        endpoint, these are made when the session is accessed, and only if needed.
+
+        :param token_url:
+            URL to the token endpoint of an authorization server, i.e. for the raidiam UAT sandbox this is
+            https://matls-auth.directory.energydata.org.uk/token
+        :param requested_scopes:
+            Scopes requested for this session
+        :param private_key:
+            Location of private key used for MTLS
+        :param certificate:
+            Location of certificate used for MTLS
+        """
+        self.client_id = client_id
+        self._session = requests.Session()
+        self._session.cert = certificate, private_key
+        self.token = None
+        self.scopes = requested_scopes
+        self.token_url = token_url
+
+    def clear_token(self):
+        """
+        Explicitly clear the current token, if present. This will force a refresh the next time
+        the session is accessed.
+        """
+        self.token = None
+
+    def _get_token(self) -> str:
+        """
+        Internal method to fetch a new bearer token if necessary and return it. A new token is
+        obtained if there either isn't one, or we have one but it's expired
+
+        :return:
+            String representation of the access token
+        :raises requests.HTTPError:
+            if the token acquisition fails for any reason, this method raises the corresponding
+            HTTPError from the requests librar
+
+        """
+        now = time()
+        if self.token is None or self.token['expiry_time'] <= now:
+            response = self._session.post(url=self.token_url,
+                                          data={'client_id': self.client_id,
+                                                'scope': self.scopes,
+                                                'grant_type': 'client_credentials'})
+            if response.status_code == 200:
+                d = response.json()
+                LOG.debug(f'_get_token - response is {d}')
+                if 'expires_in' in d:
+                    self.token = {'access_token': d['access_token'],
+                                  'expiry': now + int(d['expires_in'])}
+                    LOG.info(
+                        f'_get_token - got access token, expires at '
+                        f'{strftime("%b %d %Y %H:%M:%S", gmtime(self.token["expiry"]))}, '
+                        f'scope=\'{d["scope"]}\'')
+                else:
+                    LOG.error(f'_get_token - no expiry time specified in token response {d}')
+            else:
+                response.raise_for_status()
+        return self.token['access_token']
+
+    @property
+    def session(self) -> requests.Session:
+        """
+        Get a configured requests.Session set up with the necessary bearer token and client
+        certificates to make a MTLS request to a secured endpoint.
+        """
+        self._session.headers.update({'Authorization': f'Bearer {self._get_token()}'})
+        return self._session
