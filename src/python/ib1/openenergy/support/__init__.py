@@ -10,6 +10,7 @@ from typing import Dict
 import flask
 import requests
 from cryptography.hazmat.primitives import hashes
+from requests.auth import AuthBase
 
 from ib1.openenergy.support.func import timed_lru_cache
 
@@ -29,10 +30,12 @@ def httpclient_logging_patch(level=logging.DEBUG):
     http.client.HTTPConnection.debuglevel = 1
 
 
-class FAPISession:
+class FAPISession(AuthBase):
     """
     Similar to a requests session, but handles management of a single access token. It acquires the token when required,
     manages token expiry etc. Implicitly uses client-credentials, there's no user consent or similar involved.
+
+    Can also be used as a requests authenticator
     """
 
     def __init__(self, client_id, token_url, requested_scopes, private_key, certificate):
@@ -54,6 +57,7 @@ class FAPISession:
         self.client_id = client_id
         self._session = requests.Session()
         self._session.cert = certificate, private_key
+        self._session.auth = self
         self._plain_session = requests.Session()
         self._plain_session.cert = certificate, private_key
         self._token = None
@@ -85,10 +89,10 @@ class FAPISession:
         """
         now = time()
         if self._token is None or self._token['expiry_time'] <= now:
-            response = self._session.post(url=self.token_url,
-                                          data={'client_id': self.client_id,
-                                                'scope': self.scopes,
-                                                'grant_type': 'client_credentials'})
+            response = self._plain_session.post(url=self.token_url,
+                                                data={'client_id': self.client_id,
+                                                      'scope': self.scopes,
+                                                      'grant_type': 'client_credentials'})
             if response.status_code == 200:
                 d = response.json()
                 LOG.debug(f'_get_token - response is {d}')
@@ -112,8 +116,6 @@ class FAPISession:
         certificates to make a MTLS request to a secured endpoint. Also assigns a new unique
         x-fapi-interaction-id.
         """
-        self._session.headers.update({'Authorization': f'Bearer {self._get_token()}',
-                                      'x-fapi-interaction-id': str(uuid.uuid4())})
         return self._session
 
     @property
@@ -124,10 +126,21 @@ class FAPISession:
         """
         return self._plain_session
 
+    def __call__(self, r):
+        """
+        Used when acting as an authenticator, including when the authenticated session is accessed. Responsible
+        for allocating a unique interaction ID per call as well as supplying (or acquiring) the bearer token and
+        including it in the request as needed.
+        """
+        r.headers.update({'Authorization': f'Bearer {self._get_token()}',
+                          'x-fapi-interaction-id': str(uuid.uuid4())})
+        return r
+
 
 def build_error_response(error=None, code=400, scope=None, description=None, uri=None):
     """
-    RFC 6750 has a slightly odd way to complain about invalid tokens!
+    RFC 6750 has a slightly odd way to complain about invalid tokens! This is used in the token authenticator
+    class to build responses for invalid or missing tokens.
 
     :param error:
         One of 'invalid request', 'invalid token', or 'insufficient scope'
