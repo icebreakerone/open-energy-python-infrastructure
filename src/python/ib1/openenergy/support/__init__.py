@@ -168,8 +168,11 @@ def build_error_response(error=None, code=400, scope=None, description=None, uri
 
 class AccessTokenValidator:
     """
+    Perform checks on a presented bearer token as defined in section 6.2.1 here
+    https://openid.net/specs/openid-financial-api-part-1-1_0-final.html#accessing-protected-resources
+
     Uses https://tools.ietf.org/html/rfc7662 - OAuth 2.0 Token Introspection to check a supplied bearer token
-    against an introspection endpoint.
+    against an introspection endpoint for part 6.2.1.13
     """
 
     LOG = logging.getLogger('ib1.oe.support.validator')
@@ -282,6 +285,21 @@ class AccessTokenValidator:
                     AccessTokenValidator.LOG.warning(f'token introspection failed, token is not valid')
                     return build_error_response(error='invalid_token', code=401, scope=scope)
 
+                # Check token issued and expiry times. This is necessary because we cache the token introspection
+                # response, so it's possible to have a token which is marked as valid but is no longer live due to
+                # having become invalid within the caching period.
+                now = time()
+                if 'iat' in i_response:
+                    # Issue time must be in the past
+                    if now < i_response['iat']:
+                        AccessTokenValidator.LOG.warning(f'token issued in the future')
+                        return build_error_response(error='invalid_token', code=401, scope=scope)
+                if 'exp' in i_response:
+                    # Expiry time must be in the future
+                    if now > i_response['exp']:
+                        AccessTokenValidator.LOG.warning(f'token expired')
+                        return build_error_response(error='invalid_token', code=401, scope=scope)
+
                 # If the token response contains a certificate binding then check it against the
                 # current client cert. See https://tools.ietf.org/html/rfc8705
                 if 'cnf' in i_response and self.require_certificate_binding:
@@ -291,6 +309,8 @@ class AccessTokenValidator:
                     fingerprint = cert.fingerprint(hashes.SHA256())
                     fingerprint = base64.urlsafe_b64encode(fingerprint).replace(b'=', b'')
 
+                    # TODO - there's something not right about this, we're getting mismatches with the directory
+
                     AccessTokenValidator.LOG.info(
                         f'token introspection response contains certificate thumbprint {sha256}')
 
@@ -299,7 +319,6 @@ class AccessTokenValidator:
                 else:
                     if self.require_certificate_binding:
                         AccessTokenValidator.LOG.error('No cnf claim in token response, unable to proceed!')
-                        # TODO - complain bitterly, determine response code?
                         return build_error_response(error='invalid_token', code=401, scope=scope)
 
                 # If we required a particular scope, check that it's in the list of scopes
