@@ -2,7 +2,8 @@
 
 Data provider based on Flask that can be run locally with all certificate based security in place.
 
-Current status - HTTPS and client certificate auth working, but no OAUTH or FAPI validation.
+Current status - HTTPS and client certificate auth working, decorator for Flask routes which performs token
+introspection and checks scopes, passing introspection response into flask.g
 
 ```shell
 virtualenv -p python3.8 venv
