@@ -3,8 +3,8 @@ import ssl
 from argparse import ArgumentParser
 from os.path import abspath, isfile
 
-import OpenSSL
 import werkzeug.serving
+from cryptography import x509
 
 LOG = logging.getLogger('ib1.oe.support.flask_ssl_dev')
 
@@ -33,8 +33,8 @@ class _PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
         LOG.info('Creating environment')
         x509_binary = self.connection.getpeercert(binary_form=True)
         if x509_binary:
-            x509 = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_ASN1, x509_binary)
-            environ['peercert'] = x509
+            cert = x509.load_der_x509_certificate(x509_binary)
+            environ['peercert'] = cert
         else:
             environ['peercert'] = None
         return environ
@@ -163,6 +163,3 @@ def run_app(app, *args, server_private_key, server_private_key_password, server_
 
     app.run(*args, ssl_context=ssl_context,
             request_handler=_PeerCertWSGIRequestHandler, **kwargs)
-
-
-

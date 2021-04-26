@@ -33,9 +33,7 @@ def homepage():
     :param introspection_respose:
         Introspection result from a supplied bearer token, or None if no token was supplied
     """
-    x509 = flask.request.environ["peercert"]
     LOG.info(f'home: received MTLS HTTPS request from {flask.request.remote_addr}')
-    LOG.info(f'home: peer certificate issued by {x509.get_issuer()}')
     LOG.info(f'home: token introspection response is {flask.g.introspection_response}')
     return '<html><body><h1>Success</h1></body></html>'
 

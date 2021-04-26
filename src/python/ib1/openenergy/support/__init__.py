@@ -1,11 +1,15 @@
+import base64
+import email.utils
 import http.client
 import logging
+import uuid
 from functools import wraps, partial
 from time import time, strftime, gmtime
 from typing import Dict
-from http import HTTPStatus
+
 import flask
 import requests
+from cryptography.hazmat.primitives import hashes
 
 from ib1.openenergy.support.func import timed_lru_cache
 
@@ -45,6 +49,7 @@ class FAPISession:
             Location of private key used for MTLS
         :param certificate:
             Location of certificate used for MTLS
+
         """
         self.client_id = client_id
         self._session = requests.Session()
@@ -104,9 +109,11 @@ class FAPISession:
     def session(self) -> requests.Session:
         """
         Get a configured requests.Session set up with the necessary bearer token and client
-        certificates to make a MTLS request to a secured endpoint.
+        certificates to make a MTLS request to a secured endpoint. Also assigns a new unique
+        x-fapi-interaction-id.
         """
-        self._session.headers.update({'Authorization': f'Bearer {self._get_token()}'})
+        self._session.headers.update({'Authorization': f'Bearer {self._get_token()}',
+                                      'x-fapi-interaction-id': str(uuid.uuid4())})
         return self._session
 
     @property
@@ -118,13 +125,44 @@ class FAPISession:
         return self._plain_session
 
 
+def build_error_response(error=None, code=400, scope=None, description=None, uri=None):
+    """
+    RFC 6750 has a slightly odd way to complain about invalid tokens!
+
+    :param error:
+        One of 'invalid request', 'invalid token', or 'insufficient scope'
+    :param code:
+        HTTP status code
+    :param description:
+        Description of the error
+    :param uri:
+        URL of the page describing the error in detail
+    :param scope:
+        Scopes required to access the protected resource
+    """
+    res = flask.Response()
+    res.status_code = code
+    res.headers.extend(
+        {'WWW-Authenticate': f'Bearer ' +
+                             (f'error="{error}", ' if error else '') +
+                             (f'error_description="{description}", ' if description else '') +
+                             (f'error_uri="{uri}", ' if uri else '') +
+                             (f'scope="{scope}"' if scope else ''),
+         'Cache-Control': 'no-store',
+         'Pragma': 'no-cache'})
+    return res
+
+
 class AccessTokenValidator:
     """
     Uses https://tools.ietf.org/html/rfc7662 - OAuth 2.0 Token Introspection to check a supplied bearer token
     against an introspection endpoint.
     """
 
-    def __init__(self, introspection_url: str, client_id: str, private_key: str, certificate: str):
+    LOG = logging.getLogger('ib1.oe.support.validator')
+
+    def __init__(self, introspection_url: str, client_id: str, private_key: str, certificate: str,
+                 client_cert_parser=None, require_certificate_binding=True):
         """
         Create a new access token validator. In this context the data provider attempting to validate an access token
         is acting as a client to the directory's API, so client_id, private_key and certificate are those of the
@@ -139,11 +177,40 @@ class AccessTokenValidator:
             Location of the private key of the data provider, used in the client auth for the introspection endpoint
         :param certificate:
             Location of the public key of the data provider, used in the client auth for the introspection endpoint
+        :param client_cert_parser:
+            A zero argument function which returns an X509 object for the active client certificate, or none if no
+            certificate is present. Defaults to a simple implementation that pulls the cert out of the flask environment
+            as provided by the local dev mode runner in flask_ssl_dev.py, but should be replaced when running in
+            production mode behind e.g. nginx
+        :param require_certificate_binding:
+            Defaults to true (and is required to be true for FAPI!), this can be set to false for testing in cases
+            where the authz server is not providing the CNF claims in its token introspection response. If set to
+            false, no certificate to token binding check is performed.
         """
         self.session = requests.Session()
         self.session.cert = certificate, private_key
         self.introspection_url = introspection_url
         self.client_id = client_id
+        self.require_certificate_binding = require_certificate_binding
+        if not require_certificate_binding:
+            AccessTokenValidator.LOG.warning(
+                'certificate to token binding is not enabled, do not use this in a production context!')
+
+        def dev_cert_parser():
+            """
+            Default function to pull x509 certs out of the environment, they're inserted there by the runner in
+            flask_ssl_dev, but this should only be used in a development environment.
+            :return:
+            """
+            if 'peercert' in flask.request.environ:
+                return flask.request.environ['peercert']
+            else:
+                return None
+
+        if not client_cert_parser:
+            AccessTokenValidator.LOG.warning(
+                'using dev ssl cert extractor, if not running in local dev mode this is an error')
+        self._cert_parser = client_cert_parser or dev_cert_parser
 
     @timed_lru_cache(seconds=60)
     def inspect_token(self, token: str) -> Dict:
@@ -188,27 +255,70 @@ class AccessTokenValidator:
         def decorated_function(*args, **kwargs):
             if 'Authorization' in flask.request.headers:
                 token = flask.request.headers.get('Authorization')[7:]
-                LOG.debug(f'token was {token}')
-                response = self.inspect_token(token=token)
+                AccessTokenValidator.LOG.debug(f'token was {token}')
+                i_response = self.inspect_token(token=token)
+
                 # All valid introspection responses contain 'active', as the default behaviour
                 # for an invalid token is to create a simple JSON {'active':false} response
-                if 'active' not in response:
-                    LOG.warning(f'invalid introspection response, does not contain "valid"')
-                    return 'Not authorized', int(HTTPStatus.UNAUTHORIZED)
+                if 'active' not in i_response:
+                    AccessTokenValidator.LOG.warning(f'invalid introspection response, does not contain "valid"')
+                    return build_error_response(error='invalid_request', code=400, scope=scope)
+
                 # The response should specify that the token is active
-                if not response['active']:
-                    LOG.warning(f'token introspection failed, token is not valid')
-                    return 'Not authorized', int(HTTPStatus.UNAUTHORIZED)
+                if i_response['active'] is not True:
+                    AccessTokenValidator.LOG.warning(f'token introspection failed, token is not valid')
+                    return build_error_response(error='invalid_token', code=401, scope=scope)
+
+                # If the token response contains a certificate binding then check it against the
+                # current client cert. See https://tools.ietf.org/html/rfc8705
+                if 'cnf' in i_response and self.require_certificate_binding:
+                    sha256 = i_response['cnf']['x5t#S256']
+
+                    cert = self._cert_parser()
+                    fingerprint = cert.fingerprint(hashes.SHA256())
+                    fingerprint = base64.urlsafe_b64encode(fingerprint).replace(b'=', b'')
+
+                    AccessTokenValidator.LOG.info(
+                        f'token introspection response contains certificate thumbprint {sha256}')
+
+                    AccessTokenValidator.LOG.info(
+                        f'client cert presented has thumbprint {fingerprint}')
+                else:
+                    if self.require_certificate_binding:
+                        AccessTokenValidator.LOG.error('No cnf claim in token response, unable to proceed!')
+                        # TODO - complain bitterly, determine response code?
+                        return build_error_response(error='invalid_token', code=401, scope=scope)
+
                 # If we required a particular scope, check that it's in the list of scopes
                 # defined for this token. Scope comparison is case insensitive
                 if scope:
-                    token_scopes = response['scope'].lower().split(' ')
-                    LOG.info(f'found scopes in token {token_scopes}')
+                    token_scopes = i_response['scope'].lower().split(' ')
+                    AccessTokenValidator.LOG.info(f'found scopes in token {token_scopes}')
                     if scope.lower() not in token_scopes:
-                        LOG.warning(f'scope \'{scope}\' not in token scopes {token_scopes}')
-                        return 'Not authorized', int(HTTPStatus.UNAUTHORIZED)
-                # Checks passed, put the token response in g.token_introspection
-                flask.g.introspection_response = response
-            return f(*args, **kwargs)
+                        AccessTokenValidator.LOG.warning(f'scope \'{scope}\' not in token scopes {token_scopes}')
+                        return build_error_response(error='insufficient_scope', code=403, scope=scope)
+
+                # Token checks passed, put the token response in g.token_introspection
+                flask.g.introspection_response = i_response
+
+                # Call the underlying function, ensure it's a response object
+                response = flask.make_response(f(*args, **kwargs))
+
+                # FAPI requires that the resource server set the date header in the response
+                response.headers['Date'] = email.utils.formatdate()
+
+                # Get FAPI interaction ID if set, or create a new one otherwise
+                if 'x-fapi-interaction-id' in flask.request.headers:
+                    fii = flask.request.headers['x-fapi-interaction-id']
+                    response.headers['x-fapi-interaction-id'] = fii
+                    AccessTokenValidator.LOG.info(f'using existing interaction ID = {fii}')
+                else:
+                    response.headers['x-fapi-interaction-id'] = str(uuid.uuid4())
+
+                return response
+            else:
+                # No authentication provided
+                AccessTokenValidator.LOG.info('no token presented')
+                return build_error_response(code=401)
 
         return decorated_function
