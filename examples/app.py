@@ -23,8 +23,8 @@ app = flask.Flask(__name__)
 
 
 @app.route('/')
-@validator.introspects
-def homepage(introspection_response):
+@validator.introspects(scope='directory:software')
+def homepage():
     """
     This is a very simple route that doesn't do much, but as it's decorated with the validator
     token introspection endpoint it will trigger inspection of the supplied bearer token via the
@@ -36,7 +36,7 @@ def homepage(introspection_response):
     x509 = flask.request.environ["peercert"]
     LOG.info(f'home: received MTLS HTTPS request from {flask.request.remote_addr}')
     LOG.info(f'home: peer certificate issued by {x509.get_issuer()}')
-    LOG.info(f'home: token introspection response is {introspection_response}')
+    LOG.info(f'home: token introspection response is {flask.g.introspection_response}')
     return '<html><body><h1>Success</h1></body></html>'
 
 

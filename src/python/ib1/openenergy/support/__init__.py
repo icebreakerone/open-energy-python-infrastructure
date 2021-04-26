@@ -1,9 +1,9 @@
 import http.client
 import logging
-from functools import wraps
+from functools import wraps, partial
 from time import time, strftime, gmtime
 from typing import Dict
-
+from http import HTTPStatus
 import flask
 import requests
 
@@ -119,6 +119,10 @@ class FAPISession:
 
 
 class AccessTokenValidator:
+    """
+    Uses https://tools.ietf.org/html/rfc7662 - OAuth 2.0 Token Introspection to check a supplied bearer token
+    against an introspection endpoint.
+    """
 
     def __init__(self, introspection_url: str, client_id: str, private_key: str, certificate: str):
         """
@@ -157,22 +161,54 @@ class AccessTokenValidator:
         response = self.session.post(url=self.introspection_url,
                                      data={'token': token,
                                            'client_id': self.client_id})
+        # If this failed for some reason, raise the appropriate error. This can happen if we're not
+        # properly authenticated against the token introspection endpoint itself, it won't happen if we
+        # have an invalid or expired token.
+        response.raise_for_status()
         return response.json()
 
-    def introspects(self, f):
+    def introspects(self, f=None, scope=None):
         """
         Build a decorator that can be used on flask routes to automatically introspect on any
-        provided bearer tokens, passing the resulting object into the 'introspection_response'
-        argument of the decorated route
+        provided bearer tokens, passing the resulting object into g.introspection_response. If
+        the introspection indicates a failed validation, the underlying route will not be called
+        at all and an appropriate error response will be sent.
+
+        Introspection fails if:
+            1. Querying the token introspection endpoint fails
+            2. A token is returned with active: false
+            3. Scope is specified, and the required scope is not in the token scopes
         """
+        if not f:
+            # If function not specified, decorate self, effectively wrapping the decorator in a
+            # second decorator which already includes the scopes argument
+            return partial(self.introspects, scope=scope)
 
         @wraps(f)
         def decorated_function(*args, **kwargs):
             if 'Authorization' in flask.request.headers:
                 token = flask.request.headers.get('Authorization')[7:]
                 LOG.debug(f'token was {token}')
-                return f(*args, introspection_response=self.inspect_token(token=token), **kwargs)
-            else:
-                return f(*args, introspection_response=None, **kwargs)
+                response = self.inspect_token(token=token)
+                # All valid introspection responses contain 'active', as the default behaviour
+                # for an invalid token is to create a simple JSON {'active':false} response
+                if 'active' not in response:
+                    LOG.warning(f'invalid introspection response, does not contain "valid"')
+                    return 'Not authorized', int(HTTPStatus.UNAUTHORIZED)
+                # The response should specify that the token is active
+                if not response['active']:
+                    LOG.warning(f'token introspection failed, token is not valid')
+                    return 'Not authorized', int(HTTPStatus.UNAUTHORIZED)
+                # If we required a particular scope, check that it's in the list of scopes
+                # defined for this token. Scope comparison is case insensitive
+                if scope:
+                    token_scopes = response['scope'].lower().split(' ')
+                    LOG.info(f'found scopes in token {token_scopes}')
+                    if scope.lower() not in token_scopes:
+                        LOG.warning(f'scope \'{scope}\' not in token scopes {token_scopes}')
+                        return 'Not authorized', int(HTTPStatus.UNAUTHORIZED)
+                # Checks passed, put the token response in g.token_introspection
+                flask.g.introspection_response = response
+            return f(*args, **kwargs)
 
         return decorated_function
