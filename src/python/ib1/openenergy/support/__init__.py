@@ -261,6 +261,13 @@ class AccessTokenValidator:
             1. Querying the token introspection endpoint fails
             2. A token is returned with active: false
             3. Scope is specified, and the required scope is not in the token scopes
+            4. Issued time is in the future
+            5. Expiry time is in the past
+            6. Certificate binding is enabled (default) and the fingerprint of the presented client cert
+               isn't a match for the claim in the introspection response
+
+        If introspection succeeds, the decorated function is called and the Date and x-fapi-interaction-id headers
+        injected into the response before returning.
         """
         if not f:
             # If function not specified, decorate self, effectively wrapping the decorator in a
@@ -269,8 +276,22 @@ class AccessTokenValidator:
 
         @wraps(f)
         def decorated_function(*args, **kwargs):
+
+            # Deny access to non-MTLS connections
+            cert = self._cert_parser()
+            if cert is None:
+                AccessTokenValidator.LOG.info('no client cert presented')
+                return build_error_response(code=401)
+
+            # Require authorization header with bearer token
             if 'Authorization' in flask.request.headers:
-                token = flask.request.headers.get('Authorization')[7:]
+                token_header = flask.request.headers.get('Authorization')
+                # Check that this is a bearer token header
+                if token_header.lower()[:7] != 'bearer ':
+                    AccessTokenValidator.LOG.info('Authorization header does not contain a bearer token')
+                    return build_error_response(code=401)
+                # Extract the actual token
+                token = token_header[7:]
                 AccessTokenValidator.LOG.debug(f'token was {token}')
                 i_response = self.inspect_token(token=token)
 
@@ -305,10 +326,9 @@ class AccessTokenValidator:
                 if 'cnf' in i_response and self.require_certificate_binding:
                     sha256 = i_response['cnf']['x5t#S256']
 
-                    cert = self._cert_parser()
-                    fingerprint = cert.fingerprint(hashes.SHA256())
-                    fingerprint = base64.urlsafe_b64encode(fingerprint).replace(b'=', b'')
-
+                    hash = hashes.SHA256()
+                    fingerprint = base64.urlsafe_b64encode(cert.fingerprint(hash)).replace(b'=', b'')
+                    print(hash, cert.fingerprint(hash))
                     # TODO - there's something not right about this, we're getting mismatches with the directory
 
                     AccessTokenValidator.LOG.info(

@@ -58,6 +58,11 @@ master_doc = 'index'
 # Enable warnings for missing references
 nitpicky = True
 
+# Pull in substitutions to each file as epilog
+rst_epilog = """
+.. include:: substitutions.txt
+"""
+
 
 # Define skip rules to exclude some functions and other members from autodoc
 def skip(app, what, name, obj, skip, options):
@@ -91,7 +96,7 @@ exclude_patterns = ['_build']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
-# default_role = None
+default_role = 'any'
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = True
@@ -124,7 +129,10 @@ html_theme = "sphinx_rtd_theme"
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Configures links into the main Python language docs
-intersphinx_mapping = {'python': ('https://docs.python.org/3.8', None),}
+intersphinx_mapping = {'python': ('https://docs.python.org/3.8', None),
+                       'flask': ('https://flask.palletsprojects.com/en/1.1.x/', None),
+                       'cryptography': ('https://cryptography.io/en/stable/', None),
+                       'requests': ('https://docs.python-requests.org/en/master/', None)}
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -167,7 +175,7 @@ html_show_sourcelink = False
 # If true, an OpenSearch description file will be output, and all pages will
 # contain a <link> tag referring to it.  The value of this option must be the
 # base URL from which the finished HTML is served.
-html_use_opensearch = False
+html_use_opensearch = 'https://icebreakerone.github.io/open-energy-python-infrastructure'
 
 # This is the file name suffix for HTML files (e.g. ".xhtml").
 html_file_suffix = '.html'

@@ -127,3 +127,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+/src/docs/substitutions.txt
+/src/docs/generated_glossary.txt
