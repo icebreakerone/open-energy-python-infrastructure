@@ -1,6 +1,7 @@
 # General information about the project.
 project = u'Open Energy Infrastructure Support'
-copyright = u'2021 Tom Oinn'
+copyright = u'Icebreaker One Limited'
+copyright_link = 'https://opencorporates.com/companies/gb/12156788'
 author = u'Tom Oinn'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -22,7 +23,9 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.graphviz',
     'sphinx.ext.mathjax',
-    'sphinx.ext.inheritance_diagram'
+    'sphinx.ext.inheritance_diagram',
+    'sphinx_rtd_theme',
+    'sphinx.ext.autosectionlabel'
 ]
 
 # Configure graphviz to generate PNG and set up some default colours and graph styling. We were using SVGs here, but
@@ -45,6 +48,7 @@ html_context = {
     'css_files': [
         '_static/theme_overrides.css'
     ],
+    'copyright_link': copyright_link,
 }
 
 # The suffix(es) of source filenames.
@@ -62,6 +66,13 @@ nitpicky = True
 rst_epilog = """
 .. include:: substitutions.txt
 """
+
+# Configure auto section labelling
+autosectionlabel_prefix_document = False
+autosectionlabel_maxdepth = 4
+
+# Enable numbering of figures in HTML output
+numfig = True
 
 
 # Define skip rules to exclude some functions and other members from autodoc
@@ -123,10 +134,13 @@ todo_include_todos = False
 
 # -- Options for HTML output ----------------------------------------------
 
-import sphinx_rtd_theme
-
 html_theme = "sphinx_rtd_theme"
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+# Use IB1 colour for search and banner background
+html_theme_options = {
+    'style_nav_header_background': '#0C3945',
+}
+
+html_logo = 'images/logo.png'
 
 # Configures links into the main Python language docs
 intersphinx_mapping = {'python': ('https://docs.python.org/3.8', None),

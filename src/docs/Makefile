@@ -56,6 +56,13 @@ html:
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
+ghpages:
+	# This requires setup! Don't run it unless you know it'll work.
+	$(SPHINXBUILD) -E -b html $(ALLSPHINXOPTS) ../../../open-energy-python-infrastructure-pages/html
+	cd ../../../open-energy-python-infrastructure-pages/html; git add . ; git commit -m "rebuilt docs"; git push origin gh-pages
+	@echo
+	@echo "Pushed docs to https://icebreakerone.github.io/open-energy-python-infrastructure/index.html"
+
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
 	@echo

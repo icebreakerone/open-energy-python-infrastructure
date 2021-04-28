@@ -13,8 +13,7 @@ options = get_command_line_ssl_args(default_client_private_key='a.key',
                                     default_client_certificate='a.pem',
                                     default_server_private_key='127.0.0.1/key.pem',
                                     default_server_certificate='127.0.0.1/cert.pem',
-                                    default_client_id='kZuAsn7UYZ98WWh29hDPf',
-                                    default_authority='raidiam_certificate_chain.pem')
+                                    default_client_id='kZuAsn7UYZ98WWh29hDPf')
 
 validator = AccessTokenValidator(client_id=options.client_id, certificate=options.client_certificate,
                                  private_key=options.client_private_key,
@@ -40,6 +39,4 @@ def homepage():
 
 run_app(app=app,
         server_private_key=options.server_private_key,
-        server_certificate=options.server_certificate,
-        server_private_key_password=options.server_private_key_password,
-        authority=options.authority)
+        server_certificate=options.server_certificate)

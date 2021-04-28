@@ -7,12 +7,13 @@ def timed_lru_cache(_func=None, *, seconds: int = 600, maxsize: int = 128, typed
 
     See https://gist.github.com/Morreski/c1d08a3afa4040815eafd3891e16b945
 
-    Parameters:
-    seconds (int): Timeout in seconds to clear the WHOLE cache, default = 10 minutes
-    maxsize (int): Maximum Size of the Cache
-    typed (bool): Same value of different type will be a different entry
+    :param seconds:
+        Timeout in seconds to clear the whole cache, default 10 minutes.
+    :param maxsize:
+        Maximum size of the cache
+    :param typed:
+        Whether to treat the same values of different types as different values
     """
-
     def wrapper_cache(f):
         f = lru_cache(maxsize=maxsize, typed=typed)(f)
         f.delta = seconds * 10 ** 9

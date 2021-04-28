@@ -1,5 +1,7 @@
-Python API Documentation
-========================
+Python API : ib1.openenergy.support
+===================================
+
+Python docs and source for this package
 
 .. automodule:: ib1.openenergy.support
     :members:

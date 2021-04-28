@@ -7,3 +7,7 @@
 .wy-nav-top {
     background: #0C3945;
 }
+
+.wy-side-nav-search>a img.logo {
+    max-width: 50%;
+}
