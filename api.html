@@ -1,0 +1,450 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Python API : ib1.openenergy.support &mdash; Open Energy Infrastructure Support 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="search" type="application/opensearchdescription+xml"
+          title="Search within Open Energy Infrastructure Support 0.0.1 documentation"
+          href="_static/opensearch.xml"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Open Energy Glossary" href="glossary.html" />
+    <link rel="prev" title="Local Data Provider Development Mode" href="ssl_dev.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #0C3945" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Open Energy Infrastructure Support
+          
+
+          
+            
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="service_provider.html">Accessing OE Shared Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_provider.html">Providing OE Shared Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ssl_dev.html">Local Data Provider Development Mode</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Python API : ib1.openenergy.support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">Open Energy Glossary</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Open Energy Infrastructure Support</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Python API : ib1.openenergy.support</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="python-api-ib1-openenergy-support">
+<h1>Python API : ib1.openenergy.support<a class="headerlink" href="#python-api-ib1-openenergy-support" title="Permalink to this headline">¶</a></h1>
+<p>Python docs and source for this package</p>
+<span class="target" id="module-ib1.openenergy.support"></span><dl class="py class">
+<dt id="ib1.openenergy.support.AccessTokenValidator">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.</span></code><code class="sig-name descname"><span class="pre">AccessTokenValidator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">introspection_url</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">private_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">certificate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_cert_parser</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_certificate_binding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support.html#AccessTokenValidator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.AccessTokenValidator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform checks on a presented bearer token as defined in section 6.2.1 here
+<a class="reference external" href="https://openid.net/specs/openid-financial-api-part-1-1_0-final.html#accessing-protected-resources">https://openid.net/specs/openid-financial-api-part-1-1_0-final.html#accessing-protected-resources</a></p>
+<p>Uses <a class="reference external" href="https://tools.ietf.org/html/rfc7662">https://tools.ietf.org/html/rfc7662</a> - OAuth 2.0 Token Introspection to check a supplied bearer token
+against an introspection endpoint for part 6.2.1.13</p>
+<dl class="py method">
+<dt id="ib1.openenergy.support.AccessTokenValidator.__init__">
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">introspection_url</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">private_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">certificate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_cert_parser</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_certificate_binding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support.html#AccessTokenValidator.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.AccessTokenValidator.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new access token validator. In this context the data provider attempting to validate an access token
+is acting as a client to the directory’s API, so client_id, private_key and certificate are those of the
+data provider and not the client requesting data from it. These are not the transport keys, they’re the ones
+issued by the directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>introspection_url</strong> – URL of the oauth2 introspection endpoint</p></li>
+<li><p><strong>client_id</strong> – OAuth client ID of the data provider, used to authenticate with the introspection endpoint</p></li>
+<li><p><strong>private_key</strong> – Location of the private key of the data provider, used in the client auth for the introspection endpoint</p></li>
+<li><p><strong>certificate</strong> – Location of the public key of the data provider, used in the client auth for the introspection endpoint</p></li>
+<li><p><strong>client_cert_parser</strong> – A zero argument function which returns an X509 object for the active client certificate, or none if no
+certificate is present. Defaults to a simple implementation that pulls the cert out of the flask environment
+as provided by the local dev mode runner in flask_ssl_dev.py, but should be replaced when running in
+production mode behind e.g. nginx</p></li>
+<li><p><strong>require_certificate_binding</strong> – Defaults to true (and is required to be true for FAPI!), this can be set to false for testing in cases
+where the authz server is not providing the CNF claims in its token introspection response. If set to
+false, no certificate to token binding check is performed.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ib1.openenergy.support.AccessTokenValidator.inspect_token">
+<code class="sig-name descname"><span class="pre">inspect_token</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><a class="reference internal" href="_modules/ib1/openenergy/support.html#AccessTokenValidator.inspect_token"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.AccessTokenValidator.inspect_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send an access token to the introspection endpoint, returning the introspection response</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>token</strong> – access token as received as authorization in a request to the data provider’s API</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>object containing parsed JSON response from the introspection endpoint</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ib1.openenergy.support.AccessTokenValidator.introspects">
+<code class="sig-name descname"><span class="pre">introspects</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support.html#AccessTokenValidator.introspects"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.AccessTokenValidator.introspects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a decorator that can be used on flask routes to automatically introspect on any
+provided bearer tokens, passing the resulting object into g.introspection_response. If
+the introspection indicates a failed validation, the underlying route will not be called
+at all and an appropriate error response will be sent.</p>
+<dl class="simple">
+<dt>Introspection fails if:</dt><dd><ol class="arabic simple">
+<li><p>Querying the token introspection endpoint fails</p></li>
+<li><p>A token is returned with active: false</p></li>
+<li><p>Scope is specified, and the required scope is not in the token scopes</p></li>
+<li><p>Issued time is in the future</p></li>
+<li><p>Expiry time is in the past</p></li>
+<li><p>Certificate binding is enabled (default) and the fingerprint of the presented client cert
+isn’t a match for the claim in the introspection response</p></li>
+</ol>
+</dd>
+</dl>
+<p>If introspection succeeds, the decorated function is called and the Date and x-fapi-interaction-id headers
+injected into the response before returning.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="ib1.openenergy.support.FAPISession">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.</span></code><code class="sig-name descname"><span class="pre">FAPISession</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requested_scopes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">private_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">certificate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support.html#FAPISession"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.FAPISession" title="Permalink to this definition">¶</a></dt>
+<dd><p>Similar to a requests session, but handles management of a single access token. It acquires the token when required,
+manages token expiry etc. Implicitly uses client-credentials, there’s no user consent or similar involved.</p>
+<p>Can also be used as a requests authenticator</p>
+<dl class="py method">
+<dt id="ib1.openenergy.support.FAPISession.__init__">
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requested_scopes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">private_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">certificate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support.html#FAPISession.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.FAPISession.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a new FAPI session. This doesn’t immediately trigger any requests to the token
+endpoint, these are made when the session is accessed, and only if needed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token_url</strong> – URL to the token endpoint of an authorization server, i.e. for the raidiam UAT sandbox this is
+<a class="reference external" href="https://matls-auth.directory.energydata.org.uk/token">https://matls-auth.directory.energydata.org.uk/token</a></p></li>
+<li><p><strong>requested_scopes</strong> – Scopes requested for this session</p></li>
+<li><p><strong>private_key</strong> – Location of private key used for MTLS</p></li>
+<li><p><strong>certificate</strong> – Location of certificate used for MTLS</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ib1.openenergy.support.FAPISession.clear_token">
+<code class="sig-name descname"><span class="pre">clear_token</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support.html#FAPISession.clear_token"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.FAPISession.clear_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>Explicitly clear the current token, if present. This will force a refresh the next time
+the session is accessed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ib1.openenergy.support.FAPISession.plain_session">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">plain_session</span></code><a class="headerlink" href="#ib1.openenergy.support.FAPISession.plain_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>For convenience, a session configured with the private and public key pair to use TLS but without
+the token management. Use this for calling regular endpoints such as the token introspection one.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ib1.openenergy.support.FAPISession.session">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">session</span></code><a class="headerlink" href="#ib1.openenergy.support.FAPISession.session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a configured requests.Session set up with the necessary bearer token and client
+certificates to make a MTLS request to a secured endpoint. Also assigns a new unique
+x-fapi-interaction-id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="ib1.openenergy.support.build_error_response">
+<code class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.</span></code><code class="sig-name descname"><span class="pre">build_error_response</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">400</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support.html#build_error_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.build_error_response" title="Permalink to this definition">¶</a></dt>
+<dd><p>RFC 6750 has a slightly odd way to complain about invalid tokens! This is used in the token authenticator
+class to build responses for invalid or missing tokens.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>error</strong> – One of ‘invalid request’, ‘invalid token’, or ‘insufficient scope’</p></li>
+<li><p><strong>code</strong> – HTTP status code</p></li>
+<li><p><strong>description</strong> – Description of the error</p></li>
+<li><p><strong>uri</strong> – URL of the page describing the error in detail</p></li>
+<li><p><strong>scope</strong> – Scopes required to access the protected resource</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="ib1.openenergy.support.httpclient_logging_patch">
+<code class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.</span></code><code class="sig-name descname"><span class="pre">httpclient_logging_patch</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support.html#httpclient_logging_patch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.httpclient_logging_patch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable HTTPConnection debug logging to the logging framework</p>
+</dd></dl>
+
+<span class="target" id="module-ib1.openenergy.support.flask_ssl_dev"></span><dl class="py class">
+<dt id="ib1.openenergy.support.flask_ssl_dev.SSLOptions">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.flask_ssl_dev.</span></code><code class="sig-name descname"><span class="pre">SSLOptions</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">server_private_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_certificate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_private_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_certificate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support/flask_ssl_dev.html#SSLOptions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.flask_ssl_dev.SSLOptions" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="ib1.openenergy.support.flask_ssl_dev.SSLOptions.__init__">
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">server_private_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_certificate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_private_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_certificate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3.8/library/constants.html#None" title="(in Python v3.8)"><span class="pre">None</span></a><a class="headerlink" href="#ib1.openenergy.support.flask_ssl_dev.SSLOptions.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="ib1.openenergy.support.flask_ssl_dev.get_command_line_ssl_args">
+<code class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.flask_ssl_dev.</span></code><code class="sig-name descname"><span class="pre">get_command_line_ssl_args</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default_server_private_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./a.key'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_server_certificate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./a.pem'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_client_private_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./b.key'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_client_certificate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./b.pem'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_client_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'CLIENT_ID'</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#ib1.openenergy.support.flask_ssl_dev.SSLOptions" title="ib1.openenergy.support.flask_ssl_dev.SSLOptions"><span class="pre">ib1.openenergy.support.flask_ssl_dev.SSLOptions</span></a><a class="reference internal" href="_modules/ib1/openenergy/support/flask_ssl_dev.html#get_command_line_ssl_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.flask_ssl_dev.get_command_line_ssl_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse command line arguments for SSL file paths and private key password (optional)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>default_server_certificate</strong> – default location for app certificate, ‘./app.crt’. This is the certificate the web server is going to use to
+create an HTTPS endpoint, it is not the one from the directory!</p></li>
+<li><p><strong>default_server_private_key</strong> – default location for app private key, ‘./app.key’. This is the private key of the app certificate, and not the
+one you used when creating the raidiam cert.</p></li>
+<li><p><strong>default_client_certificate</strong> – default location for the client certificate</p></li>
+<li><p><strong>default_client_private_key</strong> – default location for the client private key</p></li>
+<li><p><strong>default_client_id</strong> – default OAuth2 client ID</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>parsed options object</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.8/library/exceptions.html#ValueError" title="(in Python v3.8)"><strong>ValueError</strong></a> – if any files are not specified, or not found</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="ib1.openenergy.support.flask_ssl_dev.run_app">
+<code class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.flask_ssl_dev.</span></code><code class="sig-name descname"><span class="pre">run_app</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_private_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_certificate</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support/flask_ssl_dev.html#run_app"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.flask_ssl_dev.run_app" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the provided app object, parsing command line arguments to get the various SSL parameters
+needed for client cert validation. Checks for existence of SSL related file paths, then runs the supplied
+flask app. This shouldn’t be used in production, but is a quick way to spin up an app with HTTPS and client auth
+enabled. Any routes in the resultant app will have access to a client cert (if present) through
+request.environ[“peercert”].</p>
+<p>In any real case we’d be running flask behind something like nginx, in which case client certificates are handled
+first by the proxy, and then generally pushed through as an additional header. This mechanism wouldn’t work in those
+cases, it really is just for development mode and any access to the client certs should allow for both possible
+mechanisms so that code works in both dev and production contexts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>app</strong> – flask app to run with client certificate support</p></li>
+<li><p><strong>args</strong> – any additional positional arguments to pass to app.run</p></li>
+<li><p><strong>server_private_key</strong> – location of private key file for app SSL</p></li>
+<li><p><strong>server_certificate</strong> – app SSL certificate</p></li>
+<li><p><strong>kwargs</strong> – any keyword arguments to pass to app.run, ssl_context and request_handler are already
+set up by this function</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-ib1.openenergy.support.func"></span><dl class="py function">
+<dt id="ib1.openenergy.support.func.timed_lru_cache">
+<code class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.func.</span></code><code class="sig-name descname"><span class="pre">timed_lru_cache</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seconds</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#int" title="(in Python v3.8)"><span class="pre">int</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxsize</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#int" title="(in Python v3.8)"><span class="pre">int</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support/func.html#timed_lru_cache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.func.timed_lru_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extension of functools lru_cache with a timeout</p>
+<p>See <a class="reference external" href="https://gist.github.com/Morreski/c1d08a3afa4040815eafd3891e16b945">https://gist.github.com/Morreski/c1d08a3afa4040815eafd3891e16b945</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>seconds</strong> – Timeout in seconds to clear the whole cache, default 10 minutes.</p></li>
+<li><p><strong>maxsize</strong> – Maximum size of the cache</p></li>
+<li><p><strong>typed</strong> – Whether to treat the same values of different types as different values</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="glossary.html" class="btn btn-neutral float-right" title="Open Energy Glossary" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="ssl_dev.html" class="btn btn-neutral float-left" title="Local Data Provider Development Mode" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+<p>
+    &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
+    <span class="lastupdated">
+        Last updated on Apr 28, 2021.
+      </span>
+
+</p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+Licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

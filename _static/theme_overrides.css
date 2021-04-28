@@ -1,0 +1,13 @@
+.wy-nav-content {
+    max-width: 1100px;
+}
+.wy-side-nav-search {
+    background-color: #0C3945;
+}
+.wy-nav-top {
+    background: #0C3945;
+}
+
+.wy-side-nav-search>a img.logo {
+    max-width: 50%;
+}
