@@ -221,10 +221,10 @@ optional arguments:
 </pre></div>
 </div>
 <p>You can set defaults for certificate locations and client ID in the call to <a class="reference internal" href="api.html#ib1.openenergy.support.flask_ssl_dev.get_command_line_ssl_args" title="ib1.openenergy.support.flask_ssl_dev.get_command_line_ssl_args"><code class="xref any py py-func docutils literal notranslate"><span class="pre">get_command_line_ssl_args</span></code></a>. This function
-produces a <a class="reference internal" href="api.html#ib1.openenergy.support.flask_ssl_dev.SSLOptions" title="ib1.openenergy.support.flask_ssl_dev.SSLOptions"><code class="xref any py py-class docutils literal notranslate"><span class="pre">SSLOptions</span></code></a> object from which properties can be extracted to actually run your app with <a class="reference internal" href="api.html#ib1.openenergy.support.flask_ssl_dev.run_app" title="ib1.openenergy.support.flask_ssl_dev.run_app"><code class="xref any py py-func docutils literal notranslate"><span class="pre">run_app</span></code></a></p>
+produces a <a class="reference internal" href="api.html#ib1.openenergy.support.flask_ssl_dev.SSLOptions" title="ib1.openenergy.support.flask_ssl_dev.SSLOptions"><code class="xref any py py-class docutils literal notranslate"><span class="pre">SSLOptions</span></code></a> object from which properties can be extracted to run your app with <a class="reference internal" href="api.html#ib1.openenergy.support.flask_ssl_dev.run_app" title="ib1.openenergy.support.flask_ssl_dev.run_app"><code class="xref any py py-func docutils literal notranslate"><span class="pre">run_app</span></code></a></p>
 <p>The example data provider from <a class="reference internal" href="data_provider.html#providing-oe-shared-data"><span class="std std-ref">Providing OE Shared Data</span></a>, repeated below, uses <a class="reference internal" href="api.html#ib1.openenergy.support.flask_ssl_dev.get_command_line_ssl_args" title="ib1.openenergy.support.flask_ssl_dev.get_command_line_ssl_args"><code class="xref any py py-func docutils literal notranslate"><span class="pre">get_command_line_ssl_args</span></code></a> on line 12
 to get locations of certificate files as well as the OAuth2 client ID, these are then passed both to the
-<a class="reference internal" href="api.html#ib1.openenergy.support.AccessTokenValidator" title="ib1.openenergy.support.AccessTokenValidator"><code class="xref any py py-class docutils literal notranslate"><span class="pre">AccessTokenValidator</span></code></a> on line 18 and the call to actually run the app with <a class="reference internal" href="api.html#ib1.openenergy.support.flask_ssl_dev.run_app" title="ib1.openenergy.support.flask_ssl_dev.run_app"><code class="xref any py py-func docutils literal notranslate"><span class="pre">run_app</span></code></a> on line 40.</p>
+<a class="reference internal" href="api.html#ib1.openenergy.support.AccessTokenValidator" title="ib1.openenergy.support.AccessTokenValidator"><code class="xref any py py-class docutils literal notranslate"><span class="pre">AccessTokenValidator</span></code></a> on line 18 and the call to actually run the app with <a class="reference internal" href="api.html#ib1.openenergy.support.flask_ssl_dev.run_app" title="ib1.openenergy.support.flask_ssl_dev.run_app"><code class="xref any py py-func docutils literal notranslate"><span class="pre">run_app</span></code></a> on line 37.</p>
 <div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
 <span class="normal"> 2</span>
 <span class="normal"> 3</span>
@@ -263,10 +263,7 @@ to get locations of certificate files as well as the OAuth2 client ID, these are
 <span class="normal">36</span>
 <span class="normal">37</span>
 <span class="normal">38</span>
-<span class="normal">39</span>
-<span class="normal">40</span>
-<span class="normal">41</span>
-<span class="normal">42</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="normal">39</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
 
 <span class="kn">import</span> <span class="nn">flask</span>
 
@@ -295,10 +292,7 @@ to get locations of certificate files as well as the OAuth2 client ID, these are
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is a very simple route that doesn&#39;t do much, but as it&#39;s decorated with the validator</span>
 <span class="sd">    token introspection endpoint it will trigger inspection of the supplied bearer token via the</span>
-<span class="sd">    directory introspection point, and the resultant object will be passed in to the route.</span>
-
-<span class="sd">    :param introspection_respose:</span>
-<span class="sd">        Introspection result from a supplied bearer token, or None if no token was supplied</span>
+<span class="sd">    directory introspection point, and the resultant object will be passed as flask.g.introspection_response.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;home: received MTLS HTTPS request from </span><span class="si">{</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_addr</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;home: token introspection response is </span><span class="si">{</span><span class="n">flask</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="n">introspection_response</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>

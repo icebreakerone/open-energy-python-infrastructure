@@ -56,11 +56,11 @@ this in your app then calling it with ``myapp.py --help`` will produce output si
                             OAuth2 client ID for calls made from this app
 
 You can set defaults for certificate locations and client ID in the call to `get_command_line_ssl_args`. This function
-produces a `SSLOptions` object from which properties can be extracted to actually run your app with `run_app`
+produces a `SSLOptions` object from which properties can be extracted to run your app with `run_app`
 
 The example data provider from `Providing OE Shared Data`, repeated below, uses `get_command_line_ssl_args` on line 12
 to get locations of certificate files as well as the OAuth2 client ID, these are then passed both to the
-`AccessTokenValidator` on line 18 and the call to actually run the app with `run_app` on line 40.
+`AccessTokenValidator` on line 18 and the call to actually run the app with `run_app` on line 37.
 
 .. literalinclude:: ../../examples/app.py
     :language: python
