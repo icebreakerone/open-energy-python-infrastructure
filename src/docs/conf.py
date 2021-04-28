@@ -50,6 +50,7 @@ html_context = {
     ],
     'copyright_link': copyright_link,
 }
+html_favicon = 'images/favicon.png'
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
