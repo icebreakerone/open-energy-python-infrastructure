@@ -13,7 +13,7 @@ Installing with pip
 
 .. code-block:: bash
 
-    > pip3 install ob1.openenergy.support
+    > pip3 install ib1.openenergy.support
 
 Installing from source
 ----------------------
