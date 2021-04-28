@@ -77,7 +77,7 @@ given piece of data it's requesting within that route.
 .. note::
     This example also includes the necessary extra logic to run locally in dev mode, see
     `Local Data Provider Development Mode` for more details. Normally you wouldn't need the logic on line 12, or the
-    command to run the app on line 40 as you'd be running the `Flask`_ app in a server such as `gunicorn`_ and behind a
+    command to run the app on line 37 as you'd be running the `Flask`_ app in a server such as `gunicorn`_ and behind a
     front-end system like `NGINX`_.
 
 .. _Financial Grade API: https://openid.net/wg/fapi/

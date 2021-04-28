@@ -27,10 +27,7 @@ def homepage():
     """
     This is a very simple route that doesn't do much, but as it's decorated with the validator
     token introspection endpoint it will trigger inspection of the supplied bearer token via the
-    directory introspection point, and the resultant object will be passed in to the route.
-
-    :param introspection_respose:
-        Introspection result from a supplied bearer token, or None if no token was supplied
+    directory introspection point, and the resultant object will be passed as flask.g.introspection_response.
     """
     LOG.info(f'home: received MTLS HTTPS request from {flask.request.remote_addr}')
     LOG.info(f'home: token introspection response is {flask.g.introspection_response}')
