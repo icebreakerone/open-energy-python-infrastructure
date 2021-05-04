@@ -17,6 +17,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../../_static/favicon.png"/>
+  
 
   
   
@@ -179,8 +181,7 @@
 <span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">from</span> <span class="nn">cryptography.hazmat.primitives</span> <span class="kn">import</span> <span class="n">hashes</span>
 <span class="kn">from</span> <span class="nn">requests.auth</span> <span class="kn">import</span> <span class="n">AuthBase</span>
-
-<span class="kn">from</span> <span class="nn">ib1.openenergy.support.func</span> <span class="kn">import</span> <span class="n">timed_lru_cache</span>
+<span class="kn">from</span> <span class="nn">cachetools</span> <span class="kn">import</span> <span class="n">cached</span><span class="p">,</span> <span class="n">TTLCache</span>
 
 <span class="n">LOG</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ib1.oe.support&#39;</span><span class="p">)</span>
 
@@ -396,7 +397,7 @@
                 <span class="s1">&#39;using dev ssl cert extractor, if not running in local dev mode this is an error&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cert_parser</span> <span class="o">=</span> <span class="n">client_cert_parser</span> <span class="ow">or</span> <span class="n">dev_cert_parser</span></div>
 
-<div class="viewcode-block" id="AccessTokenValidator.inspect_token"><a class="viewcode-back" href="../../../api.html#ib1.openenergy.support.AccessTokenValidator.inspect_token">[docs]</a>    <span class="nd">@timed_lru_cache</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+<div class="viewcode-block" id="AccessTokenValidator.inspect_token"><a class="viewcode-back" href="../../../api.html#ib1.openenergy.support.AccessTokenValidator.inspect_token">[docs]</a>    <span class="nd">@cached</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="n">TTLCache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span> <span class="n">ttl</span><span class="o">=</span><span class="mi">60</span><span class="p">))</span>
     <span class="k">def</span> <span class="nf">inspect_token</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Send an access token to the introspection endpoint, returning the introspection response</span>
@@ -466,12 +467,12 @@
                 <span class="c1"># All valid introspection responses contain &#39;active&#39;, as the default behaviour</span>
                 <span class="c1"># for an invalid token is to create a simple JSON {&#39;active&#39;:false} response</span>
                 <span class="k">if</span> <span class="s1">&#39;active&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">i_response</span><span class="p">:</span>
-                    <span class="n">AccessTokenValidator</span><span class="o">.</span><span class="n">LOG</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;invalid introspection response, does not contain &quot;valid&quot;&#39;</span><span class="p">)</span>
+                    <span class="n">AccessTokenValidator</span><span class="o">.</span><span class="n">LOG</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;invalid introspection response, does not contain </span><span class="se">\&#39;</span><span class="s1">active</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">)</span>
                     <span class="k">return</span> <span class="n">build_error_response</span><span class="p">(</span><span class="n">error</span><span class="o">=</span><span class="s1">&#39;invalid_request&#39;</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="n">scope</span><span class="p">)</span>
 
                 <span class="c1"># The response should specify that the token is active</span>
                 <span class="k">if</span> <span class="n">i_response</span><span class="p">[</span><span class="s1">&#39;active&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">True</span><span class="p">:</span>
-                    <span class="n">AccessTokenValidator</span><span class="o">.</span><span class="n">LOG</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;token introspection failed, token is not valid&#39;</span><span class="p">)</span>
+                    <span class="n">AccessTokenValidator</span><span class="o">.</span><span class="n">LOG</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;token introspection failed, token is not active&#39;</span><span class="p">)</span>
                     <span class="k">return</span> <span class="n">build_error_response</span><span class="p">(</span><span class="n">error</span><span class="o">=</span><span class="s1">&#39;invalid_token&#39;</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="mi">401</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="n">scope</span><span class="p">)</span>
 
                 <span class="c1"># Check token issued and expiry times. This is necessary because we cache the token introspection</span>
@@ -496,7 +497,7 @@
 
                     <span class="nb">hash</span> <span class="o">=</span> <span class="n">hashes</span><span class="o">.</span><span class="n">SHA256</span><span class="p">()</span>
                     <span class="n">fingerprint</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">urlsafe_b64encode</span><span class="p">(</span><span class="n">cert</span><span class="o">.</span><span class="n">fingerprint</span><span class="p">(</span><span class="nb">hash</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;=&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="nb">hash</span><span class="p">,</span> <span class="n">cert</span><span class="o">.</span><span class="n">fingerprint</span><span class="p">(</span><span class="nb">hash</span><span class="p">))</span>
+                    <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;using algo </span><span class="si">{</span><span class="nb">hash</span><span class="si">}</span><span class="s1">, thumbprint is </span><span class="si">{</span><span class="n">cert</span><span class="o">.</span><span class="n">fingerprint</span><span class="p">(</span><span class="nb">hash</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
                     <span class="c1"># TODO - there&#39;s something not right about this, we&#39;re getting mismatches with the directory</span>
 
                     <span class="n">AccessTokenValidator</span><span class="o">.</span><span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -555,7 +556,7 @@
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on Apr 28, 2021.
+        Last updated on May 04, 2021.
       </span>
 
 </p>

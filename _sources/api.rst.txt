@@ -8,6 +8,3 @@ Python docs and source for this package
 
 .. automodule:: ib1.openenergy.support.flask_ssl_dev
     :members:
-
-.. automodule:: ib1.openenergy.support.func
-    :members:
