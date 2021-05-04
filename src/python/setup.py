@@ -14,7 +14,7 @@ setup(
                  'Topic :: Security',
                  'Topic :: Scientific/Engineering'],
     packages=find_namespace_packages(),
-    install_requires=['requests', 'flask', 'pyopenssl'],
+    install_requires=['requests', 'flask', 'cachetools', 'cryptography'],
     entry_points={
         'console_scripts': []
     }

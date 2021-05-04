@@ -11,8 +11,7 @@ import flask
 import requests
 from cryptography.hazmat.primitives import hashes
 from requests.auth import AuthBase
-
-from ib1.openenergy.support.func import timed_lru_cache
+from cachetools import cached, TTLCache
 
 LOG = logging.getLogger('ib1.oe.support')
 
@@ -228,7 +227,7 @@ class AccessTokenValidator:
                 'using dev ssl cert extractor, if not running in local dev mode this is an error')
         self._cert_parser = client_cert_parser or dev_cert_parser
 
-    @timed_lru_cache(seconds=60)
+    @cached(cache=TTLCache(maxsize=1024, ttl=60))
     def inspect_token(self, token: str) -> Dict:
         """
         Send an access token to the introspection endpoint, returning the introspection response
@@ -298,12 +297,12 @@ class AccessTokenValidator:
                 # All valid introspection responses contain 'active', as the default behaviour
                 # for an invalid token is to create a simple JSON {'active':false} response
                 if 'active' not in i_response:
-                    AccessTokenValidator.LOG.warning(f'invalid introspection response, does not contain "valid"')
+                    AccessTokenValidator.LOG.warning(f'invalid introspection response, does not contain \'active\'')
                     return build_error_response(error='invalid_request', code=400, scope=scope)
 
                 # The response should specify that the token is active
                 if i_response['active'] is not True:
-                    AccessTokenValidator.LOG.warning(f'token introspection failed, token is not valid')
+                    AccessTokenValidator.LOG.warning(f'token introspection failed, token is not active')
                     return build_error_response(error='invalid_token', code=401, scope=scope)
 
                 # Check token issued and expiry times. This is necessary because we cache the token introspection
@@ -328,7 +327,7 @@ class AccessTokenValidator:
 
                     hash = hashes.SHA256()
                     fingerprint = base64.urlsafe_b64encode(cert.fingerprint(hash)).replace(b'=', b'')
-                    print(hash, cert.fingerprint(hash))
+                    LOG.info(f'using algo {hash}, thumbprint is {cert.fingerprint(hash)}')
                     # TODO - there's something not right about this, we're getting mismatches with the directory
 
                     AccessTokenValidator.LOG.info(
