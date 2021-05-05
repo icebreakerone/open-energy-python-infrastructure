@@ -176,7 +176,8 @@ class AccessTokenValidator:
 
     LOG = logging.getLogger('ib1.oe.support.validator')
 
-    def __init__(self, introspection_url: str, client_id: str, private_key: str, certificate: str,
+    def __init__(self, client_id: str, private_key: str, certificate: str,
+                 introspection_url: str = 'https://matls-auth.directory.energydata.org.uk/token/introspection',
                  client_cert_parser=None, require_certificate_binding=True):
         """
         Create a new access token validator. In this context the data provider attempting to validate an access token
@@ -184,14 +185,15 @@ class AccessTokenValidator:
         data provider and not the client requesting data from it. These are not the transport keys, they're the ones
         issued by the directory.
 
-        :param introspection_url:
-            URL of the oauth2 introspection endpoint
         :param client_id:
             OAuth client ID of the data provider, used to authenticate with the introspection endpoint
         :param private_key:
             Location of the private key of the data provider, used in the client auth for the introspection endpoint
         :param certificate:
             Location of the public key of the data provider, used in the client auth for the introspection endpoint
+        :param introspection_url:
+            URL of the oauth2 introspection endpoint. Defaults to
+            https://matls-auth.directory.energydata.org.uk/token/introspection to use our UAT instance of the directory
         :param client_cert_parser:
             A zero argument function which returns an X509 object for the active client certificate, or none if no
             certificate is present. Defaults to a simple implementation that pulls the cert out of the flask environment
