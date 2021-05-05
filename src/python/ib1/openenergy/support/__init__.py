@@ -343,7 +343,7 @@ class AccessTokenValidator:
                 # If we required a particular scope, check that it's in the list of scopes
                 # defined for this token. Scope comparison is case insensitive
                 if scope:
-                    token_scopes = i_response['scope'].lower().split(' ')
+                    token_scopes = i_response['scope'].lower().split(' ') if 'scope' in i_response else []
                     AccessTokenValidator.LOG.info(f'found scopes in token {token_scopes}')
                     if scope.lower() not in token_scopes:
                         AccessTokenValidator.LOG.warning(f'scope \'{scope}\' not in token scopes {token_scopes}')
