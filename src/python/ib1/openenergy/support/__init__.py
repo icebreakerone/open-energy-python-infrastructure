@@ -178,7 +178,7 @@ class AccessTokenValidator:
 
     def __init__(self, client_id: str, private_key: str, certificate: str,
                  introspection_url: str = 'https://matls-auth.directory.energydata.org.uk/token/introspection',
-                 client_cert_parser=None, require_certificate_binding=True):
+                 client_cert_parser=None):
         """
         Create a new access token validator. In this context the data provider attempting to validate an access token
         is acting as a client to the directory's API, so client_id, private_key and certificate are those of the
@@ -199,19 +199,11 @@ class AccessTokenValidator:
             certificate is present. Defaults to a simple implementation that pulls the cert out of the flask environment
             as provided by the local dev mode runner in flask_ssl_dev.py, but should be replaced when running in
             production mode behind e.g. nginx
-        :param require_certificate_binding:
-            Defaults to true (and is required to be true for FAPI!), this can be set to false for testing in cases
-            where the authz server is not providing the CNF claims in its token introspection response. If set to
-            false, no certificate to token binding check is performed.
         """
         self.session = requests.Session()
         self.session.cert = certificate, private_key
         self.introspection_url = introspection_url
         self.client_id = client_id
-        self.require_certificate_binding = require_certificate_binding
-        if not require_certificate_binding:
-            AccessTokenValidator.LOG.warning(
-                'certificate to token binding is not enabled, do not use this in a production context!')
 
         def dev_cert_parser():
             """
@@ -281,20 +273,23 @@ class AccessTokenValidator:
             # Deny access to non-MTLS connections
             cert = self._cert_parser()
             if cert is None:
-                AccessTokenValidator.LOG.info('no client cert presented')
+                AccessTokenValidator.LOG.warning('no client cert presented')
                 return build_error_response(code=401)
 
             # Require authorization header with bearer token
             if 'Authorization' in flask.request.headers:
                 token_header = flask.request.headers.get('Authorization')
+
                 # Check that this is a bearer token header
                 if token_header.lower()[:7] != 'bearer ':
                     AccessTokenValidator.LOG.info('Authorization header does not contain a bearer token')
                     return build_error_response(code=401)
+
                 # Extract the actual token
                 token = token_header[7:]
-                AccessTokenValidator.LOG.debug(f'token was {token}')
+                AccessTokenValidator.LOG.debug(f'found bearer token {token}')
                 i_response = self.inspect_token(token=token)
+                AccessTokenValidator.LOG.debug(f'introspection response {i_response}')
 
                 # All valid introspection responses contain 'active', as the default behaviour
                 # for an invalid token is to create a simple JSON {'active':false} response
@@ -324,29 +319,28 @@ class AccessTokenValidator:
 
                 # If the token response contains a certificate binding then check it against the
                 # current client cert. See https://tools.ietf.org/html/rfc8705
-                if 'cnf' in i_response and self.require_certificate_binding:
+                if 'cnf' in i_response:
+                    # thumbprint from introspection response
                     sha256 = i_response['cnf']['x5t#S256']
-
-                    hash = hashes.SHA256()
-                    fingerprint = base64.urlsafe_b64encode(cert.fingerprint(hash)).replace(b'=', b'')
-                    LOG.info(f'using algo {hash}, thumbprint is {cert.fingerprint(hash)}')
-                    # TODO - there's something not right about this, we're getting mismatches with the directory
-
-                    AccessTokenValidator.LOG.info(
-                        f'token introspection response contains certificate thumbprint {sha256}')
-
-                    AccessTokenValidator.LOG.info(
-                        f'client cert presented has thumbprint {fingerprint}')
-                else:
-                    if self.require_certificate_binding:
-                        AccessTokenValidator.LOG.error('No cnf claim in token response, unable to proceed!')
+                    # thumbprint from presented client certificate
+                    fingerprint = str(base64.urlsafe_b64encode(cert.fingerprint(hashes.SHA256())).replace(b'=', b''),
+                                      'utf-8')
+                    if fingerprint != sha256:
+                        # Mismatch, complain vigorously
+                        AccessTokenValidator.LOG.warning(
+                            f'introspection response thumbprint {sha256} does not match '
+                            f'presented client cert thumbprint {fingerprint}')
                         return build_error_response(error='invalid_token', code=401, scope=scope)
+                else:
+                    # No CNF claim in the introspection response
+                    AccessTokenValidator.LOG.warning('No cnf claim in token response, unable to proceed!')
+                    return build_error_response(error='invalid_token', code=401, scope=scope)
 
                 # If we required a particular scope, check that it's in the list of scopes
                 # defined for this token. Scope comparison is case insensitive
                 if scope:
                     token_scopes = i_response['scope'].lower().split(' ') if 'scope' in i_response else []
-                    AccessTokenValidator.LOG.info(f'found scopes in token {token_scopes}')
+                    AccessTokenValidator.LOG.debug(f'found scopes in token {token_scopes}')
                     if scope.lower() not in token_scopes:
                         AccessTokenValidator.LOG.warning(f'scope \'{scope}\' not in token scopes {token_scopes}')
                         return build_error_response(error='insufficient_scope', code=403, scope=scope)
@@ -364,14 +358,16 @@ class AccessTokenValidator:
                 if 'x-fapi-interaction-id' in flask.request.headers:
                     fii = flask.request.headers['x-fapi-interaction-id']
                     response.headers['x-fapi-interaction-id'] = fii
-                    AccessTokenValidator.LOG.info(f'using existing interaction ID = {fii}')
+                    AccessTokenValidator.LOG.debug(f'using existing interaction ID = {fii}')
                 else:
-                    response.headers['x-fapi-interaction-id'] = str(uuid.uuid4())
+                    fii = str(uuid.uuid4())
+                    AccessTokenValidator.LOG.debug(f'issuing new interaction ID = {fii}')
+                    response.headers['x-fapi-interaction-id'] = fii
 
                 return response
             else:
                 # No authentication provided
-                AccessTokenValidator.LOG.info('no token presented')
+                AccessTokenValidator.LOG.warning('no token presented')
                 return build_error_response(code=401)
 
         return decorated_function

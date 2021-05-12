@@ -9,9 +9,9 @@ author = u'Tom Oinn'
 # built documents.
 #
 # The short X.Y version.
-version = '0.0.1'
+version = '0.1.0'
 # The full version, including alpha/beta/rc tags.
-release = '0.0.1'
+release = version
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
