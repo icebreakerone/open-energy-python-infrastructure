@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Python API : ib1.openenergy.support &mdash; Open Energy Infrastructure Support 0.0.1 documentation</title>
+  <title>Python API : ib1.openenergy.support &mdash; Open Energy Infrastructure Support 0.1.0 documentation</title>
   
 
   
@@ -40,7 +40,7 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.0.1 documentation"
+          title="Search within Open Energy Infrastructure Support 0.1.0 documentation"
           href="_static/opensearch.xml"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -72,7 +72,7 @@
             
             
               <div class="version">
-                0.0.1
+                0.1.0
               </div>
             
           
@@ -174,14 +174,14 @@
 <p>Python docs and source for this package</p>
 <span class="target" id="module-ib1.openenergy.support"></span><dl class="py class">
 <dt id="ib1.openenergy.support.AccessTokenValidator">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.</span></code><code class="sig-name descname"><span class="pre">AccessTokenValidator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">introspection_url</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">private_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">certificate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_cert_parser</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_certificate_binding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support.html#AccessTokenValidator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.AccessTokenValidator" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.</span></code><code class="sig-name descname"><span class="pre">AccessTokenValidator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">private_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">certificate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">introspection_url</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'https://matls-auth.directory.energydata.org.uk/token/introspection'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_cert_parser</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support.html#AccessTokenValidator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.AccessTokenValidator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform checks on a presented bearer token as defined in section 6.2.1 here
 <a class="reference external" href="https://openid.net/specs/openid-financial-api-part-1-1_0-final.html#accessing-protected-resources">https://openid.net/specs/openid-financial-api-part-1-1_0-final.html#accessing-protected-resources</a></p>
 <p>Uses <a class="reference external" href="https://tools.ietf.org/html/rfc7662">https://tools.ietf.org/html/rfc7662</a> - OAuth 2.0 Token Introspection to check a supplied bearer token
 against an introspection endpoint for part 6.2.1.13</p>
 <dl class="py method">
 <dt id="ib1.openenergy.support.AccessTokenValidator.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">introspection_url</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">private_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">certificate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_cert_parser</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_certificate_binding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support.html#AccessTokenValidator.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.AccessTokenValidator.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">private_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">certificate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">introspection_url</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'https://matls-auth.directory.energydata.org.uk/token/introspection'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_cert_parser</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support.html#AccessTokenValidator.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.AccessTokenValidator.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a new access token validator. In this context the data provider attempting to validate an access token
 is acting as a client to the directory’s API, so client_id, private_key and certificate are those of the
 data provider and not the client requesting data from it. These are not the transport keys, they’re the ones
@@ -189,17 +189,15 @@ issued by the directory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>introspection_url</strong> – URL of the oauth2 introspection endpoint</p></li>
 <li><p><strong>client_id</strong> – OAuth client ID of the data provider, used to authenticate with the introspection endpoint</p></li>
 <li><p><strong>private_key</strong> – Location of the private key of the data provider, used in the client auth for the introspection endpoint</p></li>
 <li><p><strong>certificate</strong> – Location of the public key of the data provider, used in the client auth for the introspection endpoint</p></li>
+<li><p><strong>introspection_url</strong> – URL of the oauth2 introspection endpoint. Defaults to
+<a class="reference external" href="https://matls-auth.directory.energydata.org.uk/token/introspection">https://matls-auth.directory.energydata.org.uk/token/introspection</a> to use our UAT instance of the directory</p></li>
 <li><p><strong>client_cert_parser</strong> – A zero argument function which returns an X509 object for the active client certificate, or none if no
 certificate is present. Defaults to a simple implementation that pulls the cert out of the flask environment
 as provided by the local dev mode runner in flask_ssl_dev.py, but should be replaced when running in
 production mode behind e.g. nginx</p></li>
-<li><p><strong>require_certificate_binding</strong> – Defaults to true (and is required to be true for FAPI!), this can be set to false for testing in cases
-where the authz server is not providing the CNF claims in its token introspection response. If set to
-false, no certificate to token binding check is performed.</p></li>
 </ul>
 </dd>
 </dl>
@@ -396,7 +394,7 @@ set up by this function</p></li>
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on May 04, 2021.
+        Last updated on May 12, 2021.
       </span>
 
 </p>

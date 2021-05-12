@@ -7,10 +7,6 @@ is strongly recommended.
 Installing with pip
 -------------------
 
-.. note::
-    This library is still alpha, and has not yet been pushed to PyPI. If you need to use it in its current form please
-    install from source as described below.
-
 .. code-block:: bash
 
     > pip3 install ib1.openenergy.support
