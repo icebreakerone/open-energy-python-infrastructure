@@ -5,13 +5,16 @@ import logging
 import uuid
 from functools import wraps, partial
 from time import time, strftime, gmtime
-from typing import Dict
+from typing import Dict, List, Type, TypeVar
+from urllib.parse import quote_plus
+from datetime import datetime
 
 import flask
 import requests
+from cachetools import cached, TTLCache
 from cryptography.hazmat.primitives import hashes
 from requests.auth import AuthBase
-from cachetools import cached, TTLCache
+import ib1.openenergy.support.raidiam as raidiam
 
 LOG = logging.getLogger('ib1.oe.support')
 
@@ -371,3 +374,92 @@ class AccessTokenValidator:
                 return build_error_response(code=401)
 
         return decorated_function
+
+
+D = TypeVar('D', bound=object)
+
+
+def build(d: Dict, cls: Type[D]) -> D:
+    """
+    Build a dataclass from a dict, massaging CamelCase form into the more normal pythonic_representation, then
+    filtering by properties available to the dataclass constructor before using the filtered set to create a
+    new instance of the dataclass. Handles entries which are typed to other dataclasses recursively including
+    List[OtherDataClass] types.
+
+    :param d:
+        Dict containing properties to pass to constructor
+    :param cls:
+        Class, typically a dataclass, to receive properties. Should be the class of the root object.
+    :return:
+        Instance of cls configured from the supplied dict
+    """
+
+    def is_data_class(cls: Type[D]):
+        return '__dataclass_fields__' in vars(cls)
+
+    def camelcase_to_python(s: str):
+        """
+        Convert camelcase name to python convention for function and property names
+        """
+        result = ''
+        for c in s:
+            if c.isupper() and result:
+                result += '_'
+            result += c
+        return result.lower()
+
+    def map_field(name, value):
+        """
+        Handle recursion and collection types, including handling of generic List and similar typing
+        """
+        field = cls.__dataclass_fields__[name]
+        field_type = field.type
+        # If this is a generic type like List[Organisation] or similar, pull out
+        # the underlying real type
+        if '__origin__' in vars(field_type) and field_type._name == 'List':
+            field_type = field.type.__args__[0]
+        if field_type == datetime:
+            # Handle dates, with the format the directory uses
+            value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S.%fZ')
+        # Handle nested (potential collections of) data classes
+        if is_data_class(field_type):
+            if isinstance(value, dict):
+                return build(value, field_type)
+            elif isinstance(value, list):
+                return list([build(item, field_type) for item in value])
+        # Or just return raw, with date processing applied
+        return value
+
+    known_fields = list(cls.__dataclass_fields__.keys())
+    return cls(**{name: map_field(name, d[key])
+                  for key in d
+                  if (name := camelcase_to_python(key)) in known_fields})
+
+
+class RaidiamDirectory:
+    """
+    Encapsulates access to the Raidiam Directory, currently just the read API. Parses responses and builds the
+    appropriate dataclasses from the `ib1.openenergy.support.raidiam` module.
+    """
+
+    def __init__(self, fapi: FAPISession, base_url: str = 'https://matls-dirapi.directory.energydata.org.uk/'):
+        self.fapi = fapi
+        self.base_url = base_url
+
+    def organisations(self) -> List[raidiam.Organisation]:
+        """
+        Get all `Organisation` entities within the directory
+        """
+        response = self.fapi.session.get(f'{self.base_url}organisations').json()['content']
+        return [build(org, raidiam.Organisation) for org in response]
+
+    def authorisation_servers(self, org_id: str) -> List[raidiam.AuthorisationServer]:
+        response = self.fapi.session.get(f'{self.base_url}organisations/{quote_plus(org_id)}/authorisationservers')
+        if response.status_code != 200:
+            try:
+                response.raise_for_status()
+            except Exception as e:
+                logging.error(e)
+                return []
+        else:
+            return [build(server, raidiam.AuthorisationServer) for server in response.json()]
