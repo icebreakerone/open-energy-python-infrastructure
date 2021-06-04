@@ -32,6 +32,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -102,7 +103,6 @@
 <li class="toctree-l1"><a class="reference internal" href="data_provider.html">Providing OE Shared Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ssl_dev.html">Local Data Provider Development Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Python API : ib1.openenergy.support</a></li>
-<li class="toctree-l1"><a class="reference internal" href="glossary.html">Open Energy Glossary</a></li>
 </ul>
 
             
@@ -171,8 +171,8 @@
   <div class="section" id="open-energy-infrastructure-support">
 <h1>Open Energy Infrastructure Support<a class="headerlink" href="#open-energy-infrastructure-support" title="Permalink to this headline">¶</a></h1>
 <p>This library contains Python 3.8 functions and classes you can use when building <a class="reference external" href="https://energydata.org.uk/">Open Energy</a> Data and Service
-Providers (<a class="reference internal" href="glossary.html#term-Data-Provider"><span class="xref std std-term">DP</span></a> &amp; <a class="reference internal" href="glossary.html#term-Energy-Data-Service-Provider"><span class="xref std std-term">SP</span></a>). See <a class="reference external" href="https://github.com/icebreakerone/open-energy-python-infrastructure">github</a> for source code.</p>
-<p>Interacting with the <a class="reference internal" href="glossary.html#term-Open-Energy-Phase-3"><span class="xref std std-term">OE3</span></a> <a class="reference internal" href="glossary.html#term-Authorization"><span class="xref std std-term">authorization</span></a> and <a class="reference internal" href="glossary.html#term-Authentication"><span class="xref std std-term">authentication</span></a> services as either a consumer or provider of
+Providers (<a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Data-Provider" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">DP</span></a> &amp; <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Service-Provider" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">SP</span></a>). See <a class="reference external" href="https://github.com/icebreakerone/open-energy-python-infrastructure">github</a> for source code.</p>
+<p>Interacting with the <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Open-Energy-Phase-3" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">OE3</span></a> <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Authorization" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">authorization</span></a> and <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Authentication" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">authentication</span></a> services as either a consumer or provider of
 information has some degree of complexity - this library exists to handle these concerns, leaving you to write the
 business logic without having to manage the details of token management etc.</p>
 <p>Code in this library is licensed under the <a class="reference external" href="https://opensource.org/licenses/MIT">MIT license</a> . Documentation
@@ -204,8 +204,12 @@ business logic without having to manage the details of token management etc.</p>
 <li class="toctree-l2"><a class="reference internal" href="ssl_dev.html#running-in-dev-mode">Running in dev mode</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="api.html">Python API : ib1.openenergy.support</a></li>
-<li class="toctree-l1"><a class="reference internal" href="glossary.html">Open Energy Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Python API : ib1.openenergy.support</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-ib1.openenergy.support">External APIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-ib1.openenergy.support.flask_ssl_dev">SSL Development APIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#internal-apis">Internal APIs</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -214,7 +218,7 @@ business logic without having to manage the details of token management etc.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>For definitive information about the Open Energy project, please visit us at <a class="reference external" href="https://energydata.org.uk/">https://energydata.org.uk/</a> - the
-information presented here is specific to the functions of this library and will not explain the wider <a class="reference internal" href="glossary.html#term-Open-Energy-Phase-3"><span class="xref std std-term">OE3</span></a>
+information presented here is specific to the functions of this library and will not explain the wider <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Open-Energy-Phase-3" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">OE3</span></a>
 ecosystem.</p>
 </div>
 <div class="figure align-default" id="map-image">
@@ -225,8 +229,8 @@ ecosystem.</p>
 <p><a class="reference internal" href="#map-image"><span class="std std-numref">Fig. 1</span></a> above shows the entire Open Energy ecosystem. This library is limited in scope to two elements of
 the overall architecture:</p>
 <ol class="arabic simple">
-<li><p>The <em>Shared Data API Client</em> held within the <em>Service Provider</em> (<a class="reference internal" href="glossary.html#term-Energy-Data-Service-Provider"><span class="xref std std-term">SP</span></a>)</p></li>
-<li><p>The <em>Shared Data API</em> held within the <em>Data Provider</em> (<a class="reference internal" href="glossary.html#term-Data-Provider"><span class="xref std std-term">DP</span></a>)</p></li>
+<li><p>The <em>Shared Data API Client</em> held within the <em>Service Provider</em> (<a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Service-Provider" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">SP</span></a>)</p></li>
+<li><p>The <em>Shared Data API</em> held within the <em>Data Provider</em> (<a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Data-Provider" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">DP</span></a>)</p></li>
 </ol>
 <p>Depending on your role in the system, you may need to implement either or both of these in your code.</p>
 <p>If you are building an internal or customer facing tool to access, present, or analyse, shared energy data, you would
@@ -235,9 +239,9 @@ need to access secure data APIs through the first of these. See <a class="refere
 will need to implement an appropriately secured shared data API. See <a class="reference internal" href="data_provider.html#providing-oe-shared-data"><span class="std std-ref">Providing OE Shared Data</span></a></p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>As an aside, it is entirely possible that you are building a system which will act both as a <a class="reference internal" href="glossary.html#term-Energy-Data-Service-Provider"><span class="xref std std-term">SP</span></a> and as a <a class="reference internal" href="glossary.html#term-Data-Provider"><span class="xref std std-term">DP</span></a>, for
+<p>As an aside, it is entirely possible that you are building a system which will act both as a <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Service-Provider" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">SP</span></a> and as a <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Data-Provider" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">DP</span></a>, for
 example a system which aggregates information from multiple data sources and then publishes that processed data set
-as a <a class="reference internal" href="glossary.html#term-Data-Provider"><span class="xref std std-term">DP</span></a> in its own right.</p>
+as a <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Data-Provider" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">DP</span></a> in its own right.</p>
 </div>
 </div>
 </div>
@@ -258,7 +262,7 @@ as a <a class="reference internal" href="glossary.html#term-Data-Provider"><span
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on May 12, 2021.
+        Last updated on Jun 04, 2021.
       </span>
 
 </p>

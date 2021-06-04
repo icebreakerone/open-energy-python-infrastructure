@@ -32,6 +32,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -108,7 +109,6 @@
 <li class="toctree-l1"><a class="reference internal" href="data_provider.html">Providing OE Shared Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ssl_dev.html">Local Data Provider Development Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Python API : ib1.openenergy.support</a></li>
-<li class="toctree-l1"><a class="reference internal" href="glossary.html">Open Energy Glossary</a></li>
 </ul>
 
             
@@ -197,7 +197,7 @@ behaves identically to installing with either <code class="docutils literal notr
 </div>
 <div class="section" id="adding-oe3-root-certificates">
 <h2>Adding OE3 root certificates<a class="headerlink" href="#adding-oe3-root-certificates" title="Permalink to this headline">¶</a></h2>
-<p>The certificates used to mutually authenticate between data and service providers within <a class="reference internal" href="glossary.html#term-Open-Energy-Phase-3"><span class="xref std std-term">OE3</span></a> are signed by our
+<p>The certificates used to mutually authenticate between data and service providers within <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Open-Energy-Phase-3" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">OE3</span></a> are signed by our
 authorization server. In order to validate correctly, you need to add the root and intermediate signing certificates
 to the <code class="docutils literal notranslate"><span class="pre">certifi</span></code> CA file used by Python (Python does not use the operating system CA store).</p>
 <p>Once <code class="docutils literal notranslate"><span class="pre">certifi</span></code> is installed (it will be pulled in as a dependency when you install this library) you can do the
@@ -238,7 +238,7 @@ know you’re always starting from a clean, unmodified, CA file:</p>
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on May 12, 2021.
+        Last updated on Jun 04, 2021.
       </span>
 
 </p>

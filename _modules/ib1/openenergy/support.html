@@ -32,6 +32,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
@@ -101,7 +102,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../data_provider.html">Providing OE Shared Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ssl_dev.html">Local Data Provider Development Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api.html">Python API : ib1.openenergy.support</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../glossary.html">Open Energy Glossary</a></li>
 </ul>
 
             
@@ -175,13 +175,16 @@
 <span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span><span class="p">,</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span><span class="p">,</span> <span class="n">strftime</span><span class="p">,</span> <span class="n">gmtime</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">TypeVar</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">quote_plus</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 
 <span class="kn">import</span> <span class="nn">flask</span>
 <span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">cachetools</span> <span class="kn">import</span> <span class="n">cached</span><span class="p">,</span> <span class="n">TTLCache</span>
 <span class="kn">from</span> <span class="nn">cryptography.hazmat.primitives</span> <span class="kn">import</span> <span class="n">hashes</span>
 <span class="kn">from</span> <span class="nn">requests.auth</span> <span class="kn">import</span> <span class="n">AuthBase</span>
-<span class="kn">from</span> <span class="nn">cachetools</span> <span class="kn">import</span> <span class="n">cached</span><span class="p">,</span> <span class="n">TTLCache</span>
+<span class="kn">import</span> <span class="nn">ib1.openenergy.support.raidiam</span> <span class="k">as</span> <span class="nn">raidiam</span>
 
 <span class="n">LOG</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ib1.oe.support&#39;</span><span class="p">)</span>
 
@@ -541,6 +544,98 @@
                 <span class="k">return</span> <span class="n">build_error_response</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="mi">401</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">decorated_function</span></div></div>
+
+
+<span class="n">D</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="build"><a class="viewcode-back" href="../../../api.html#ib1.openenergy.support.build">[docs]</a><span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">D</span><span class="p">],</span> <span class="n">date_format_string</span><span class="o">=</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">T%H:%M:%S.</span><span class="si">%f</span><span class="s1">Z&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">D</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build a dataclass from a dict, massaging CamelCase form into the more normal pythonic_representation, then</span>
+<span class="sd">    filtering by properties available to the dataclass constructor before using the filtered set to create a</span>
+<span class="sd">    new instance of the dataclass. Handles entries which are typed to other dataclasses recursively including</span>
+<span class="sd">    List[OtherDataClass] types.</span>
+
+<span class="sd">    :param d:</span>
+<span class="sd">        Dict containing properties to pass to constructor</span>
+<span class="sd">    :param cls:</span>
+<span class="sd">        Class, typically a dataclass, to receive properties. Should be the class of the root object.</span>
+<span class="sd">    :param data_format_string:</span>
+<span class="sd">        Format string to use when parsing dates into datetime objects, defaults to the one we&#39;re seeing in the</span>
+<span class="sd">        Raidiam directory, i.e. &quot;%Y-%m-%dT%H:%M:%S.%fZ&quot;</span>
+<span class="sd">    :return:</span>
+<span class="sd">        Instance of cls configured from the supplied dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">is_data_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">D</span><span class="p">]):</span>
+        <span class="k">return</span> <span class="s1">&#39;__dataclass_fields__&#39;</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">camelcase_to_python</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert camelcase name to python convention for function and property names</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">isupper</span><span class="p">()</span> <span class="ow">and</span> <span class="n">result</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">+=</span> <span class="s1">&#39;_&#39;</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="n">c</span>
+        <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">map_field</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handle recursion and collection types, including handling of generic List and similar typing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">field</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__dataclass_fields__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="n">field_type</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">type</span>
+        <span class="c1"># If this is a generic type like List[Organisation] or similar, pull out</span>
+        <span class="c1"># the underlying real type</span>
+        <span class="k">if</span> <span class="s1">&#39;__origin__&#39;</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">field_type</span><span class="p">)</span> <span class="ow">and</span> <span class="n">field_type</span><span class="o">.</span><span class="n">_name</span> <span class="o">==</span> <span class="s1">&#39;List&#39;</span><span class="p">:</span>
+            <span class="n">field_type</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">__args__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">field_type</span> <span class="o">==</span> <span class="n">datetime</span><span class="p">:</span>
+            <span class="c1"># Handle dates, with the format the directory uses</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">date_format_string</span><span class="p">)</span>
+        <span class="c1"># Handle nested (potential collections of) data classes</span>
+        <span class="k">if</span> <span class="n">is_data_class</span><span class="p">(</span><span class="n">field_type</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">build</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">field_type</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">return</span> <span class="nb">list</span><span class="p">([</span><span class="n">build</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">field_type</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">])</span>
+        <span class="c1"># Or just return raw, with date processing applied</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="n">known_fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">__dataclass_fields__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">map_field</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+                  <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">d</span>
+                  <span class="k">if</span> <span class="p">(</span><span class="n">name</span> <span class="o">:=</span> <span class="n">camelcase_to_python</span><span class="p">(</span><span class="n">key</span><span class="p">))</span> <span class="ow">in</span> <span class="n">known_fields</span><span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="RaidiamDirectory"><a class="viewcode-back" href="../../../api.html#ib1.openenergy.support.RaidiamDirectory">[docs]</a><span class="k">class</span> <span class="nc">RaidiamDirectory</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Encapsulates access to the Raidiam Directory, currently just the read API. Parses responses and builds the</span>
+<span class="sd">    appropriate dataclasses from the `ib1.openenergy.support.raidiam` module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="RaidiamDirectory.__init__"><a class="viewcode-back" href="../../../api.html#ib1.openenergy.support.RaidiamDirectory.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fapi</span><span class="p">:</span> <span class="n">FAPISession</span><span class="p">,</span> <span class="n">base_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;https://matls-dirapi.directory.energydata.org.uk/&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fapi</span> <span class="o">=</span> <span class="n">fapi</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="n">base_url</span></div>
+
+<div class="viewcode-block" id="RaidiamDirectory.organisations"><a class="viewcode-back" href="../../../api.html#ib1.openenergy.support.RaidiamDirectory.organisations">[docs]</a>    <span class="k">def</span> <span class="nf">organisations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">raidiam</span><span class="o">.</span><span class="n">Organisation</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all `Organisation` entities within the directory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fapi</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s1">organisations&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">build</span><span class="p">(</span><span class="n">org</span><span class="p">,</span> <span class="n">raidiam</span><span class="o">.</span><span class="n">Organisation</span><span class="p">)</span> <span class="k">for</span> <span class="n">org</span> <span class="ow">in</span> <span class="n">response</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">authorisation_servers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">org_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">raidiam</span><span class="o">.</span><span class="n">AuthorisationServer</span><span class="p">]:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fapi</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s1">organisations/</span><span class="si">{</span><span class="n">quote_plus</span><span class="p">(</span><span class="n">org_id</span><span class="p">)</span><span class="si">}</span><span class="s1">/authorisationservers&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">build</span><span class="p">(</span><span class="n">server</span><span class="p">,</span> <span class="n">raidiam</span><span class="o">.</span><span class="n">AuthorisationServer</span><span class="p">)</span> <span class="k">for</span> <span class="n">server</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()]</span></div>
 </pre></div>
 
            </div>
@@ -554,7 +649,7 @@
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on May 12, 2021.
+        Last updated on Jun 04, 2021.
       </span>
 
 </p>

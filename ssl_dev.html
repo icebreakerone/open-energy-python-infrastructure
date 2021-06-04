@@ -32,6 +32,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -107,7 +108,6 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Python API : ib1.openenergy.support</a></li>
-<li class="toctree-l1"><a class="reference internal" href="glossary.html">Open Energy Glossary</a></li>
 </ul>
 
             
@@ -178,9 +178,9 @@
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Please note! This should not be used in production. It is solely to help make your life simpler, when developing a
-<a class="reference internal" href="glossary.html#term-Data-Provider"><span class="xref std std-term">data provider</span></a>, by allowing you to run everything locally with full SSL support enabled.</p>
+<a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Data-Provider" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">data provider</span></a>, by allowing you to run everything locally with full SSL support enabled.</p>
 </div>
-<p>You may want to run your <a class="reference external" href="https://flask.palletsprojects.com/en/1.1.x/">Flask</a> app locally when testing, but the security requirements of <a class="reference internal" href="glossary.html#term-Open-Energy-Phase-3"><span class="xref std std-term">OE3</span></a> mean you really need
+<p>You may want to run your <a class="reference external" href="https://flask.palletsprojects.com/en/1.1.x/">Flask</a> app locally when testing, but the security requirements of <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Open-Energy-Phase-3" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">OE3</span></a> mean you really need
 to use HTTPS, and have everything validate correctly. In addition, to make use of the <a class="reference internal" href="api.html#ib1.openenergy.support.AccessTokenValidator" title="ib1.openenergy.support.AccessTokenValidator"><code class="xref any py py-class docutils literal notranslate"><span class="pre">AccessTokenValidator</span></code></a> you need
 any test clients to present valid client certificates. This can all get rather messy, so this library includes a couple
 of helper functions to allow you to run your app locally using Flask’s built-in development server.</p>
@@ -227,85 +227,47 @@ produces a <a class="reference internal" href="api.html#ib1.openenergy.support.f
 <p>The example data provider from <a class="reference internal" href="data_provider.html#providing-oe-shared-data"><span class="std std-ref">Providing OE Shared Data</span></a>, repeated below, uses <a class="reference internal" href="api.html#ib1.openenergy.support.flask_ssl_dev.get_command_line_ssl_args" title="ib1.openenergy.support.flask_ssl_dev.get_command_line_ssl_args"><code class="xref any py py-func docutils literal notranslate"><span class="pre">get_command_line_ssl_args</span></code></a> on line 12
 to get locations of certificate files as well as the OAuth2 client ID, these are then passed both to the
 <a class="reference internal" href="api.html#ib1.openenergy.support.AccessTokenValidator" title="ib1.openenergy.support.AccessTokenValidator"><code class="xref any py py-class docutils literal notranslate"><span class="pre">AccessTokenValidator</span></code></a> on line 18 and the call to actually run the app with <a class="reference internal" href="api.html#ib1.openenergy.support.flask_ssl_dev.run_app" title="ib1.openenergy.support.flask_ssl_dev.run_app"><code class="xref any py py-func docutils literal notranslate"><span class="pre">run_app</span></code></a> on line 37.</p>
-<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
-<span class="normal"> 2</span>
-<span class="normal"> 3</span>
-<span class="normal"> 4</span>
-<span class="normal"> 5</span>
-<span class="normal"> 6</span>
-<span class="normal"> 7</span>
-<span class="normal"> 8</span>
-<span class="normal"> 9</span>
-<span class="normal">10</span>
-<span class="normal">11</span>
-<span class="normal">12</span>
-<span class="normal">13</span>
-<span class="normal">14</span>
-<span class="normal">15</span>
-<span class="normal">16</span>
-<span class="normal">17</span>
-<span class="normal">18</span>
-<span class="normal">19</span>
-<span class="normal">20</span>
-<span class="normal">21</span>
-<span class="normal">22</span>
-<span class="normal">23</span>
-<span class="normal">24</span>
-<span class="normal">25</span>
-<span class="normal">26</span>
-<span class="normal">27</span>
-<span class="normal">28</span>
-<span class="normal">29</span>
-<span class="normal">30</span>
-<span class="normal">31</span>
-<span class="normal">32</span>
-<span class="normal">33</span>
-<span class="normal">34</span>
-<span class="normal">35</span>
-<span class="normal">36</span>
-<span class="normal">37</span>
-<span class="normal">38</span>
-<span class="normal">39</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
-
-<span class="kn">import</span> <span class="nn">flask</span>
-
-<span class="kn">from</span> <span class="nn">ib1.openenergy.support</span> <span class="kn">import</span> <span class="n">AccessTokenValidator</span>
-<span class="kn">from</span> <span class="nn">ib1.openenergy.support.flask_ssl_dev</span> <span class="kn">import</span> <span class="n">get_command_line_ssl_args</span><span class="p">,</span> <span class="n">run_app</span>
-
-<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-
-<span class="n">LOG</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ib1.oe.testapp&#39;</span><span class="p">)</span>
-
-<span class="n">options</span> <span class="o">=</span> <span class="n">get_command_line_ssl_args</span><span class="p">(</span><span class="n">default_client_private_key</span><span class="o">=</span><span class="s1">&#39;a.key&#39;</span><span class="p">,</span>
-                                    <span class="n">default_client_certificate</span><span class="o">=</span><span class="s1">&#39;a.pem&#39;</span><span class="p">,</span>
-                                    <span class="n">default_server_private_key</span><span class="o">=</span><span class="s1">&#39;127.0.0.1/key.pem&#39;</span><span class="p">,</span>
-                                    <span class="n">default_server_certificate</span><span class="o">=</span><span class="s1">&#39;127.0.0.1/cert.pem&#39;</span><span class="p">,</span>
-                                    <span class="n">default_client_id</span><span class="o">=</span><span class="s1">&#39;kZuAsn7UYZ98WWh29hDPf&#39;</span><span class="p">)</span>
-
-<span class="n">validator</span> <span class="o">=</span> <span class="n">AccessTokenValidator</span><span class="p">(</span><span class="n">client_id</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">client_id</span><span class="p">,</span> <span class="n">certificate</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">client_certificate</span><span class="p">,</span>
-                                 <span class="n">private_key</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">client_private_key</span><span class="p">,</span>
-                                 <span class="n">introspection_url</span><span class="o">=</span><span class="s1">&#39;https://matls-auth.directory.energydata.org.uk/token/introspection&#39;</span><span class="p">)</span>
-<span class="n">app</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-
-
-<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
-<span class="nd">@validator</span><span class="o">.</span><span class="n">introspects</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;directory:software&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">homepage</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This is a very simple route that doesn&#39;t do much, but as it&#39;s decorated with the validator</span>
-<span class="sd">    token introspection endpoint it will trigger inspection of the supplied bearer token via the</span>
-<span class="sd">    directory introspection point, and the resultant object will be passed as flask.g.introspection_response.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;home: received MTLS HTTPS request from </span><span class="si">{</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_addr</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;home: token introspection response is </span><span class="si">{</span><span class="n">flask</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="n">introspection_response</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="s1">&#39;&lt;html&gt;&lt;body&gt;&lt;h1&gt;Success&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;&#39;</span>
-
-
-<span class="n">run_app</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="n">app</span><span class="p">,</span>
-        <span class="n">server_private_key</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">server_private_key</span><span class="p">,</span>
-        <span class="n">server_certificate</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">server_certificate</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="linenos"> 2</span>
+<span class="linenos"> 3</span><span class="kn">import</span> <span class="nn">flask</span>
+<span class="linenos"> 4</span>
+<span class="linenos"> 5</span><span class="kn">from</span> <span class="nn">ib1.openenergy.support</span> <span class="kn">import</span> <span class="n">AccessTokenValidator</span>
+<span class="linenos"> 6</span><span class="kn">from</span> <span class="nn">ib1.openenergy.support.flask_ssl_dev</span> <span class="kn">import</span> <span class="n">get_command_line_ssl_args</span><span class="p">,</span> <span class="n">run_app</span>
+<span class="linenos"> 7</span>
+<span class="linenos"> 8</span><span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="linenos"> 9</span>
+<span class="linenos">10</span><span class="n">LOG</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ib1.oe.testapp&#39;</span><span class="p">)</span>
+<span class="linenos">11</span>
+<span class="linenos">12</span><span class="n">options</span> <span class="o">=</span> <span class="n">get_command_line_ssl_args</span><span class="p">(</span><span class="n">default_client_private_key</span><span class="o">=</span><span class="s1">&#39;a.key&#39;</span><span class="p">,</span>
+<span class="linenos">13</span>                                    <span class="n">default_client_certificate</span><span class="o">=</span><span class="s1">&#39;a.pem&#39;</span><span class="p">,</span>
+<span class="linenos">14</span>                                    <span class="n">default_server_private_key</span><span class="o">=</span><span class="s1">&#39;127.0.0.1/key.pem&#39;</span><span class="p">,</span>
+<span class="linenos">15</span>                                    <span class="n">default_server_certificate</span><span class="o">=</span><span class="s1">&#39;127.0.0.1/cert.pem&#39;</span><span class="p">,</span>
+<span class="linenos">16</span>                                    <span class="n">default_client_id</span><span class="o">=</span><span class="s1">&#39;kZuAsn7UYZ98WWh29hDPf&#39;</span><span class="p">)</span>
+<span class="linenos">17</span>
+<span class="linenos">18</span><span class="n">validator</span> <span class="o">=</span> <span class="n">AccessTokenValidator</span><span class="p">(</span><span class="n">client_id</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">client_id</span><span class="p">,</span> <span class="n">certificate</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">client_certificate</span><span class="p">,</span>
+<span class="linenos">19</span>                                 <span class="n">private_key</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">client_private_key</span><span class="p">,</span>
+<span class="linenos">20</span>                                 <span class="n">introspection_url</span><span class="o">=</span><span class="s1">&#39;https://matls-auth.directory.energydata.org.uk/token/introspection&#39;</span><span class="p">)</span>
+<span class="linenos">21</span><span class="n">app</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="linenos">22</span>
+<span class="linenos">23</span>
+<span class="linenos">24</span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+<span class="linenos">25</span><span class="nd">@validator</span><span class="o">.</span><span class="n">introspects</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;directory:software&#39;</span><span class="p">)</span>
+<span class="linenos">26</span><span class="k">def</span> <span class="nf">homepage</span><span class="p">():</span>
+<span class="linenos">27</span>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos">28</span><span class="sd">    This is a very simple route that doesn&#39;t do much, but as it&#39;s decorated with the validator</span>
+<span class="linenos">29</span><span class="sd">    token introspection endpoint it will trigger inspection of the supplied bearer token via the</span>
+<span class="linenos">30</span><span class="sd">    directory introspection point, and the resultant object will be passed as flask.g.introspection_response.</span>
+<span class="linenos">31</span><span class="sd">    &quot;&quot;&quot;</span>
+<span class="linenos">32</span>    <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;home: received MTLS HTTPS request from </span><span class="si">{</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_addr</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="linenos">33</span>    <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;home: token introspection response is </span><span class="si">{</span><span class="n">flask</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="n">introspection_response</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="linenos">34</span>    <span class="k">return</span> <span class="s1">&#39;&lt;html&gt;&lt;body&gt;&lt;h1&gt;Success&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;&#39;</span>
+<span class="linenos">35</span>
+<span class="linenos">36</span>
+<span class="linenos">37</span><span class="n">run_app</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="n">app</span><span class="p">,</span>
+<span class="linenos">38</span>        <span class="n">server_private_key</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">server_private_key</span><span class="p">,</span>
+<span class="linenos">39</span>        <span class="n">server_certificate</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">server_certificate</span><span class="p">)</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 </div>
 </div>
 
@@ -325,7 +287,7 @@ to get locations of certificate files as well as the OAuth2 client ID, these are
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on May 12, 2021.
+        Last updated on Jun 04, 2021.
       </span>
 
 </p>
