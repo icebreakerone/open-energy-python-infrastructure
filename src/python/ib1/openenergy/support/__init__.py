@@ -379,7 +379,7 @@ class AccessTokenValidator:
 D = TypeVar('D', bound=object)
 
 
-def build(d: Dict, cls: Type[D]) -> D:
+def build(d: Dict, cls: Type[D], date_format_string='%Y-%m-%dT%H:%M:%S.%fZ') -> D:
     """
     Build a dataclass from a dict, massaging CamelCase form into the more normal pythonic_representation, then
     filtering by properties available to the dataclass constructor before using the filtered set to create a
@@ -390,6 +390,9 @@ def build(d: Dict, cls: Type[D]) -> D:
         Dict containing properties to pass to constructor
     :param cls:
         Class, typically a dataclass, to receive properties. Should be the class of the root object.
+    :param data_format_string:
+        Format string to use when parsing dates into datetime objects, defaults to the one we're seeing in the
+        Raidiam directory, i.e. "%Y-%m-%dT%H:%M:%S.%fZ"
     :return:
         Instance of cls configured from the supplied dict
     """
@@ -420,7 +423,7 @@ def build(d: Dict, cls: Type[D]) -> D:
             field_type = field.type.__args__[0]
         if field_type == datetime:
             # Handle dates, with the format the directory uses
-            value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S.%fZ')
+            value = datetime.strptime(value, date_format_string)
         # Handle nested (potential collections of) data classes
         if is_data_class(field_type):
             if isinstance(value, dict):
