@@ -23,7 +23,6 @@ Contents
     data_provider
     ssl_dev
     api
-    glossary
 
 Open Energy Phase 3
 -------------------
