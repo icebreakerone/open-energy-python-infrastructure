@@ -96,6 +96,10 @@ class FAPISession(AuthBase):
         # If jwt bearer email is set we MUST also have a signing key
         if self._jwt_bearer_email is not None and self._signing_private_key is None:
             raise ValueError('Signing private key must be provided if JST bearer email set!')
+        # If jwt bearer email is set then check the client supports this scope
+        if self._jwt_bearer_email and 'urn:ietf:params:oauth:grant-type:jwt-bearer' \
+                not in self.openid_configuration.grant_types_supported:
+            raise ValueError(f'Client {self.client_id} does not support jwt-bearer tokens')
 
     def clear_token(self):
         """
@@ -460,6 +464,7 @@ class OpenIDConfiguration:
     introspection_endpoint: str
     issuer: str
     scopes_supported: List[str]
+    grant_types_supported: List[str]
 
     @staticmethod
     def oidc_configuration_url(issuer_url: str):
