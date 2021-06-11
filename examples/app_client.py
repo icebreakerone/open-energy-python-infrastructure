@@ -10,8 +10,8 @@ httpclient_logging_patch(level=logging.INFO)
 
 # Set up a session, this will get a token from the directory when needed
 f = FAPISession(client_id='kZuAsn7UYZ98WWh29hDPf',
-                token_url='https://matls-auth.directory.energydata.org.uk/token',
-                requested_scopes='directory:software foo',
+                issuer_url='https://matls-auth.directory.energydata.org.uk',
+                requested_scopes='directory:software',
                 private_key='/home/tom/Desktop/certs/a.key',
                 certificate='/home/tom/Desktop/certs/a.pem')
 
