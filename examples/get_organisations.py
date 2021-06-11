@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Configure a new FAPISession to use a previously generated key pair and client ID
 f = FAPISession(client_id='kZuAsn7UYZ98WWh29hDPf',
-                token_url='https://matls-auth.directory.energydata.org.uk/token',
+                issuer_url='https://matls-auth.directory.energydata.org.uk',
                 requested_scopes='directory:software',
                 private_key='/home/tom/Desktop/certs/a.key',
                 certificate='/home/tom/Desktop/certs/a.pem')

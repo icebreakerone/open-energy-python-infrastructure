@@ -2,18 +2,22 @@ import base64
 import email.utils
 import http.client
 import logging
+import urllib.parse
 import uuid
+from datetime import datetime
 from functools import wraps, partial
 from time import time, strftime, gmtime
 from typing import Dict, List, Type, TypeVar
 from urllib.parse import quote_plus
-from datetime import datetime
-
+from dataclasses import dataclass
 import flask
+import jwt
 import requests
 from cachetools import cached, TTLCache
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
 from requests.auth import AuthBase
+
 import ib1.openenergy.support.raidiam as raidiam
 
 LOG = logging.getLogger('ib1.oe.support')
@@ -40,31 +44,58 @@ class FAPISession(AuthBase):
     Can also be used as a requests authenticator
     """
 
-    def __init__(self, client_id, token_url, requested_scopes, private_key, certificate):
+    def __init__(self, client_id, issuer_url, requested_scopes, private_key, certificate, jwt_bearer_email=None,
+                 signing_private_key=None):
         """
         Build a new FAPI session. This doesn't immediately trigger any requests to the token
         endpoint, these are made when the session is accessed, and only if needed.
 
-        :param token_url:
-            URL to the token endpoint of an authorization server, i.e. for the raidiam UAT sandbox this is
-            https://matls-auth.directory.energydata.org.uk/token
+        :param issuer_url:
+            URL of an authorization server, i.e. for the raidiam UAT sandbox this is
+            https://matls-auth.directory.energydata.org.uk/
         :param requested_scopes:
             Scopes requested for this session
         :param private_key:
-            Location of private key used for MTLS
+            Location of private key used for MTLS, and to sign
         :param certificate:
             Location of certificate used for MTLS
-
+        :param jwt_bearer_email:
+            Defaults to None. If specified, this should be the email address of a user to impersonate. This will then
+            switch the client to jwt-bearer grant type. This will only work if the corresponding client has been
+            provisioned appropriately in the directory itself, otherwise this will fail. It should only ever be used
+            by our internal Open Energy clients needing to write to the directory, and can be entirely ignored by other
+            users.
+        :param signing_private_key:
+            Default to None, must be provided if jwt_bearer_email is set. Path
         """
         self.client_id = client_id
-        self._session = requests.Session()
-        self._session.cert = certificate, private_key
-        self._session.auth = self
-        self._plain_session = requests.Session()
-        self._plain_session.cert = certificate, private_key
+        self.session = requests.Session()
+        self.session.cert = certificate, private_key
+        self.session.auth = self
+        self.plain_session = requests.Session()
+        self.plain_session.cert = certificate, private_key
+        self.openid_configuration = build(cls=OpenIDConfiguration, d=self.plain_session.get(
+            OpenIDConfiguration.oidc_configuration_url(issuer_url)).json())
+
         self._token = None
         self.scopes = requested_scopes
-        self.token_url = token_url
+        # Check whether the scopes requested are in the supported scopes from the config
+        for scope in self.scopes.split(' '):
+            if scope not in self.openid_configuration.scopes_supported:
+                LOG.warning(f'Requested scope "{scope}" not in supported scopes.')
+        # If a signing private key location is provided, load the key from it
+        if signing_private_key:
+            with open(signing_private_key, 'rb') as key_file:
+                self._signing_private_key = serialization.load_pem_private_key(data=key_file.read(),
+                                                                               backend=default_backend(),
+                                                                               password=None)
+        else:
+            self._signing_private_key = None
+        # Setting this means we're going to try creating jwt-bearer assertion tokens
+        self._jwt_bearer_email = jwt_bearer_email
+        # If jwt bearer email is set we MUST also have a signing key
+        if self._jwt_bearer_email is not None and self._signing_private_key is None:
+            raise ValueError('Signing private key must be provided if JST bearer email set!')
 
     def clear_token(self):
         """
@@ -77,56 +108,100 @@ class FAPISession(AuthBase):
     def access_token(self):
         return self._get_token()
 
+    @property
+    def introspection_response(self) -> Dict:
+        """
+        Introspect on our own token, useful to see what the resource server will see when it asks
+        about this client.
+        """
+        response = self.plain_session.post(url=self.openid_configuration.introspection_endpoint,
+                                           data={'token': self.access_token,
+                                                 'client_id': self.client_id})
+        response.raise_for_status()
+        return response.json()
+
     def _get_token(self) -> str:
         """
         Internal method to fetch a new bearer token if necessary and return it. A new token is
-        obtained if there either isn't one, or we have one but it's expired
+        obtained if there either isn't one, or we have one but it's expired. If a user email was
+        supplied this will attempt to use the jwt-bearer grant type, otherwise it'll use client-credentials
 
         :return:
             String representation of the access token
         :raises requests.HTTPError:
             if the token acquisition fails for any reason, this method raises the corresponding
-            HTTPError from the requests librar
+            HTTPError from the requests library
 
         """
         now = time()
         if self._token is None or self._token['expiry_time'] <= now:
-            response = self._plain_session.post(url=self.token_url,
-                                                data={'client_id': self.client_id,
-                                                      'scope': self.scopes,
-                                                      'grant_type': 'client_credentials'})
-            if response.status_code == 200:
-                d = response.json()
-                LOG.debug(f'_get_token - response is {d}')
-                if 'expires_in' in d:
-                    self._token = {'access_token': d['access_token'],
-                                   'expiry_time': now + int(d['expires_in'])}
-                    LOG.info(
-                        f'_get_token - got access token, expires at '
-                        f'{strftime("%b %d %Y %H:%M:%S", gmtime(self._token["expiry_time"]))}, '
-                        f'scope=\'{d["scope"] if "scope" in d else "NONE"}\'')
-                else:
-                    LOG.error(f'_get_token - no expiry time specified in token response {d}')
+            if self._jwt_bearer_email:
+                d = self._get_jwt_bearer_token()
             else:
-                response.raise_for_status()
+                d = self._get_client_credentials_grant_token()
+
+            LOG.debug(f'_get_token - response is {d}')
+            if 'expires_in' in d:
+                self._token = {'access_token': d['access_token'],
+                               'expiry_time': now + int(d['expires_in'])}
+                LOG.info(
+                    f'_get_token - got access token, expires at '
+                    f'{strftime("%b %d %Y %H:%M:%S", gmtime(self._token["expiry_time"]))}, '
+                    f'scope=\'{d["scope"] if "scope" in d else "NONE"}\'')
+            else:
+                LOG.error(f'_get_token - no expiry time specified in token response {d}')
         return self._token['access_token']
 
-    @property
-    def session(self) -> requests.Session:
+    def _get_client_credentials_grant_token(self) -> Dict:
         """
-        Get a configured requests.Session set up with the necessary bearer token and client
-        certificates to make a MTLS request to a secured endpoint. Also assigns a new unique
-        x-fapi-interaction-id.
-        """
-        return self._session
+        Method to get a token using client-credentials grant
 
-    @property
-    def plain_session(self) -> requests.Session:
+        :return:
+            A dict containing the response from the token endpoint
+        :raises:
+            HTTPError if the call doesn't return status 200
         """
-        For convenience, a session configured with the private and public key pair to use TLS but without
-        the token management. Use this for calling regular endpoints such as the token introspection one.
+        data = {'client_id': self.client_id,
+                'scope': self.scopes,
+                'grant_type': 'client_credentials'}
+        LOG.debug(f'Attempting to acquire client_credentials token {data}')
+        response = self.plain_session.post(url=self.openid_configuration.token_endpoint,
+                                           data=data)
+        if response.status_code == 200:
+            LOG.debug('Acquired client_credentials token')
+            return response.json()
+        LOG.error(f'Unable to acquire client_credentials token : {response.json()}')
+        response.raise_for_status()
+
+    def _get_jwt_bearer_token(self) -> Dict:
         """
-        return self._plain_session
+        Method to get a token using jwt-bearer grant
+
+        :return:
+            A dict containing the response from the token endpoint
+        :raises:
+            HTTPError if the call doesn't return status 200
+        """
+        now = int(time())
+        data = {'client_id': self.client_id,
+                'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                'scope': self.scopes,
+                'assertion': jwt.encode({'iss': self.client_id,
+                                         'sub': self._jwt_bearer_email,
+                                         'aud': self.openid_configuration.token_endpoint,
+                                         'exp': now + 60 * 1,
+                                         'iat': now,
+                                         'jti': str(uuid.uuid4())},
+                                        key=self._signing_private_key,
+                                        algorithm='PS256')}
+        LOG.debug(f'Attempting to acquire jwt-bearer token for {self._jwt_bearer_email} : {data}')
+        response = self.plain_session.post(url=self.openid_configuration.token_endpoint,
+                                           data=data)
+        if response.status_code == 200:
+            LOG.debug(f'Acquired jwt-bearer token for {self._jwt_bearer_email}')
+            return response.json()
+        LOG.error(f'Unable to acquire jwt-bearer token : {response.json()}')
+        response.raise_for_status()
 
     def __call__(self, r):
         """
@@ -180,7 +255,7 @@ class AccessTokenValidator:
     LOG = logging.getLogger('ib1.oe.support.validator')
 
     def __init__(self, client_id: str, private_key: str, certificate: str,
-                 introspection_url: str = 'https://matls-auth.directory.energydata.org.uk/token/introspection',
+                 issuer_url: str = 'https://matls-auth.directory.energydata.org.uk/',
                  client_cert_parser=None):
         """
         Create a new access token validator. In this context the data provider attempting to validate an access token
@@ -194,9 +269,11 @@ class AccessTokenValidator:
             Location of the private key of the data provider, used in the client auth for the introspection endpoint
         :param certificate:
             Location of the public key of the data provider, used in the client auth for the introspection endpoint
-        :param introspection_url:
-            URL of the oauth2 introspection endpoint. Defaults to
-            https://matls-auth.directory.energydata.org.uk/token/introspection to use our UAT instance of the directory
+        :param issuer_url:
+            URL of an authorization server, i.e. for the raidiam UAT sandbox this is
+            https://matls-auth.directory.energydata.org.uk/ - uses
+            https://openid.net/specs/openid-connect-discovery-1_0.html part 4 to discover the token introspection
+            endpoint
         :param client_cert_parser:
             A zero argument function which returns an X509 object for the active client certificate, or none if no
             certificate is present. Defaults to a simple implementation that pulls the cert out of the flask environment
@@ -205,7 +282,8 @@ class AccessTokenValidator:
         """
         self.session = requests.Session()
         self.session.cert = certificate, private_key
-        self.introspection_url = introspection_url
+        self.openid_configuration = build(cls=OpenIDConfiguration, d=self.session.get(
+            OpenIDConfiguration.oidc_configuration_url(issuer_url)).json())
         self.client_id = client_id
 
         def dev_cert_parser():
@@ -237,7 +315,7 @@ class AccessTokenValidator:
 
         # Note - MTLS requires the addition of the client_id to the POST body as the certificate doesn't
         # contain this information. File under 'things that are not immediately obvious about OAuth2...'
-        response = self.session.post(url=self.introspection_url,
+        response = self.session.post(url=self.openid_configuration.introspection_endpoint,
                                      data={'token': token,
                                            'client_id': self.client_id})
         # If this failed for some reason, raise the appropriate error. This can happen if we're not
@@ -374,6 +452,32 @@ class AccessTokenValidator:
                 return build_error_response(code=401)
 
         return decorated_function
+
+
+@dataclass
+class OpenIDConfiguration:
+    token_endpoint: str
+    introspection_endpoint: str
+    issuer: str
+    scopes_supported: List[str]
+
+    @staticmethod
+    def oidc_configuration_url(issuer_url: str):
+        """
+        Implements the logic in 4.1 of https://openid.net/specs/openid-connect-discovery-1_0.html to find the URL
+        for the configuration document which can populate an instance of OpenIDConfiguration
+        :param issuer_url:
+            Base URL of the issuer
+        :return:
+            URL of the configuration document
+        """
+        u = urllib.parse.urlparse(issuer_url)
+        path = u.path
+        if path and path.endswith('/'):
+            u = u._replace(path=path + '.well-known/openid-configuration')
+        else:
+            u = u._replace(path=path + '/.well-known/openid-configuration')
+        return urllib.parse.urlunparse(u)
 
 
 D = TypeVar('D', bound=object)
