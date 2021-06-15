@@ -1,0 +1,96 @@
+[
+  {
+    "content": {
+      "@type": "dcat:Dataset",
+      "@context": {
+        "dcat": "http://www.w3.org/ns/dcat#",
+        "dct": "http://purl.org/dc/terms/",
+        "oe": "http://energydata.org.uk/oe/terms/"
+      },
+      "dct:title": "My amazing data set",
+      "dct:description": "This is a free text description of the data set",
+      "dcat:version": "0.1.2",
+      "dcat:versionNotes": "This is a note on this particular version of the dataset",
+      "oe:sensitivityClass": "OE-SA",
+      "oe:dataSetStableIdentifier": "myData",
+      "dcat:keyword": [
+        "key1",
+        "key2"
+      ]
+    },
+    "access": [
+      {
+        "rule": "oe:verified and oe:last_update within 60 days grants oe:use",
+        "sufficient": true,
+        "appliesFrom": "2021-04-22T00:00:00.000Z",
+        "appliesTo": "2022-04-22T00:00:00.000Z"
+      },
+      {
+        "rule": "oe:groups:some_group grants oe:use, oe:redistribute, oe:aggregate",
+        "sufficient": false,
+        "appliesFrom": "2021-04-22T00:00:00.000Z",
+        "appliesTo": "2022-04-22T00:00:00.000Z"
+      }
+    ],
+    "transport": {
+      "http": {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "Sample API",
+          "description": "CSV format data",
+          "version": "0.1.0"
+        },
+        "servers": [
+          {
+            "url": "http://data-provider-example.com",
+            "description": "Describe this particular server if needed"
+          }
+        ],
+        "paths": {
+          "/data": {
+            "get": {
+              "summary": "Returns a CSV containing all the data",
+              "description": "If we had any more to describe, we'd do it here"
+            },
+            "responses": {
+              "200": {
+                "description": "CSV data stream"
+              }
+            }
+          }
+        }
+      }
+    },
+    "representation": {
+      "mime": "text/csv",
+      "csvw": {
+        "@context": "http://www.w3.org/ns/csvw",
+        "tableSchema": {
+          "columns": [
+            {
+              "titles": "country"
+            },
+            {
+              "titles": "country group"
+            },
+            {
+              "titles": "name (en)"
+            },
+            {
+              "titles": "name (fr)"
+            },
+            {
+              "titles": "name (de)"
+            },
+            {
+              "titles": "latitude"
+            },
+            {
+              "titles": "longitude"
+            }
+          ]
+        }
+      }
+    }
+  }
+]

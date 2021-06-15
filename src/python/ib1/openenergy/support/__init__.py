@@ -69,9 +69,9 @@ class FAPISession(AuthBase):
             Default to None, must be provided if jwt_bearer_email is set. Path
         """
         self.client_id = client_id
-        self.session = requests.Session()
-        self.session.cert = certificate, private_key
-        self.session.auth = self
+        self._session = requests.Session()
+        self._session.cert = certificate, private_key
+        self._session.auth = self
         self.plain_session = requests.Session()
         self.plain_session.cert = certificate, private_key
         self.openid_configuration = build(cls=OpenIDConfiguration, d=self.plain_session.get(
@@ -100,6 +100,13 @@ class FAPISession(AuthBase):
         if self._jwt_bearer_email and 'urn:ietf:params:oauth:grant-type:jwt-bearer' \
                 not in self.openid_configuration.grant_types_supported:
             raise ValueError(f'Client {self.client_id} does not support jwt-bearer tokens')
+
+    @property
+    def session(self):
+        """
+        A requests session configured to automatically acquire tokens when needed and to use MTLS
+        """
+        return self._session
 
     def clear_token(self):
         """
@@ -460,6 +467,11 @@ class AccessTokenValidator:
 
 @dataclass
 class OpenIDConfiguration:
+    """
+    Information returned from the .well-known/openid-configuration document by
+    an OpenID provider such as the raidiam authz service.
+    """
+
     token_endpoint: str
     introspection_endpoint: str
     issuer: str
@@ -471,6 +483,7 @@ class OpenIDConfiguration:
         """
         Implements the logic in 4.1 of https://openid.net/specs/openid-connect-discovery-1_0.html to find the URL
         for the configuration document which can populate an instance of OpenIDConfiguration
+
         :param issuer_url:
             Base URL of the issuer
         :return:

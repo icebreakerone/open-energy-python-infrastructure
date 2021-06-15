@@ -14,7 +14,7 @@ setup(
                  'Topic :: Security',
                  'Topic :: Scientific/Engineering'],
     packages=find_namespace_packages(),
-    install_requires=['requests', 'flask', 'cachetools', 'cryptography'],
+    install_requires=['requests', 'flask', 'cachetools', 'cryptography', 'pyyaml', 'PyLD', 'Requests-File'],
     entry_points={
         'console_scripts': []
     }

@@ -11,7 +11,7 @@ logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
 # Set up a session, this will get a token from the directory when needed
 f = FAPISession(client_id='4_egpDo0lMugQbMOaNjn0',
                 issuer_url='https://matls-auth.directory.energydata.org.uk',
-                requested_scopes='directory:software',
+                requested_scopes='directory:software openid profile email',
                 private_key='/home/tom/Desktop/jwt-bearer-certs/transport.key',
                 certificate='/home/tom/Desktop/jwt-bearer-certs/transport.pem',
                 signing_private_key='/home/tom/Desktop/jwt-bearer-certs/signing.key',

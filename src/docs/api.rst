@@ -9,6 +9,11 @@ External APIs
 .. automodule:: ib1.openenergy.support
     :members:
 
+Metadata APIs
+-------------
+
+API to handle the metadata format described in `Data Set Metadata <https://icebreakerone.github.io/open-energy-technical-docs/main/metadata.html>`_
+
 SSL Development APIs
 --------------------
 
