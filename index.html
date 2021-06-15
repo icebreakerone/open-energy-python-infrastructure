@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Open Energy Infrastructure Support &mdash; Open Energy Infrastructure Support 0.1.0 documentation</title>
+  <title>Open Energy Infrastructure Support &mdash; Open Energy Infrastructure Support 0.2.0 documentation</title>
   
 
   
@@ -41,7 +41,7 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.1.0 documentation"
+          title="Search within Open Energy Infrastructure Support 0.2.0 documentation"
           href="_static/opensearch.xml"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -72,7 +72,7 @@
             
             
               <div class="version">
-                0.1.0
+                0.2.0
               </div>
             
           
@@ -101,6 +101,7 @@
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="service_provider.html">Accessing OE Shared Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data_provider.html">Providing OE Shared Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata File Handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ssl_dev.html">Local Data Provider Development Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Python API : ib1.openenergy.support</a></li>
 </ul>
@@ -172,7 +173,7 @@
 <h1>Open Energy Infrastructure Support<a class="headerlink" href="#open-energy-infrastructure-support" title="Permalink to this headline">¶</a></h1>
 <p>This library contains Python 3.8 functions and classes you can use when building <a class="reference external" href="https://energydata.org.uk/">Open Energy</a> Data and Service
 Providers (<a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Data-Provider" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">DP</span></a> &amp; <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Service-Provider" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">SP</span></a>). See <a class="reference external" href="https://github.com/icebreakerone/open-energy-python-infrastructure">github</a> for source code.</p>
-<p>Interacting with the <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Open-Energy-Phase-3" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">OE3</span></a> <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Authorization" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">authorization</span></a> and <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Authentication" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">authentication</span></a> services as either a consumer or provider of
+<p>Interacting with the <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Open-Energy-Phase-3" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">OE3</span></a> <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Authorization" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">authorization</span></a> and <a class="reference external" href="https://cryptography.io/en/stable/glossary.html#term-authentication" title="(in Cryptography v3.4.7)"><span class="xref std std-term">authentication</span></a> services as either a consumer or provider of
 information has some degree of complexity - this library exists to handle these concerns, leaving you to write the
 business logic without having to manage the details of token management etc.</p>
 <p>Code in this library is licensed under the <a class="reference external" href="https://opensource.org/licenses/MIT">MIT license</a> . Documentation
@@ -199,6 +200,7 @@ business logic without having to manage the details of token management etc.</p>
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata File Handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ssl_dev.html">Local Data Provider Development Mode</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="ssl_dev.html#obtaining-a-valid-server-certificate">Obtaining a valid server certificate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ssl_dev.html#running-in-dev-mode">Running in dev mode</a></li>
@@ -206,6 +208,7 @@ business logic without having to manage the details of token management etc.</p>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Python API : ib1.openenergy.support</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api.html#module-ib1.openenergy.support">External APIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#metadata-apis">Metadata APIs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#module-ib1.openenergy.support.flask_ssl_dev">SSL Development APIs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#internal-apis">Internal APIs</a></li>
 </ul>
@@ -262,7 +265,7 @@ as a <a class="reference external" href="https://icebreakerone.github.io/open-en
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on Jun 04, 2021.
+        Last updated on Jun 15, 2021.
       </span>
 
 </p>

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
   <ShortName>Open Energy Infrastructure Support</ShortName>
-  <Description>Search Open Energy Infrastructure Support 0.1.0 documentation</Description>
+  <Description>Search Open Energy Infrastructure Support 0.2.0 documentation</Description>
   <InputEncoding>utf-8</InputEncoding>
   <Url type="text/html" method="get"
        template="https://icebreakerone.github.io/open-energy-python-infrastructure/search.html?q={searchTerms}"/>
-  <LongName>Open Energy Infrastructure Support 0.1.0 documentation</LongName>
+  <LongName>Open Energy Infrastructure Support 0.2.0 documentation</LongName>
   <Image height="16" width="16" type="image/x-icon">https://icebreakerone.github.io/open-energy-python-infrastructure/_static/favicon.png</Image>
   
 </OpenSearchDescription>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Search &mdash; Open Energy Infrastructure Support 0.2.0 documentation</title>
+  <title>Metadata File Handling &mdash; Open Energy Infrastructure Support 0.2.0 documentation</title>
   
 
   
@@ -26,7 +26,6 @@
   
 
   
-    
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -44,10 +43,10 @@
     <link rel="search" type="application/opensearchdescription+xml"
           title="Search within Open Energy Infrastructure Support 0.2.0 documentation"
           href="_static/opensearch.xml"/>
-    <script type="text/javascript" src="_static/searchtools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="#" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Local Data Provider Development Mode" href="ssl_dev.html" />
+    <link rel="prev" title="Providing OE Shared Data" href="data_provider.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -81,7 +80,7 @@
 
           
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="#" method="get">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -99,11 +98,11 @@
               
             
             
-              <ul>
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="service_provider.html">Accessing OE Shared Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data_provider.html">Providing OE Shared Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata File Handling</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Metadata File Handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ssl_dev.html">Local Data Provider Development Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Python API : ib1.openenergy.support</a></li>
 </ul>
@@ -154,10 +153,12 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Search</li>
+      <li>Metadata File Handling</li>
     
     
       <li class="wy-breadcrumbs-aside">
+        
+          
         
       </li>
     
@@ -169,23 +170,29 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <noscript>
-  <div id="fallback" class="admonition warning">
-    <p class="last">
-      Please activate JavaScript to enable the search functionality.
-    </p>
-  </div>
-  </noscript>
+  <div class="section" id="metadata-file-handling">
+<h1>Metadata File Handling<a class="headerlink" href="#metadata-file-handling" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="api.html#ib1.openenergy.support.metadata.Metadata" title="ib1.openenergy.support.metadata.Metadata"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Metadata</span></code></a> class represents a single record in a metadata file published by a <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Data-Provider" title="(in Open Energy Technical Documentation)"><code class="xref any docutils literal notranslate"><span class="pre">data</span> <span class="pre">provider</span></code></a>. It can be loaded
+from URL or file location through the <a class="reference internal" href="api.html#ib1.openenergy.support.metadata.load_metadata" title="ib1.openenergy.support.metadata.load_metadata"><code class="xref any py py-func docutils literal notranslate"><span class="pre">load_metadata</span></code></a> function.</p>
+<p>The metadata file specification can be found <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/metadata.html">here</a></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Currently the code here only handles the <code class="docutils literal notranslate"><span class="pre">content</span></code> block, which it parses as a chunk of JSON-LD. It exposes this
+through a <a class="reference internal" href="api.html#ib1.openenergy.support.metadata.JSONLDContainer" title="ib1.openenergy.support.metadata.JSONLDContainer"><code class="xref any py py-class docutils literal notranslate"><span class="pre">JSONLDContainer</span></code></a> instance to simplify access to properties.</p>
+</div>
+<p>The <a class="reference internal" href="api.html#ib1.openenergy.support.metadata.DC" title="ib1.openenergy.support.metadata.DC"><code class="xref any py py-data docutils literal notranslate"><span class="pre">metadata.DC</span></code></a>, <a class="reference internal" href="api.html#ib1.openenergy.support.metadata.DCAT" title="ib1.openenergy.support.metadata.DCAT"><code class="xref any py py-data docutils literal notranslate"><span class="pre">metadata.DCAT</span></code></a> and <a class="reference internal" href="api.html#ib1.openenergy.support.metadata.OE" title="ib1.openenergy.support.metadata.OE"><code class="xref any py py-data docutils literal notranslate"><span class="pre">metadata.OE</span></code></a> values are the fully expanded namespace prefixes of the Dublin
+Core, Data Catalogue, and Open Energy ontologies respectively.</p>
+</div>
 
-  
-  <div id="search-results">
-  
-  </div>
 
            </div>
            
           </div>
           <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="ssl_dev.html" class="btn btn-neutral float-right" title="Local Data Provider Development Mode" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="data_provider.html" class="btn btn-neutral float-left" title="Providing OE Shared Data" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
 
   <hr/>
 
@@ -227,14 +234,7 @@ Licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0<
   
   
     
-  
-  <script type="text/javascript">
-    jQuery(function() { Search.loadIndex("searchindex.js"); });
-  </script>
-  
-  <script type="text/javascript" id="searchindexloader"></script>
    
-
 
 </body>
 </html>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Accessing OE Shared Data &mdash; Open Energy Infrastructure Support 0.1.0 documentation</title>
+  <title>Accessing OE Shared Data &mdash; Open Energy Infrastructure Support 0.2.0 documentation</title>
   
 
   
@@ -41,7 +41,7 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.1.0 documentation"
+          title="Search within Open Energy Infrastructure Support 0.2.0 documentation"
           href="_static/opensearch.xml"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -73,7 +73,7 @@
             
             
               <div class="version">
-                0.1.0
+                0.2.0
               </div>
             
           
@@ -105,6 +105,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="data_provider.html">Providing OE Shared Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata File Handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ssl_dev.html">Local Data Provider Development Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Python API : ib1.openenergy.support</a></li>
 </ul>
@@ -220,8 +221,8 @@ to the trivial data provider defined in the <a class="reference internal" href="
 <span class="linenos">10</span>
 <span class="linenos">11</span><span class="c1"># Set up a session, this will get a token from the directory when needed</span>
 <span class="linenos">12</span><span class="n">f</span> <span class="o">=</span> <span class="n">FAPISession</span><span class="p">(</span><span class="n">client_id</span><span class="o">=</span><span class="s1">&#39;kZuAsn7UYZ98WWh29hDPf&#39;</span><span class="p">,</span>
-<span class="linenos">13</span>                <span class="n">token_url</span><span class="o">=</span><span class="s1">&#39;https://matls-auth.directory.energydata.org.uk/token&#39;</span><span class="p">,</span>
-<span class="linenos">14</span>                <span class="n">requested_scopes</span><span class="o">=</span><span class="s1">&#39;directory:software foo&#39;</span><span class="p">,</span>
+<span class="linenos">13</span>                <span class="n">issuer_url</span><span class="o">=</span><span class="s1">&#39;https://matls-auth.directory.energydata.org.uk&#39;</span><span class="p">,</span>
+<span class="linenos">14</span>                <span class="n">requested_scopes</span><span class="o">=</span><span class="s1">&#39;directory:software&#39;</span><span class="p">,</span>
 <span class="linenos">15</span>                <span class="n">private_key</span><span class="o">=</span><span class="s1">&#39;/home/tom/Desktop/certs/a.key&#39;</span><span class="p">,</span>
 <span class="linenos">16</span>                <span class="n">certificate</span><span class="o">=</span><span class="s1">&#39;/home/tom/Desktop/certs/a.pem&#39;</span><span class="p">)</span>
 <span class="linenos">17</span>
@@ -250,7 +251,7 @@ access an unsecured HTTP server, all the token management is handled automatical
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on Jun 04, 2021.
+        Last updated on Jun 15, 2021.
       </span>
 
 </p>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>ib1.openenergy.support &mdash; Open Energy Infrastructure Support 0.1.0 documentation</title>
+  <title>ib1.openenergy.support &mdash; Open Energy Infrastructure Support 0.2.0 documentation</title>
   
 
   
@@ -41,7 +41,7 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.1.0 documentation"
+          title="Search within Open Energy Infrastructure Support 0.2.0 documentation"
           href="../../../_static/opensearch.xml"/>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -71,7 +71,7 @@
             
             
               <div class="version">
-                0.1.0
+                0.2.0
               </div>
             
           
@@ -100,6 +100,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../service_provider.html">Accessing OE Shared Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../data_provider.html">Providing OE Shared Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../metadata.html">Metadata File Handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ssl_dev.html">Local Data Provider Development Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api.html">Python API : ib1.openenergy.support</a></li>
 </ul>
@@ -172,18 +173,22 @@
 <span class="kn">import</span> <span class="nn">email.utils</span>
 <span class="kn">import</span> <span class="nn">http.client</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">urllib.parse</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span><span class="p">,</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span><span class="p">,</span> <span class="n">strftime</span><span class="p">,</span> <span class="n">gmtime</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">TypeVar</span>
 <span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">quote_plus</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">import</span> <span class="nn">flask</span>
+<span class="kn">import</span> <span class="nn">jwt</span>
 <span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">from</span> <span class="nn">cachetools</span> <span class="kn">import</span> <span class="n">cached</span><span class="p">,</span> <span class="n">TTLCache</span>
-<span class="kn">from</span> <span class="nn">cryptography.hazmat.primitives</span> <span class="kn">import</span> <span class="n">hashes</span>
+<span class="kn">from</span> <span class="nn">cryptography.hazmat.backends</span> <span class="kn">import</span> <span class="n">default_backend</span>
+<span class="kn">from</span> <span class="nn">cryptography.hazmat.primitives</span> <span class="kn">import</span> <span class="n">hashes</span><span class="p">,</span> <span class="n">serialization</span>
 <span class="kn">from</span> <span class="nn">requests.auth</span> <span class="kn">import</span> <span class="n">AuthBase</span>
+
 <span class="kn">import</span> <span class="nn">ib1.openenergy.support.raidiam</span> <span class="k">as</span> <span class="nn">raidiam</span>
 
 <span class="n">LOG</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ib1.oe.support&#39;</span><span class="p">)</span>
@@ -210,31 +215,69 @@
 <span class="sd">    Can also be used as a requests authenticator</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="FAPISession.__init__"><a class="viewcode-back" href="../../../api.html#ib1.openenergy.support.FAPISession.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client_id</span><span class="p">,</span> <span class="n">token_url</span><span class="p">,</span> <span class="n">requested_scopes</span><span class="p">,</span> <span class="n">private_key</span><span class="p">,</span> <span class="n">certificate</span><span class="p">):</span>
+<div class="viewcode-block" id="FAPISession.__init__"><a class="viewcode-back" href="../../../api.html#ib1.openenergy.support.FAPISession.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client_id</span><span class="p">,</span> <span class="n">issuer_url</span><span class="p">,</span> <span class="n">requested_scopes</span><span class="p">,</span> <span class="n">private_key</span><span class="p">,</span> <span class="n">certificate</span><span class="p">,</span> <span class="n">jwt_bearer_email</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">signing_private_key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build a new FAPI session. This doesn&#39;t immediately trigger any requests to the token</span>
 <span class="sd">        endpoint, these are made when the session is accessed, and only if needed.</span>
 
-<span class="sd">        :param token_url:</span>
-<span class="sd">            URL to the token endpoint of an authorization server, i.e. for the raidiam UAT sandbox this is</span>
-<span class="sd">            https://matls-auth.directory.energydata.org.uk/token</span>
+<span class="sd">        :param issuer_url:</span>
+<span class="sd">            URL of an authorization server, i.e. for the raidiam UAT sandbox this is</span>
+<span class="sd">            https://matls-auth.directory.energydata.org.uk/</span>
 <span class="sd">        :param requested_scopes:</span>
 <span class="sd">            Scopes requested for this session</span>
 <span class="sd">        :param private_key:</span>
-<span class="sd">            Location of private key used for MTLS</span>
+<span class="sd">            Location of private key used for MTLS, and to sign</span>
 <span class="sd">        :param certificate:</span>
 <span class="sd">            Location of certificate used for MTLS</span>
-
+<span class="sd">        :param jwt_bearer_email:</span>
+<span class="sd">            Defaults to None. If specified, this should be the email address of a user to impersonate. This will then</span>
+<span class="sd">            switch the client to jwt-bearer grant type. This will only work if the corresponding client has been</span>
+<span class="sd">            provisioned appropriately in the directory itself, otherwise this will fail. It should only ever be used</span>
+<span class="sd">            by our internal Open Energy clients needing to write to the directory, and can be entirely ignored by other</span>
+<span class="sd">            users.</span>
+<span class="sd">        :param signing_private_key:</span>
+<span class="sd">            Default to None, must be provided if jwt_bearer_email is set. Path</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">client_id</span> <span class="o">=</span> <span class="n">client_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="o">.</span><span class="n">cert</span> <span class="o">=</span> <span class="n">certificate</span><span class="p">,</span> <span class="n">private_key</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="o">.</span><span class="n">auth</span> <span class="o">=</span> <span class="bp">self</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_plain_session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_plain_session</span><span class="o">.</span><span class="n">cert</span> <span class="o">=</span> <span class="n">certificate</span><span class="p">,</span> <span class="n">private_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plain_session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plain_session</span><span class="o">.</span><span class="n">cert</span> <span class="o">=</span> <span class="n">certificate</span><span class="p">,</span> <span class="n">private_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">openid_configuration</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="bp">cls</span><span class="o">=</span><span class="n">OpenIDConfiguration</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">plain_session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">OpenIDConfiguration</span><span class="o">.</span><span class="n">oidc_configuration_url</span><span class="p">(</span><span class="n">issuer_url</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_token</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scopes</span> <span class="o">=</span> <span class="n">requested_scopes</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">token_url</span> <span class="o">=</span> <span class="n">token_url</span></div>
+        <span class="c1"># Check whether the scopes requested are in the supported scopes from the config</span>
+        <span class="k">for</span> <span class="n">scope</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scopes</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">scope</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">openid_configuration</span><span class="o">.</span><span class="n">scopes_supported</span><span class="p">:</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Requested scope &quot;</span><span class="si">{</span><span class="n">scope</span><span class="si">}</span><span class="s1">&quot; not in supported scopes.&#39;</span><span class="p">)</span>
+        <span class="c1"># If a signing private key location is provided, load the key from it</span>
+        <span class="k">if</span> <span class="n">signing_private_key</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">signing_private_key</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">key_file</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_signing_private_key</span> <span class="o">=</span> <span class="n">serialization</span><span class="o">.</span><span class="n">load_pem_private_key</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">key_file</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span>
+                                                                               <span class="n">backend</span><span class="o">=</span><span class="n">default_backend</span><span class="p">(),</span>
+                                                                               <span class="n">password</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_signing_private_key</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Setting this means we&#39;re going to try creating jwt-bearer assertion tokens</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_jwt_bearer_email</span> <span class="o">=</span> <span class="n">jwt_bearer_email</span>
+        <span class="c1"># If jwt bearer email is set we MUST also have a signing key</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jwt_bearer_email</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signing_private_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Signing private key must be provided if JST bearer email set!&#39;</span><span class="p">)</span>
+        <span class="c1"># If jwt bearer email is set then check the client supports this scope</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jwt_bearer_email</span> <span class="ow">and</span> <span class="s1">&#39;urn:ietf:params:oauth:grant-type:jwt-bearer&#39;</span> \
+                <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">openid_configuration</span><span class="o">.</span><span class="n">grant_types_supported</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Client </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">client_id</span><span class="si">}</span><span class="s1"> does not support jwt-bearer tokens&#39;</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A requests session configured to automatically acquire tokens when needed and to use MTLS</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span>
 
 <div class="viewcode-block" id="FAPISession.clear_token"><a class="viewcode-back" href="../../../api.html#ib1.openenergy.support.FAPISession.clear_token">[docs]</a>    <span class="k">def</span> <span class="nf">clear_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -247,56 +290,100 @@
     <span class="k">def</span> <span class="nf">access_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_token</span><span class="p">()</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">introspection_response</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Introspect on our own token, useful to see what the resource server will see when it asks</span>
+<span class="sd">        about this client.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plain_session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">openid_configuration</span><span class="o">.</span><span class="n">introspection_endpoint</span><span class="p">,</span>
+                                           <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;token&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">access_token</span><span class="p">,</span>
+                                                 <span class="s1">&#39;client_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_id</span><span class="p">})</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+
     <span class="k">def</span> <span class="nf">_get_token</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Internal method to fetch a new bearer token if necessary and return it. A new token is</span>
-<span class="sd">        obtained if there either isn&#39;t one, or we have one but it&#39;s expired</span>
+<span class="sd">        obtained if there either isn&#39;t one, or we have one but it&#39;s expired. If a user email was</span>
+<span class="sd">        supplied this will attempt to use the jwt-bearer grant type, otherwise it&#39;ll use client-credentials</span>
 
 <span class="sd">        :return:</span>
 <span class="sd">            String representation of the access token</span>
 <span class="sd">        :raises requests.HTTPError:</span>
 <span class="sd">            if the token acquisition fails for any reason, this method raises the corresponding</span>
-<span class="sd">            HTTPError from the requests librar</span>
+<span class="sd">            HTTPError from the requests library</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_token</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_token</span><span class="p">[</span><span class="s1">&#39;expiry_time&#39;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">now</span><span class="p">:</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plain_session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">token_url</span><span class="p">,</span>
-                                                <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;client_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_id</span><span class="p">,</span>
-                                                      <span class="s1">&#39;scope&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">scopes</span><span class="p">,</span>
-                                                      <span class="s1">&#39;grant_type&#39;</span><span class="p">:</span> <span class="s1">&#39;client_credentials&#39;</span><span class="p">})</span>
-            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
-                <span class="n">d</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-                <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;_get_token - response is </span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-                <span class="k">if</span> <span class="s1">&#39;expires_in&#39;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_token</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;access_token&#39;</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;access_token&#39;</span><span class="p">],</span>
-                                   <span class="s1">&#39;expiry_time&#39;</span><span class="p">:</span> <span class="n">now</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;expires_in&#39;</span><span class="p">])}</span>
-                    <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s1">&#39;_get_token - got access token, expires at &#39;</span>
-                        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%b </span><span class="si">%d</span><span class="s2"> %Y %H:%M:%S&quot;</span><span class="p">,</span> <span class="n">gmtime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_token</span><span class="p">[</span><span class="s2">&quot;expiry_time&quot;</span><span class="p">]))</span><span class="si">}</span><span class="s1">, &#39;</span>
-                        <span class="sa">f</span><span class="s1">&#39;scope=</span><span class="se">\&#39;</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;scope&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;scope&quot;</span> <span class="ow">in</span> <span class="n">d</span> <span class="k">else</span> <span class="s2">&quot;NONE&quot;</span><span class="si">}</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;_get_token - no expiry time specified in token response </span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jwt_bearer_email</span><span class="p">:</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_jwt_bearer_token</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_client_credentials_grant_token</span><span class="p">()</span>
+
+            <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;_get_token - response is </span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;expires_in&#39;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_token</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;access_token&#39;</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;access_token&#39;</span><span class="p">],</span>
+                               <span class="s1">&#39;expiry_time&#39;</span><span class="p">:</span> <span class="n">now</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;expires_in&#39;</span><span class="p">])}</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;_get_token - got access token, expires at &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%b </span><span class="si">%d</span><span class="s2"> %Y %H:%M:%S&quot;</span><span class="p">,</span> <span class="n">gmtime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_token</span><span class="p">[</span><span class="s2">&quot;expiry_time&quot;</span><span class="p">]))</span><span class="si">}</span><span class="s1">, &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;scope=</span><span class="se">\&#39;</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;scope&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;scope&quot;</span> <span class="ow">in</span> <span class="n">d</span> <span class="k">else</span> <span class="s2">&quot;NONE&quot;</span><span class="si">}</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;_get_token - no expiry time specified in token response </span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_token</span><span class="p">[</span><span class="s1">&#39;access_token&#39;</span><span class="p">]</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">session</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_get_client_credentials_grant_token</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get a configured requests.Session set up with the necessary bearer token and client</span>
-<span class="sd">        certificates to make a MTLS request to a secured endpoint. Also assigns a new unique</span>
-<span class="sd">        x-fapi-interaction-id.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span>
+<span class="sd">        Method to get a token using client-credentials grant</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">plain_session</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        For convenience, a session configured with the private and public key pair to use TLS but without</span>
-<span class="sd">        the token management. Use this for calling regular endpoints such as the token introspection one.</span>
+<span class="sd">        :return:</span>
+<span class="sd">            A dict containing the response from the token endpoint</span>
+<span class="sd">        :raises:</span>
+<span class="sd">            HTTPError if the call doesn&#39;t return status 200</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plain_session</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;client_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_id</span><span class="p">,</span>
+                <span class="s1">&#39;scope&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">scopes</span><span class="p">,</span>
+                <span class="s1">&#39;grant_type&#39;</span><span class="p">:</span> <span class="s1">&#39;client_credentials&#39;</span><span class="p">}</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Attempting to acquire client_credentials token </span><span class="si">{</span><span class="n">data</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plain_session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">openid_configuration</span><span class="o">.</span><span class="n">token_endpoint</span><span class="p">,</span>
+                                           <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Acquired client_credentials token&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unable to acquire client_credentials token : </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_get_jwt_bearer_token</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to get a token using jwt-bearer grant</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">            A dict containing the response from the token endpoint</span>
+<span class="sd">        :raises:</span>
+<span class="sd">            HTTPError if the call doesn&#39;t return status 200</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="p">())</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;client_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_id</span><span class="p">,</span>
+                <span class="s1">&#39;grant_type&#39;</span><span class="p">:</span> <span class="s1">&#39;urn:ietf:params:oauth:grant-type:jwt-bearer&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;scope&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">scopes</span><span class="p">,</span>
+                <span class="s1">&#39;assertion&#39;</span><span class="p">:</span> <span class="n">jwt</span><span class="o">.</span><span class="n">encode</span><span class="p">({</span><span class="s1">&#39;iss&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_id</span><span class="p">,</span>
+                                         <span class="s1">&#39;sub&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jwt_bearer_email</span><span class="p">,</span>
+                                         <span class="s1">&#39;aud&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">openid_configuration</span><span class="o">.</span><span class="n">token_endpoint</span><span class="p">,</span>
+                                         <span class="s1">&#39;exp&#39;</span><span class="p">:</span> <span class="n">now</span> <span class="o">+</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">1</span><span class="p">,</span>
+                                         <span class="s1">&#39;iat&#39;</span><span class="p">:</span> <span class="n">now</span><span class="p">,</span>
+                                         <span class="s1">&#39;jti&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())},</span>
+                                        <span class="n">key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_signing_private_key</span><span class="p">,</span>
+                                        <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;PS256&#39;</span><span class="p">)}</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Attempting to acquire jwt-bearer token for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_jwt_bearer_email</span><span class="si">}</span><span class="s1"> : </span><span class="si">{</span><span class="n">data</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plain_session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">openid_configuration</span><span class="o">.</span><span class="n">token_endpoint</span><span class="p">,</span>
+                                           <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Acquired jwt-bearer token for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_jwt_bearer_email</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unable to acquire jwt-bearer token : </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -350,7 +437,7 @@
     <span class="n">LOG</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ib1.oe.support.validator&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="AccessTokenValidator.__init__"><a class="viewcode-back" href="../../../api.html#ib1.openenergy.support.AccessTokenValidator.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">private_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">certificate</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                 <span class="n">introspection_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;https://matls-auth.directory.energydata.org.uk/token/introspection&#39;</span><span class="p">,</span>
+                 <span class="n">issuer_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;https://matls-auth.directory.energydata.org.uk/&#39;</span><span class="p">,</span>
                  <span class="n">client_cert_parser</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a new access token validator. In this context the data provider attempting to validate an access token</span>
@@ -364,9 +451,11 @@
 <span class="sd">            Location of the private key of the data provider, used in the client auth for the introspection endpoint</span>
 <span class="sd">        :param certificate:</span>
 <span class="sd">            Location of the public key of the data provider, used in the client auth for the introspection endpoint</span>
-<span class="sd">        :param introspection_url:</span>
-<span class="sd">            URL of the oauth2 introspection endpoint. Defaults to</span>
-<span class="sd">            https://matls-auth.directory.energydata.org.uk/token/introspection to use our UAT instance of the directory</span>
+<span class="sd">        :param issuer_url:</span>
+<span class="sd">            URL of an authorization server, i.e. for the raidiam UAT sandbox this is</span>
+<span class="sd">            https://matls-auth.directory.energydata.org.uk/ - uses</span>
+<span class="sd">            https://openid.net/specs/openid-connect-discovery-1_0.html part 4 to discover the token introspection</span>
+<span class="sd">            endpoint</span>
 <span class="sd">        :param client_cert_parser:</span>
 <span class="sd">            A zero argument function which returns an X509 object for the active client certificate, or none if no</span>
 <span class="sd">            certificate is present. Defaults to a simple implementation that pulls the cert out of the flask environment</span>
@@ -375,7 +464,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">cert</span> <span class="o">=</span> <span class="n">certificate</span><span class="p">,</span> <span class="n">private_key</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">introspection_url</span> <span class="o">=</span> <span class="n">introspection_url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">openid_configuration</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="bp">cls</span><span class="o">=</span><span class="n">OpenIDConfiguration</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">OpenIDConfiguration</span><span class="o">.</span><span class="n">oidc_configuration_url</span><span class="p">(</span><span class="n">issuer_url</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">client_id</span> <span class="o">=</span> <span class="n">client_id</span>
 
         <span class="k">def</span> <span class="nf">dev_cert_parser</span><span class="p">():</span>
@@ -407,7 +497,7 @@
 
         <span class="c1"># Note - MTLS requires the addition of the client_id to the POST body as the certificate doesn&#39;t</span>
         <span class="c1"># contain this information. File under &#39;things that are not immediately obvious about OAuth2...&#39;</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">introspection_url</span><span class="p">,</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">openid_configuration</span><span class="o">.</span><span class="n">introspection_endpoint</span><span class="p">,</span>
                                      <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;token&#39;</span><span class="p">:</span> <span class="n">token</span><span class="p">,</span>
                                            <span class="s1">&#39;client_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_id</span><span class="p">})</span>
         <span class="c1"># If this failed for some reason, raise the appropriate error. This can happen if we&#39;re not</span>
@@ -546,6 +636,39 @@
         <span class="k">return</span> <span class="n">decorated_function</span></div></div>
 
 
+<div class="viewcode-block" id="OpenIDConfiguration"><a class="viewcode-back" href="../../../api.html#ib1.openenergy.support.OpenIDConfiguration">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">OpenIDConfiguration</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Information returned from the .well-known/openid-configuration document by</span>
+<span class="sd">    an OpenID provider such as the raidiam authz service.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">token_endpoint</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">introspection_endpoint</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">issuer</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">scopes_supported</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">grant_types_supported</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+
+<div class="viewcode-block" id="OpenIDConfiguration.oidc_configuration_url"><a class="viewcode-back" href="../../../api.html#ib1.openenergy.support.OpenIDConfiguration.oidc_configuration_url">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">oidc_configuration_url</span><span class="p">(</span><span class="n">issuer_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Implements the logic in 4.1 of https://openid.net/specs/openid-connect-discovery-1_0.html to find the URL</span>
+<span class="sd">        for the configuration document which can populate an instance of OpenIDConfiguration</span>
+
+<span class="sd">        :param issuer_url:</span>
+<span class="sd">            Base URL of the issuer</span>
+<span class="sd">        :return:</span>
+<span class="sd">            URL of the configuration document</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">issuer_url</span><span class="p">)</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">path</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span> <span class="o">+</span> <span class="s1">&#39;.well-known/openid-configuration&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span> <span class="o">+</span> <span class="s1">&#39;/.well-known/openid-configuration&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlunparse</span><span class="p">(</span><span class="n">u</span><span class="p">)</span></div></div>
+
+
 <span class="n">D</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
 
 
@@ -649,7 +772,7 @@
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on Jun 04, 2021.
+        Last updated on Jun 15, 2021.
       </span>
 
 </p>
