@@ -2,7 +2,6 @@ import json
 import logging
 from json import JSONDecodeError
 from typing import List, Dict
-
 import requests
 import yaml
 from pyld import jsonld
@@ -10,8 +9,13 @@ from yaml.parser import ParserError
 
 LOG = logging.getLogger('ib1.openenergy.support.metadata')
 
+#: Data Catalogue namespace
 DCAT = 'http://www.w3.org/ns/dcat#'
+
+#: Dublin Core namespace
 DC = 'http://purl.org/dc/terms/'
+
+#: Open Energy ontology namespace
 OE = 'http://energydata.org.uk/oe/terms/'
 
 
@@ -105,6 +109,19 @@ class JSONLDContainer:
         self.ld = jsonld.expand(d)[0]
 
     def get(self, namespace: str, term: str, default=None):
+        """
+        Get a property, handles looking for the @value entries
+        within an expanded JSON-LD dictionary
+
+        :param namespace:
+            namespace for term to find
+        :param term:
+            term within that namespace
+        :param default:
+            default value to return if term isn't present, defaults to None
+        :return:
+            value of term, can be single item if only one value present or list if multiple
+        """
         try:
             values = self.ld[namespace + term]
             if len(values) == 1:
@@ -115,6 +132,9 @@ class JSONLDContainer:
 
     @property
     def type(self):
+        """
+        ``@type`` of the entity described
+        """
         if '@type' in self.ld:
             return self.ld['@type'][0]
         return None
@@ -129,12 +149,12 @@ def load_metadata(url: str = None, file: str = None, session=None, **kwargs) -> 
     :param file:
         file path from which to load metadata, use either this or url, not both
     :param session:
-        if specified, use this `requests.session`, if not, create a new one
+        if specified, use this `requests.Session`, if not, create a new one
     :param kwargs:
         any additional arguments to pass into the get request
-    :raises :class:`HTTPError`:
+    :raises requests.HTTPError:
         if any error occurs while attempting to fetch the URL and ``url`` specified
-    :raises :class:`ValueError`:
+    :raises ValueError:
         if the content cannot be parsed for some reason
     :raises IOError:
         if unable to read from a local file, and ``file`` specified

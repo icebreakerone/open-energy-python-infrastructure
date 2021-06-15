@@ -21,6 +21,7 @@ Contents
     installation
     service_provider
     data_provider
+    metadata
     ssl_dev
     api
 

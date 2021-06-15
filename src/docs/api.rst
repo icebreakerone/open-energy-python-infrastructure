@@ -14,6 +14,9 @@ Metadata APIs
 
 API to handle the metadata format described in `Data Set Metadata <https://icebreakerone.github.io/open-energy-technical-docs/main/metadata.html>`_
 
+.. automodule:: ib1.openenergy.support.metadata
+    :members:
+
 SSL Development APIs
 --------------------
 
