@@ -2,7 +2,7 @@ from setuptools import setup, find_namespace_packages
 
 setup(
     name='ib1.openenergy.support',
-    version='0.1.0',
+    version='0.2.0',
     author='Tom Oinn',
     author_email='tom.oinn@icebreakerone.org',
     url='https://github.com/icebreakerone/open-energy-python-infrastructure',
@@ -14,7 +14,7 @@ setup(
                  'Topic :: Security',
                  'Topic :: Scientific/Engineering'],
     packages=find_namespace_packages(),
-    install_requires=['requests', 'flask', 'cachetools', 'cryptography', 'pyyaml', 'PyLD', 'Requests-File'],
+    install_requires=['requests', 'flask', 'cachetools', 'cryptography', 'pyyaml', 'PyLD'],
     entry_points={
         'console_scripts': []
     }
