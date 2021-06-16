@@ -1,9 +1,11 @@
 import logging
 import pprint
-from typing import List, Dict
 from concurrent.futures import ThreadPoolExecutor, Future
+from typing import List, Dict, Tuple
 
 from ib1.openenergy.support import FAPISession, httpclient_logging_patch, RaidiamDirectory
+from ib1.openenergy.support.metadata import Metadata, load_metadata
+from ib1.openenergy.support.raidiam import Organisation, AuthorisationServer
 
 LOG = logging.getLogger('ib1.sample_metadata_harvester')
 
@@ -14,8 +16,6 @@ logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
 httpclient_logging_patch(level=logging.DEBUG)
 
 # Set up a session, this will get a token from the directory when needed
-from ib1.openenergy.support.raidiam import Organisation, AuthorisationServer
-from ib1.openenergy.support.metadata import Metadata, load_metadata
 
 f = FAPISession(client_id='kZuAsn7UYZ98WWh29hDPf',
                 issuer_url='https://matls-auth.directory.energydata.org.uk',
@@ -54,7 +54,7 @@ def crawl(max_workers=4) -> List[Future]:
         for org_id, urls in orgid_to_urls.items():
 
             # Fetch from the locally bound url list for this org
-            def fetch_and_parse() -> List[Dict[Organisation, List[Metadata]]]:
+            def fetch_and_parse() -> List[Tuple[Organisation, List[Metadata]]]:
                 def inner():
                     # Iterate over URLs, trying to fetch and parse each in sequence
                     for url in urls:
@@ -65,7 +65,7 @@ def crawl(max_workers=4) -> List[Future]:
                             # containing the organisation itself as the key, this retains
                             # the link between metadata and org without having to go through
                             # too many convolutions later
-                            yield {orgid_to_org[org_id]: metadata}
+                            yield orgid_to_org[org_id], metadata
                         except Exception as e:
                             LOG.warning(f'unable to retrieve and parse metadata from url={url}', e)
 
@@ -79,15 +79,15 @@ def crawl(max_workers=4) -> List[Future]:
 org_to_meta = {}
 # Actually schedule the jobs, iterating over the futures returned
 for f in crawl(max_workers=4):
-    # Block on completion of each future in turn
-    for d in f.result():
-        # Futures return a single item dict, but iterate for sanity
-        for org, metadata_list in d.items():
-            # Put a record in org_to_meta if there wasn't one
-            if org not in org_to_meta:
-                org_to_meta[org] = []
-            # Add all the metadata objects to the record for this org
-            org_to_meta[org] += metadata_list
+    # Block on completion of each future in turn, the future actually returns
+    # a list of tuples (org, metadata[]) so first iterate over f.result() to get each
+    # tuple
+    for org, metadata_list in f.result():
+        # Put a record in org_to_meta if there wasn't one
+        if org not in org_to_meta:
+            org_to_meta[org] = []
+        # Add all the metadata objects to the record for this org
+        org_to_meta[org] += metadata_list
 
 # Just print the organisation -> metadata list for now. In a real harvester at this
 # point we'd do the business of generating unique IDs from the Organisation and Metadata
