@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import List
 
 
-@dataclass
+@dataclass(frozen=True)
 class Organisation:
     organisation_id: str
     status: str
@@ -24,7 +24,7 @@ class Organisation:
     parent_organisation_reference: str = ''
 
 
-@dataclass
+@dataclass(frozen=True)
 class OrganisationAuthorityDomainClaim:
     organisation_authority_domain_claim_id: str
     authorisation_domain_name: str
@@ -34,7 +34,7 @@ class OrganisationAuthorityDomainClaim:
     status: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class OrganisationContact:
     contact_id: str
     organisation_id: str
@@ -53,13 +53,13 @@ class OrganisationContact:
     pgp_public_key: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class ApiDiscoveryEndpoint:
     api_discovery_id: str
     api_endpoint: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class ApiResource:
     api_resource_id: str
     api_family_type: str
@@ -67,7 +67,7 @@ class ApiResource:
     api_discovery_endpoints: List[ApiDiscoveryEndpoint]
 
 
-@dataclass
+@dataclass(frozen=True)
 class AuthorisationServer:
     authorisation_server_id: str
     organisation_id: str
