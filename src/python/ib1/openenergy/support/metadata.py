@@ -1,11 +1,15 @@
 import json
 import logging
 from json import JSONDecodeError
-from typing import List, Dict
+from typing import List, Dict, Tuple
 import requests
 import yaml
 from pyld import jsonld
+from requests import HTTPError
 from yaml.parser import ParserError
+from dataclasses import dataclass, field
+
+from yaml.scanner import ScannerError
 
 LOG = logging.getLogger('ib1.openenergy.support.metadata')
 
@@ -140,7 +144,21 @@ class JSONLDContainer:
         return None
 
 
-def load_metadata(url: str = None, file: str = None, session=None, **kwargs) -> List[Metadata]:
+@dataclass
+class MetadataLoadResult:
+    """
+    Information about the process of loading a metadata file from a URL or file location along
+    with the results. This is used instead of raising exceptions during the load process in order
+    to provide better reporting with mappings between org IDs and problems with their respective
+    metadata files.
+    """
+    location: str = None
+    error: str = None
+    exception: Exception = None
+    metadata: List[Metadata] = field(default_factory=list)
+
+
+def load_metadata(url: str = None, file: str = None, session=None, **kwargs) -> MetadataLoadResult:
     """
     Load metadata from a URL.
 
@@ -152,28 +170,28 @@ def load_metadata(url: str = None, file: str = None, session=None, **kwargs) -> 
         if specified, use this `requests.Session`, if not, create a new one
     :param kwargs:
         any additional arguments to pass into the get request
-    :raises requests.HTTPError:
-        if any error occurs while attempting to fetch the URL and ``url`` specified
-    :raises ValueError:
-        if the content cannot be parsed for some reason
-    :raises IOError:
-        if unable to read from a local file, and ``file`` specified
     :return:
-        a list of `Metadata` objects
+        a `MetadataLoadResult` containing a report on the process, including actual `Metadata` objects if
+        the load succeeded and found any metadata.
     """
 
     if file is not None and url is not None:
-        raise ValueError('must specify exactly one of file or url, not both')
-
+        return MetadataLoadResult(location=f'file:{file} and {url}',
+                                  error='must provide exactly one of "file" or "url"')
     if url is not None:
-        LOG.debug(f'loading metadata from url={url}')
+        LOG.debug(f'loading metadata from url = {url}')
         # Use supplied session, or build a new one
         if session is None:
             session = requests.session()
-        # Fetch data from the specified URL
-        response = session.get(url=url, **kwargs)
-        # If any errors occurred, raise the corresponding HTTPError
-        response.raise_for_status()
+
+
+        try:
+            # Fetch data from the specified URL
+            response = session.get(url=url, **kwargs)
+            # If any errors occurred, raise the corresponding HTTPError
+            response.raise_for_status()
+        except Exception as he:
+            return MetadataLoadResult(location=url, error='unable to retrieve metadata file', exception=he)
         try:
             result = response.json()
         except ValueError:
@@ -182,31 +200,46 @@ def load_metadata(url: str = None, file: str = None, session=None, **kwargs) -> 
             try:
                 result = yaml.safe_load(response.content)
                 LOG.debug(f'url={url} parsed as YAML')
-            except ParserError as pe:
+            except Exception as pe:
                 LOG.error(f'unable to parse metadata file from url={url} as either JSON or YAML')
                 # Not YAML either, or not a dialect we can handle
-                raise ValueError(pe)
+                return MetadataLoadResult(location=url,
+                                          error='unable to parse metadata file as either JSON or YAML',
+                                          exception=pe)
     elif file is not None:
-        LOG.debug(f'loading metadata from file={file}')
+        LOG.debug(f'loading metadata from file = {file}')
         # Read from file on disk
-        with open(file, 'rb') as f:
-            s = f.read()
-            try:
-                result = json.loads(s)
-            except JSONDecodeError:
-                LOG.debug(f'file={file} not valid JSON, trying YAML')
+        try:
+            with open(file, 'rb') as f:
+                s = f.read()
                 try:
-                    result = yaml.safe_load(s)
-                    LOG.debug(f'file={file} parsed as YAML')
-                except ParserError as pe:
-                    LOG.error(f'unable to parse metadata file from file={file} as either JSON or YAML')
-                    # Not YAML either, or not a dialect we can handle
-                    raise ValueError(pe)
+                    result = json.loads(s)
+                except JSONDecodeError:
+                    LOG.debug(f'file={file} not valid JSON, trying YAML')
+                    try:
+                        result = yaml.safe_load(s)
+                        LOG.debug(f'file={file} parsed as YAML')
+                    except ParserError as pe:
+                        LOG.error(f'unable to parse metadata file from file={file} as either JSON or YAML')
+                        # Not YAML either, or not a dialect we can handle
+                        return MetadataLoadResult(location=f'file:{file}',
+                                                  error='unable to parse metadata file as either JSON or YAML',
+                                                  exception=pe)
+        except IOError as ioe:
+            return MetadataLoadResult(location=f'file:{file}',
+                                      error='unable to load metadata file from disk',
+                                      exception=ioe)
     else:
-        raise ValueError('must specify either file or url')
+        return MetadataLoadResult(location='NONE', error='must specify either file or url')
+
+    location = f'{file}' if file else url
 
     if isinstance(result, list):
-        LOG.debug(f'fetched and parsed url={url}, contains {len(result)} items')
-        return [Metadata(item) for item in result]
+        LOG.debug(f'fetched and parsed location={location}, contains {len(result)} items')
+        try:
+            return MetadataLoadResult(location=location, metadata=[Metadata(item) for item in result])
+        except ValueError as ve:
+            return MetadataLoadResult(location=location, error='invalid metadata description', exception=ve)
 
-    raise ValueError(f'metadata does not contain a list as the top level item')
+    # No list item, this is a failure
+    return MetadataLoadResult(location=location, error='metadata does not contain a list as top level item')

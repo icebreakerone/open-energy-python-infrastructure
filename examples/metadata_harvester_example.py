@@ -58,16 +58,18 @@ def crawl(max_workers=4) -> List[Future]:
                 def inner():
                     # Iterate over URLs, trying to fetch and parse each in sequence
                     for url in urls:
-                        try:
-                            metadata = load_metadata(url)
-                            LOG.info(f'fetched metadata for url={url}')
-                            # Yield the successfully parsed metadata in a single item dict
-                            # containing the organisation itself as the key, this retains
-                            # the link between metadata and org without having to go through
-                            # too many convolutions later
-                            yield orgid_to_org[org_id], metadata
-                        except Exception as e:
-                            LOG.warning(f'unable to retrieve and parse metadata from url={url}', e)
+                        metadata_report = load_metadata(url)
+                        if metadata_report.metadata:
+                            LOG.info(f'org_id={org_id} : fetched metadata for url={url}')
+                            # Yield the successfully parsed metadata in a tuple
+                            # containing the organisation and list of `Metadata` objects
+                            yield orgid_to_org[org_id], metadata_report.metadata
+                        else:
+                            if metadata_report.error:
+                                LOG.warning(
+                                    f'org_id={org_id} : unable to retrieve and parse metadata from url={url}, error={metadata_report.error}')
+                            else:
+                                LOG.warning(f'org_id={org_id} : location url={url} parsed but contained no datasets')
 
                 # Fully exhaust the generator, returning the list of {org:metadata} dicts
                 return list(inner())
