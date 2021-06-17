@@ -6,9 +6,7 @@ from argparse import ArgumentParser
 
 LOG = logging.getLogger('ib1.openenergy.support.castore')
 
-UAT_CACERT_URL = 'https://raw.githubusercontent.com/'
-'icebreakerone/open-energy-python-infrastructure/'
-'main/certificates/raidiam_certificate_chain.pem'
+UAT_CACERT_URL = 'https://raw.githubusercontent.com/icebreakerone/open-energy-python-infrastructure/main/certificates/raidiam_certificate_chain.pem'
 
 parser = ArgumentParser()
 parser.add_argument('-u', '--url', type=str,
