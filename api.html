@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Python API : ib1.openenergy.support &mdash; Open Energy Infrastructure Support 0.2.1 documentation</title>
+  <title>Python API : ib1.openenergy.support &mdash; Open Energy Infrastructure Support 0.2.2 documentation</title>
   
 
   
@@ -41,7 +41,7 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.2.1 documentation"
+          title="Search within Open Energy Infrastructure Support 0.2.2 documentation"
           href="_static/opensearch.xml"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -72,7 +72,7 @@
             
             
               <div class="version">
-                0.2.1
+                0.2.2
               </div>
             
           
@@ -254,13 +254,13 @@ injected into the response before returning.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="ib1.openenergy.support.FAPISession">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.</span></span><span class="sig-name descname"><span class="pre">FAPISession</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">issuer_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requested_scopes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">private_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">certificate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jwt_bearer_email</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signing_private_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support.html#FAPISession"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.FAPISession" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.</span></span><span class="sig-name descname"><span class="pre">FAPISession</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">issuer_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requested_scopes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">private_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">certificate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jwt_bearer_email</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signing_private_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support.html#FAPISession"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.FAPISession" title="Permalink to this definition">¶</a></dt>
 <dd><p>Similar to a requests session, but handles management of a single access token. It acquires the token when required,
 manages token expiry etc. Implicitly uses client-credentials, there’s no user consent or similar involved.</p>
 <p>Can also be used as a requests authenticator</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="ib1.openenergy.support.FAPISession.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">issuer_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requested_scopes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">private_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">certificate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jwt_bearer_email</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signing_private_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support.html#FAPISession.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.FAPISession.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">issuer_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requested_scopes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">private_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">certificate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jwt_bearer_email</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signing_private_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support.html#FAPISession.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.FAPISession.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build a new FAPI session. This doesn’t immediately trigger any requests to the token
 endpoint, these are made when the session is accessed, and only if needed.</p>
 <dl class="field-list simple">
@@ -276,7 +276,12 @@ switch the client to jwt-bearer grant type. This will only work if the correspon
 provisioned appropriately in the directory itself, otherwise this will fail. It should only ever be used
 by our internal Open Energy clients needing to write to the directory, and can be entirely ignored by other
 users.</p></li>
-<li><p><strong>signing_private_key</strong> – Default to None, must be provided if jwt_bearer_email is set. Path</p></li>
+<li><p><strong>signing_private_key</strong> – Default to None, must be provided if jwt_bearer_email is set. Path to private key set as a signing key
+in the directory.</p></li>
+<li><p><strong>retries</strong> – Number of retries that will be used when accessing GET endpoints through the underlying plain and FAPI
+enabled sessions within this object. Defaults to 3, set to 0 to disable retries. Requests which respond
+with statii in [429, 502, 503, 504] will be retried, exponential back-off is applied to avoid overwhelming
+resources.</p></li>
 </ul>
 </dd>
 </dl>

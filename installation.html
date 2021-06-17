@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Installation &mdash; Open Energy Infrastructure Support 0.2.1 documentation</title>
+  <title>Installation &mdash; Open Energy Infrastructure Support 0.2.2 documentation</title>
   
 
   
@@ -41,7 +41,7 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.2.1 documentation"
+          title="Search within Open Energy Infrastructure Support 0.2.2 documentation"
           href="_static/opensearch.xml"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -73,7 +73,7 @@
             
             
               <div class="version">
-                0.2.1
+                0.2.2
               </div>
             
           
@@ -201,15 +201,23 @@ behaves identically to installing with either <code class="docutils literal notr
 <p>The certificates used to mutually authenticate between data and service providers within <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Open-Energy-Phase-3" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">OE3</span></a> are signed by our
 authorization server. In order to validate correctly, you need to add the root and intermediate signing certificates
 to the <code class="docutils literal notranslate"><span class="pre">certifi</span></code> CA file used by Python (Python does not use the operating system CA store).</p>
-<p>Once <code class="docutils literal notranslate"><span class="pre">certifi</span></code> is installed (it will be pulled in as a dependency when you install this library) you can do the
-following on the command line to concatenate the necessary files to its store, this will fetch the current UAT root and
-signing certificates from this repository, then append them to the file location returned by <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">certifi</span></code></p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>You need to do this. If you do not do this, you will see SSL related errors in various places. It is not an optional
+step!</p>
+</div>
+<p>As of version <code class="xref any docutils literal notranslate"><span class="pre">0.2.2</span></code> of this library, installing the library also adds a command which can do this automatically. First
+activate any virtual environment, install the library as above, and run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; oe_install_cacerts
+</pre></div>
+</div>
+<p>This will fetch the extra certificates needed from our github repository and append them to the set of CA certificates
+used by the Python code here. It will not make any changes to the operating system trusted root certificates, any
+changes are strictly local to your Python environment.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>You must activate any virtual environment before running this command</p>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; curl https://raw.githubusercontent.com/icebreakerone/open-energy-python-infrastructure/main/certificates/raidiam_certificate_chain.pem &gt;&gt; <span class="sb">`</span>python3 -m certifi<span class="sb">`</span>
-</pre></div>
+<p>The command will check whether the certificates have already been added and will not produce duplicates, it’s
+therefore safe to run this even if you believe you may have already done so.</p>
 </div>
 <p>If you need to reset your certifi installation, or if it is ever updated (it’s good practice to check periodically for
 changes to this library as this is the way root CAs are provided or invalidated for Python code) you will need to redo
@@ -217,7 +225,7 @@ the above command. For consistency, it’s best to explicitly uninstall then rei
 know you’re always starting from a clean, unmodified, CA file:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; pip3 uninstall certifi
 &gt; pip3 install certifi
-&gt; curl https://raw.githubusercontent.com/icebreakerone/open-energy-python-infrastructure/main/certificates/raidiam_certificate_chain.pem &gt;&gt; <span class="sb">`</span>python3 -m certifi<span class="sb">`</span>
+&gt; oe_install_cacerts
 </pre></div>
 </div>
 </div>

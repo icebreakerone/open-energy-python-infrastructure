@@ -31,17 +31,26 @@ The certificates used to mutually authenticate between data and service provider
 authorization server. In order to validate correctly, you need to add the root and intermediate signing certificates
 to the ``certifi`` CA file used by Python (Python does not use the operating system CA store).
 
-Once ``certifi`` is installed (it will be pulled in as a dependency when you install this library) you can do the
-following on the command line to concatenate the necessary files to its store, this will fetch the current UAT root and
-signing certificates from this repository, then append them to the file location returned by ``python3 -m certifi``
+.. warning::
 
-.. note::
+    You need to do this. If you do not do this, you will see SSL related errors in various places. It is not an optional
+    step!
 
-    You must activate any virtual environment before running this command
+As of version `0.2.2` of this library, installing the library also adds a command which can do this automatically. First
+activate any virtual environment, install the library as above, and run:
 
 .. code-block:: bash
 
-    > curl https://raw.githubusercontent.com/icebreakerone/open-energy-python-infrastructure/main/certificates/raidiam_certificate_chain.pem >> `python3 -m certifi`
+    > oe_install_cacerts
+
+This will fetch the extra certificates needed from our github repository and append them to the set of CA certificates
+used by the Python code here. It will not make any changes to the operating system trusted root certificates, any
+changes are strictly local to your Python environment.
+
+.. note::
+
+    The command will check whether the certificates have already been added and will not produce duplicates, it's
+    therefore safe to run this even if you believe you may have already done so.
 
 If you need to reset your certifi installation, or if it is ever updated (it's good practice to check periodically for
 changes to this library as this is the way root CAs are provided or invalidated for Python code) you will need to redo
@@ -52,4 +61,4 @@ know you're always starting from a clean, unmodified, CA file:
 
     > pip3 uninstall certifi
     > pip3 install certifi
-    > curl https://raw.githubusercontent.com/icebreakerone/open-energy-python-infrastructure/main/certificates/raidiam_certificate_chain.pem >> `python3 -m certifi`
+    > oe_install_cacerts

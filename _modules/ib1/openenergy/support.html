@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>ib1.openenergy.support &mdash; Open Energy Infrastructure Support 0.2.0 documentation</title>
+  <title>ib1.openenergy.support &mdash; Open Energy Infrastructure Support 0.2.2 documentation</title>
   
 
   
@@ -41,7 +41,7 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.2.0 documentation"
+          title="Search within Open Energy Infrastructure Support 0.2.2 documentation"
           href="../../../_static/opensearch.xml"/>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -71,7 +71,7 @@
             
             
               <div class="version">
-                0.2.0
+                0.2.2
               </div>
             
           
@@ -187,7 +187,10 @@
 <span class="kn">from</span> <span class="nn">cachetools</span> <span class="kn">import</span> <span class="n">cached</span><span class="p">,</span> <span class="n">TTLCache</span>
 <span class="kn">from</span> <span class="nn">cryptography.hazmat.backends</span> <span class="kn">import</span> <span class="n">default_backend</span>
 <span class="kn">from</span> <span class="nn">cryptography.hazmat.primitives</span> <span class="kn">import</span> <span class="n">hashes</span><span class="p">,</span> <span class="n">serialization</span>
+<span class="kn">from</span> <span class="nn">requests.adapters</span> <span class="kn">import</span> <span class="n">HTTPAdapter</span>
 <span class="kn">from</span> <span class="nn">requests.auth</span> <span class="kn">import</span> <span class="n">AuthBase</span>
+<span class="kn">from</span> <span class="nn">requests.exceptions</span> <span class="kn">import</span> <span class="n">RetryError</span>
+<span class="kn">from</span> <span class="nn">requests.packages.urllib3.util.retry</span> <span class="kn">import</span> <span class="n">Retry</span>
 
 <span class="kn">import</span> <span class="nn">ib1.openenergy.support.raidiam</span> <span class="k">as</span> <span class="nn">raidiam</span>
 
@@ -216,7 +219,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="FAPISession.__init__"><a class="viewcode-back" href="../../../api.html#ib1.openenergy.support.FAPISession.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client_id</span><span class="p">,</span> <span class="n">issuer_url</span><span class="p">,</span> <span class="n">requested_scopes</span><span class="p">,</span> <span class="n">private_key</span><span class="p">,</span> <span class="n">certificate</span><span class="p">,</span> <span class="n">jwt_bearer_email</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">signing_private_key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                 <span class="n">signing_private_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build a new FAPI session. This doesn&#39;t immediately trigger any requests to the token</span>
 <span class="sd">        endpoint, these are made when the session is accessed, and only if needed.</span>
@@ -237,7 +240,13 @@
 <span class="sd">            by our internal Open Energy clients needing to write to the directory, and can be entirely ignored by other</span>
 <span class="sd">            users.</span>
 <span class="sd">        :param signing_private_key:</span>
-<span class="sd">            Default to None, must be provided if jwt_bearer_email is set. Path</span>
+<span class="sd">            Default to None, must be provided if jwt_bearer_email is set. Path to private key set as a signing key</span>
+<span class="sd">            in the directory.</span>
+<span class="sd">        :param retries:</span>
+<span class="sd">            Number of retries that will be used when accessing GET endpoints through the underlying plain and FAPI</span>
+<span class="sd">            enabled sessions within this object. Defaults to 3, set to 0 to disable retries. Requests which respond</span>
+<span class="sd">            with statii in [429, 502, 503, 504] will be retried, exponential back-off is applied to avoid overwhelming</span>
+<span class="sd">            resources.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">client_id</span> <span class="o">=</span> <span class="n">client_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
@@ -245,6 +254,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="o">.</span><span class="n">auth</span> <span class="o">=</span> <span class="bp">self</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plain_session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plain_session</span><span class="o">.</span><span class="n">cert</span> <span class="o">=</span> <span class="n">certificate</span><span class="p">,</span> <span class="n">private_key</span>
+
+        <span class="n">retry_strategy</span> <span class="o">=</span> <span class="n">Retry</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">retries</span><span class="p">,</span>
+                               <span class="n">status_forcelist</span><span class="o">=</span><span class="p">[</span><span class="mi">429</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">],</span>
+                               <span class="n">method_whitelist</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;HEAD&quot;</span><span class="p">,</span> <span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;OPTIONS&quot;</span><span class="p">],</span>
+                               <span class="n">backoff_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">adapter</span> <span class="o">=</span> <span class="n">HTTPAdapter</span><span class="p">(</span><span class="n">max_retries</span><span class="o">=</span><span class="n">retry_strategy</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">&#39;https://&#39;</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">&#39;http://&#39;</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plain_session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">&#39;https://&#39;</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plain_session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">&#39;http://&#39;</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">openid_configuration</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="bp">cls</span><span class="o">=</span><span class="n">OpenIDConfiguration</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">plain_session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
             <span class="n">OpenIDConfiguration</span><span class="o">.</span><span class="n">oidc_configuration_url</span><span class="p">(</span><span class="n">issuer_url</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
 
@@ -746,19 +766,27 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get all `Organisation` entities within the directory</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fapi</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s1">organisations&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">build</span><span class="p">(</span><span class="n">org</span><span class="p">,</span> <span class="n">raidiam</span><span class="o">.</span><span class="n">Organisation</span><span class="p">)</span> <span class="k">for</span> <span class="n">org</span> <span class="ow">in</span> <span class="n">response</span><span class="p">]</span></div>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fapi</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s1">organisations&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">build</span><span class="p">(</span><span class="n">org</span><span class="p">,</span> <span class="n">raidiam</span><span class="o">.</span><span class="n">Organisation</span><span class="p">)</span> <span class="k">for</span> <span class="n">org</span> <span class="ow">in</span> <span class="n">response</span><span class="p">]</span>
+        <span class="k">except</span> <span class="n">RetryError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;RaidiamDirectory.organisations : max retries exceeded&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[]</span></div>
 
     <span class="k">def</span> <span class="nf">authorisation_servers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">org_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">raidiam</span><span class="o">.</span><span class="n">AuthorisationServer</span><span class="p">]:</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fapi</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s1">organisations/</span><span class="si">{</span><span class="n">quote_plus</span><span class="p">(</span><span class="n">org_id</span><span class="p">)</span><span class="si">}</span><span class="s1">/authorisationservers&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-                <span class="k">return</span> <span class="p">[]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[</span><span class="n">build</span><span class="p">(</span><span class="n">server</span><span class="p">,</span> <span class="n">raidiam</span><span class="o">.</span><span class="n">AuthorisationServer</span><span class="p">)</span> <span class="k">for</span> <span class="n">server</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()]</span></div>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fapi</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s1">organisations/</span><span class="si">{</span><span class="n">quote_plus</span><span class="p">(</span><span class="n">org_id</span><span class="p">)</span><span class="si">}</span><span class="s1">/authorisationservers&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="p">[]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[</span><span class="n">build</span><span class="p">(</span><span class="n">server</span><span class="p">,</span> <span class="n">raidiam</span><span class="o">.</span><span class="n">AuthorisationServer</span><span class="p">)</span> <span class="k">for</span> <span class="n">server</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()]</span>
+        <span class="k">except</span> <span class="n">RetryError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;RaidiamDirectory.authorization_servers : max retries exceeded&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[]</span></div>
 </pre></div>
 
            </div>
@@ -772,7 +800,7 @@
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on Jun 15, 2021.
+        Last updated on Jun 17, 2021.
       </span>
 
 </p>
