@@ -16,7 +16,10 @@ import requests
 from cachetools import cached, TTLCache
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
+from requests.adapters import HTTPAdapter
 from requests.auth import AuthBase
+from requests.exceptions import RetryError
+from requests.packages.urllib3.util.retry import Retry
 
 import ib1.openenergy.support.raidiam as raidiam
 
@@ -45,7 +48,7 @@ class FAPISession(AuthBase):
     """
 
     def __init__(self, client_id, issuer_url, requested_scopes, private_key, certificate, jwt_bearer_email=None,
-                 signing_private_key=None):
+                 signing_private_key=None, retries=3):
         """
         Build a new FAPI session. This doesn't immediately trigger any requests to the token
         endpoint, these are made when the session is accessed, and only if needed.
@@ -66,7 +69,13 @@ class FAPISession(AuthBase):
             by our internal Open Energy clients needing to write to the directory, and can be entirely ignored by other
             users.
         :param signing_private_key:
-            Default to None, must be provided if jwt_bearer_email is set. Path
+            Default to None, must be provided if jwt_bearer_email is set. Path to private key set as a signing key
+            in the directory.
+        :param retries:
+            Number of retries that will be used when accessing GET endpoints through the underlying plain and FAPI
+            enabled sessions within this object. Defaults to 3, set to 0 to disable retries. Requests which respond
+            with statii in [429, 502, 503, 504] will be retried, exponential back-off is applied to avoid overwhelming
+            resources.
         """
         self.client_id = client_id
         self._session = requests.Session()
@@ -74,6 +83,17 @@ class FAPISession(AuthBase):
         self._session.auth = self
         self.plain_session = requests.Session()
         self.plain_session.cert = certificate, private_key
+
+        retry_strategy = Retry(total=retries,
+                               status_forcelist=[429, 502, 503, 504],
+                               method_whitelist=["HEAD", "GET", "OPTIONS"],
+                               backoff_factor=1)
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self._session.mount('https://', adapter)
+        self._session.mount('http://', adapter)
+        self.plain_session.mount('https://', adapter)
+        self.plain_session.mount('http://', adapter)
+
         self.openid_configuration = build(cls=OpenIDConfiguration, d=self.plain_session.get(
             OpenIDConfiguration.oidc_configuration_url(issuer_url)).json())
 
@@ -575,16 +595,24 @@ class RaidiamDirectory:
         """
         Get all `Organisation` entities within the directory
         """
-        response = self.fapi.session.get(f'{self.base_url}organisations').json()['content']
-        return [build(org, raidiam.Organisation) for org in response]
+        try:
+            response = self.fapi.session.get(f'{self.base_url}organisations').json()['content']
+            return [build(org, raidiam.Organisation) for org in response]
+        except RetryError:
+            logging.error('RaidiamDirectory.organisations : max retries exceeded')
+            return []
 
     def authorisation_servers(self, org_id: str) -> List[raidiam.AuthorisationServer]:
-        response = self.fapi.session.get(f'{self.base_url}organisations/{quote_plus(org_id)}/authorisationservers')
-        if response.status_code != 200:
-            try:
-                response.raise_for_status()
-            except Exception as e:
-                logging.error(e)
-                return []
-        else:
-            return [build(server, raidiam.AuthorisationServer) for server in response.json()]
+        try:
+            response = self.fapi.session.get(f'{self.base_url}organisations/{quote_plus(org_id)}/authorisationservers')
+            if response.status_code != 200:
+                try:
+                    response.raise_for_status()
+                except Exception as e:
+                    logging.error(e)
+                    return []
+            else:
+                return [build(server, raidiam.AuthorisationServer) for server in response.json()]
+        except RetryError:
+            logging.error('RaidiamDirectory.authorization_servers : max retries exceeded')
+            return []
