@@ -102,7 +102,10 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#installing-with-pip">Installing with pip</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installing-from-source">Installing from source</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#adding-oe3-root-certificates">Adding OE3 root certificates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-oe3-root-certificates">Adding OE3 root certificates</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#specifying-alternate-certificates">Specifying alternate certificates</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="service_provider.html">Accessing OE Shared Data</a></li>
@@ -227,6 +230,18 @@ know you’re always starting from a clean, unmodified, CA file:</p>
 &gt; pip3 install certifi
 &gt; oe_install_cacerts
 </pre></div>
+</div>
+<div class="section" id="specifying-alternate-certificates">
+<h3>Specifying alternate certificates<a class="headerlink" href="#specifying-alternate-certificates" title="Permalink to this headline">¶</a></h3>
+<p>You can supply an optional <code class="docutils literal notranslate"><span class="pre">url</span></code> parameter to this tool to override the default location for the certificates to add
+to your <code class="docutils literal notranslate"><span class="pre">castore.pem</span></code> file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oe_install_cacerts</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span> <span class="n">URL</span><span class="p">]</span>
+
+<span class="n">optional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>         <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+  <span class="o">-</span><span class="n">u</span> <span class="n">URL</span><span class="p">,</span> <span class="o">--</span><span class="n">url</span> <span class="n">URL</span>  <span class="n">URL</span> <span class="n">of</span> <span class="n">additional</span> <span class="n">root</span> <span class="n">certificates</span><span class="p">,</span> <span class="n">defaults</span> <span class="n">to</span> <span class="n">certs</span> <span class="kn">from</span> <span class="nn">Open</span> <span class="n">Energy</span> <span class="n">github</span>
+</pre></div>
+</div>
 </div>
 </div>
 </div>

@@ -62,3 +62,17 @@ know you're always starting from a clean, unmodified, CA file:
     > pip3 uninstall certifi
     > pip3 install certifi
     > oe_install_cacerts
+
+Specifying alternate certificates
+#################################
+
+You can supply an optional ``url`` parameter to this tool to override the default location for the certificates to add
+to your ``castore.pem`` file:
+
+.. code-block::
+
+    usage: oe_install_cacerts [-h] [-u URL]
+
+    optional arguments:
+      -h, --help         show this help message and exit
+      -u URL, --url URL  URL of additional root certificates, defaults to certs from Open Energy github
