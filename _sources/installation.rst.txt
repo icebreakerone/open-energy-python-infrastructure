@@ -36,7 +36,7 @@ to the ``certifi`` CA file used by Python (Python does not use the operating sys
     You need to do this. If you do not do this, you will see SSL related errors in various places. It is not an optional
     step!
 
-As of version `0.2.2` of this library, installing the library also adds a command which can do this automatically. First
+As of version ``0.2.2`` of this library, installing the library also adds a command which can do this automatically. First
 activate any virtual environment, install the library as above, and run:
 
 .. code-block:: bash
