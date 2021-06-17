@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Python API : ib1.openenergy.support &mdash; Open Energy Infrastructure Support 0.2.0 documentation</title>
+  <title>Python API : ib1.openenergy.support &mdash; Open Energy Infrastructure Support 0.2.1 documentation</title>
   
 
   
@@ -41,7 +41,7 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.2.0 documentation"
+          title="Search within Open Energy Infrastructure Support 0.2.1 documentation"
           href="_static/opensearch.xml"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -72,7 +72,7 @@
             
             
               <div class="version">
-                0.2.0
+                0.2.1
               </div>
             
           
@@ -518,6 +518,21 @@ of the metadata file.</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="ib1.openenergy.support.metadata.MetadataLoadResult">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.metadata.</span></span><span class="sig-name descname"><span class="pre">MetadataLoadResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">location:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">error:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">exception:</span> <span class="pre">Optional[Exception]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">metadata:</span> <span class="pre">List[ib1.openenergy.support.metadata.Metadata]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support/metadata.html#MetadataLoadResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.metadata.MetadataLoadResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Information about the process of loading a metadata file from a URL or file location along
+with the results. This is used instead of raising exceptions during the load process in order
+to provide better reporting with mappings between org IDs and problems with their respective
+metadata files.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ib1.openenergy.support.metadata.MetadataLoadResult.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">location:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">error:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">exception:</span> <span class="pre">Optional[Exception]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">metadata:</span> <span class="pre">List[ib1.openenergy.support.metadata.Metadata]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3.8/library/constants.html#None" title="(in Python v3.8)"><span class="pre">None</span></a><a class="headerlink" href="#ib1.openenergy.support.metadata.MetadataLoadResult.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="ib1.openenergy.support.metadata.OE">
 <span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.metadata.</span></span><span class="sig-name descname"><span class="pre">OE</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'http://energydata.org.uk/oe/terms/'</span></em><a class="headerlink" href="#ib1.openenergy.support.metadata.OE" title="Permalink to this definition">¶</a></dt>
@@ -526,7 +541,7 @@ of the metadata file.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ib1.openenergy.support.metadata.load_metadata">
-<span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.metadata.</span></span><span class="sig-name descname"><span class="pre">load_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ib1.openenergy.support.metadata.Metadata" title="ib1.openenergy.support.metadata.Metadata"><span class="pre">ib1.openenergy.support.metadata.Metadata</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="_modules/ib1/openenergy/support/metadata.html#load_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.metadata.load_metadata" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.metadata.</span></span><span class="sig-name descname"><span class="pre">load_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#ib1.openenergy.support.metadata.MetadataLoadResult" title="ib1.openenergy.support.metadata.MetadataLoadResult"><span class="pre">ib1.openenergy.support.metadata.MetadataLoadResult</span></a><a class="reference internal" href="_modules/ib1/openenergy/support/metadata.html#load_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.metadata.load_metadata" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load metadata from a URL.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -537,15 +552,9 @@ of the metadata file.</p>
 <li><p><strong>kwargs</strong> – any additional arguments to pass into the get request</p></li>
 </ul>
 </dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><ul class="simple">
-<li><p><a class="reference external" href="https://docs.python-requests.org/en/master/api/#requests.HTTPError" title="(in Requests v2.25.1)"><strong>requests.HTTPError</strong></a> – if any error occurs while attempting to fetch the URL and <code class="docutils literal notranslate"><span class="pre">url</span></code> specified</p></li>
-<li><p><a class="reference external" href="https://docs.python.org/3.8/library/exceptions.html#ValueError" title="(in Python v3.8)"><strong>ValueError</strong></a> – if the content cannot be parsed for some reason</p></li>
-<li><p><a class="reference external" href="https://docs.python.org/3.8/library/exceptions.html#IOError" title="(in Python v3.8)"><strong>IOError</strong></a> – if unable to read from a local file, and <code class="docutils literal notranslate"><span class="pre">file</span></code> specified</p></li>
-</ul>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a list of <a class="reference internal" href="#ib1.openenergy.support.metadata.Metadata" title="ib1.openenergy.support.metadata.Metadata"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Metadata</span></code></a> objects</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a <a class="reference internal" href="#ib1.openenergy.support.metadata.MetadataLoadResult" title="ib1.openenergy.support.metadata.MetadataLoadResult"><code class="xref any py py-class docutils literal notranslate"><span class="pre">MetadataLoadResult</span></code></a> containing a report on the process, including actual <a class="reference internal" href="#ib1.openenergy.support.metadata.Metadata" title="ib1.openenergy.support.metadata.Metadata"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Metadata</span></code></a> objects if
+the load succeeded and found any metadata.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -708,7 +717,7 @@ or Consumer components.</p>
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on Jun 15, 2021.
+        Last updated on Jun 17, 2021.
       </span>
 
 </p>
