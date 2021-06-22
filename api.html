@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Python API : ib1.openenergy.support &mdash; Open Energy Infrastructure Support 0.2.3 documentation</title>
+  <title>Python API : ib1.openenergy.support &mdash; Open Energy Infrastructure Support 0.2.4 documentation</title>
   
 
   
@@ -41,7 +41,7 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.2.3 documentation"
+          title="Search within Open Energy Infrastructure Support 0.2.4 documentation"
           href="_static/opensearch.xml"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -72,7 +72,7 @@
             
             
               <div class="version">
-                0.2.3
+                0.2.4
               </div>
             
           
@@ -102,11 +102,13 @@
 <li class="toctree-l1"><a class="reference internal" href="service_provider.html">Accessing OE Shared Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data_provider.html">Providing OE Shared Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata File Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gunicorn.html">Running a Data Provider with gunicorn</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ssl_dev.html">Local Data Provider Development Mode</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Python API : ib1.openenergy.support</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-ib1.openenergy.support">External APIs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#metadata-apis">Metadata APIs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ib1.openenergy.support.flask_ssl_dev">SSL Development APIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gunicorn-support-apis">Gunicorn support APIs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#internal-apis">Internal APIs</a></li>
 </ul>
 </li>
@@ -630,6 +632,71 @@ set up by this function</p></li>
 </dd></dl>
 
 </div>
+<div class="section" id="gunicorn-support-apis">
+<h2>Gunicorn support APIs<a class="headerlink" href="#gunicorn-support-apis" title="Permalink to this headline">¶</a></h2>
+<p>Support for running data providers within the <a class="reference external" href="https://gunicorn.org/">Gunicorn</a> WSGI container</p>
+<span class="target" id="module-ib1.openenergy.support.gunicorn"></span><p>Support for gunicorn with client certificates, with much help from a blog
+at <a class="reference external" href="https://eugene.kovalev.systems/blog/flask_client_auth">https://eugene.kovalev.systems/blog/flask_client_auth</a></p>
+<dl class="py data">
+<dt class="sig sig-object py" id="ib1.openenergy.support.gunicorn.CERT_NAME">
+<span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.gunicorn.</span></span><span class="sig-name descname"><span class="pre">CERT_NAME</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'X-OE-CLIENT-CERT'</span></em><a class="headerlink" href="#ib1.openenergy.support.gunicorn.CERT_NAME" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name for the header containing the client certificate as a BASE64 encoded DER file</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ib1.openenergy.support.gunicorn.ClientAuthApplication">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.gunicorn.</span></span><span class="sig-name descname"><span class="pre">ClientAuthApplication</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cert_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hostname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'localhost'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'443'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support/gunicorn.html#ClientAuthApplication"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.gunicorn.ClientAuthApplication" title="Permalink to this definition">¶</a></dt>
+<dd><p>GUnicorn application using the custom SSL worker. Uses certifi for its CA store.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ib1.openenergy.support.gunicorn.ClientAuthApplication.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cert_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hostname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'localhost'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'443'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support/gunicorn.html#ClientAuthApplication.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.gunicorn.ClientAuthApplication.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new application runner</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>app</strong> – WSGP app to run</p></li>
+<li><p><strong>cert_path</strong> – Path to the server certificate</p></li>
+<li><p><strong>key_path</strong> – Path to the server private key</p></li>
+<li><p><strong>hostname</strong> – Hostname, defaults to ‘localhost’</p></li>
+<li><p><strong>port</strong> – Port, defaults to 443</p></li>
+<li><p><strong>num_workers</strong> – Number of concurrent workers, defaults to 4</p></li>
+<li><p><strong>timeout</strong> – Timeout, defaults to 30</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ib1.openenergy.support.gunicorn.ClientAuthApplication.load_config">
+<span class="sig-name descname"><span class="pre">load_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support/gunicorn.html#ClientAuthApplication.load_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.gunicorn.ClientAuthApplication.load_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overrides default configuration with that defined in self.options</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ib1.openenergy.support.gunicorn.CustomSyncWorker">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.gunicorn.</span></span><span class="sig-name descname"><span class="pre">CustomSyncWorker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">age</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ppid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sockets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support/gunicorn.html#CustomSyncWorker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.gunicorn.CustomSyncWorker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Push x509 certificate from SSL context into the named header in BASE64 encoded format. Uses the header
+name defined as <a class="reference internal" href="#ib1.openenergy.support.gunicorn.CERT_NAME" title="ib1.openenergy.support.gunicorn.CERT_NAME"><code class="xref any py py-data docutils literal notranslate"><span class="pre">CERT_NAME</span></code></a></p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="ib1.openenergy.support.gunicorn.LOG">
+<span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.gunicorn.</span></span><span class="sig-name descname"><span class="pre">LOG</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Logger</span> <span class="pre">ib1.openenergy.support.gunicorn</span> <span class="pre">(WARNING)&gt;</span></em><a class="headerlink" href="#ib1.openenergy.support.gunicorn.LOG" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log to ib1.openenergy.support.gunicorn</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ib1.openenergy.support.gunicorn.gunicorn_cert_parser">
+<span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.gunicorn.</span></span><span class="sig-name descname"><span class="pre">gunicorn_cert_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">cryptography.x509.base.Certificate</span><a class="reference internal" href="_modules/ib1/openenergy/support/gunicorn.html#gunicorn_cert_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.gunicorn.gunicorn_cert_parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pull x509 client cert out of the header used by the sync worker defined in this
+package. Header contains BASE64 encoded DER format certificate.</p>
+<p>Use this as the client_cert_parser argument to <a class="reference internal" href="#ib1.openenergy.support.AccessTokenValidator" title="ib1.openenergy.support.AccessTokenValidator"><code class="xref any py py-class docutils literal notranslate"><span class="pre">AccessTokenValidator</span></code></a> to allow it
+to pull certificates out of the named header.</p>
+</dd></dl>
+
+</div>
 <div class="section" id="internal-apis">
 <h2>Internal APIs<a class="headerlink" href="#internal-apis" title="Permalink to this headline">¶</a></h2>
 <div class="admonition note">
@@ -722,7 +789,7 @@ or Consumer components.</p>
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on Jun 17, 2021.
+        Last updated on Jun 22, 2021.
       </span>
 
 </p>

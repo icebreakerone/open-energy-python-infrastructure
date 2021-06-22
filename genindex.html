@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Index &mdash; Open Energy Infrastructure Support 0.2.3 documentation</title>
+  <title>Index &mdash; Open Energy Infrastructure Support 0.2.4 documentation</title>
   
 
   
@@ -41,7 +41,7 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.2.3 documentation"
+          title="Search within Open Energy Infrastructure Support 0.2.4 documentation"
           href="_static/opensearch.xml"/>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" /> 
@@ -71,7 +71,7 @@
             
             
               <div class="version">
-                0.2.3
+                0.2.4
               </div>
             
           
@@ -101,6 +101,7 @@
 <li class="toctree-l1"><a class="reference internal" href="service_provider.html">Accessing OE Shared Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data_provider.html">Providing OE Shared Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata File Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gunicorn.html">Running a Data Provider with gunicorn</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ssl_dev.html">Local Data Provider Development Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Python API : ib1.openenergy.support</a></li>
 </ul>
@@ -202,6 +203,8 @@
 </li>
         <li><a href="api.html#ib1.openenergy.support.flask_ssl_dev.SSLOptions.__init__">(ib1.openenergy.support.flask_ssl_dev.SSLOptions method)</a>
 </li>
+        <li><a href="api.html#ib1.openenergy.support.gunicorn.ClientAuthApplication.__init__">(ib1.openenergy.support.gunicorn.ClientAuthApplication method)</a>
+</li>
         <li><a href="api.html#ib1.openenergy.support.metadata.JSONLDContainer.__init__">(ib1.openenergy.support.metadata.JSONLDContainer method)</a>
 </li>
         <li><a href="api.html#ib1.openenergy.support.metadata.Metadata.__init__">(ib1.openenergy.support.metadata.Metadata method)</a>
@@ -259,7 +262,15 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#ib1.openenergy.support.gunicorn.CERT_NAME">CERT_NAME (in module ib1.openenergy.support.gunicorn)</a>
+</li>
       <li><a href="api.html#ib1.openenergy.support.FAPISession.clear_token">clear_token() (ib1.openenergy.support.FAPISession method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#ib1.openenergy.support.gunicorn.ClientAuthApplication">ClientAuthApplication (class in ib1.openenergy.support.gunicorn)</a>
+</li>
+      <li><a href="api.html#ib1.openenergy.support.gunicorn.CustomSyncWorker">CustomSyncWorker (class in ib1.openenergy.support.gunicorn)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -297,6 +308,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#ib1.openenergy.support.flask_ssl_dev.get_command_line_ssl_args">get_command_line_ssl_args() (in module ib1.openenergy.support.flask_ssl_dev)</a>
 </li>
+      <li><a href="api.html#ib1.openenergy.support.gunicorn.gunicorn_cert_parser">gunicorn_cert_parser() (in module ib1.openenergy.support.gunicorn)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -326,14 +339,21 @@
 </li>
       </ul></li>
       <li>
+    ib1.openenergy.support.gunicorn
+
+      <ul>
+        <li><a href="api.html#module-ib1.openenergy.support.gunicorn">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
     ib1.openenergy.support.metadata
 
       <ul>
         <li><a href="api.html#module-ib1.openenergy.support.metadata">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     ib1.openenergy.support.raidiam
 
@@ -369,7 +389,13 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#ib1.openenergy.support.gunicorn.ClientAuthApplication.load_config">load_config() (ib1.openenergy.support.gunicorn.ClientAuthApplication method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#ib1.openenergy.support.metadata.load_metadata">load_metadata() (in module ib1.openenergy.support.metadata)</a>
+</li>
+      <li><a href="api.html#ib1.openenergy.support.gunicorn.LOG">LOG (in module ib1.openenergy.support.gunicorn)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -388,6 +414,8 @@
         <li><a href="api.html#module-ib1.openenergy.support">ib1.openenergy.support</a>
 </li>
         <li><a href="api.html#module-ib1.openenergy.support.flask_ssl_dev">ib1.openenergy.support.flask_ssl_dev</a>
+</li>
+        <li><a href="api.html#module-ib1.openenergy.support.gunicorn">ib1.openenergy.support.gunicorn</a>
 </li>
         <li><a href="api.html#module-ib1.openenergy.support.metadata">ib1.openenergy.support.metadata</a>
 </li>
@@ -482,7 +510,7 @@
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on Jun 17, 2021.
+        Last updated on Jun 22, 2021.
       </span>
 
 </p>

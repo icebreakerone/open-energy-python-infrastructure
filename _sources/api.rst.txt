@@ -23,6 +23,14 @@ SSL Development APIs
 .. automodule:: ib1.openenergy.support.flask_ssl_dev
     :members:
 
+Gunicorn support APIs
+---------------------
+
+Support for running data providers within the `Gunicorn <https://gunicorn.org/>`_ WSGI container
+
+.. automodule:: ib1.openenergy.support.gunicorn
+    :members:
+
 Internal APIs
 -------------
 

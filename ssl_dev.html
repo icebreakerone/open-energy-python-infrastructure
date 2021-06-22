@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Local Data Provider Development Mode &mdash; Open Energy Infrastructure Support 0.2.3 documentation</title>
+  <title>Local Data Provider Development Mode &mdash; Open Energy Infrastructure Support 0.2.4 documentation</title>
   
 
   
@@ -41,12 +41,12 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.2.3 documentation"
+          title="Search within Open Energy Infrastructure Support 0.2.4 documentation"
           href="_static/opensearch.xml"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Python API : ib1.openenergy.support" href="api.html" />
-    <link rel="prev" title="Metadata File Handling" href="metadata.html" /> 
+    <link rel="prev" title="Running a Data Provider with gunicorn" href="gunicorn.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -73,7 +73,7 @@
             
             
               <div class="version">
-                0.2.3
+                0.2.4
               </div>
             
           
@@ -103,6 +103,7 @@
 <li class="toctree-l1"><a class="reference internal" href="service_provider.html">Accessing OE Shared Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data_provider.html">Providing OE Shared Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata File Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gunicorn.html">Running a Data Provider with gunicorn</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Local Data Provider Development Mode</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#obtaining-a-valid-server-certificate">Obtaining a valid server certificate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#running-in-dev-mode">Running in dev mode</a></li>
@@ -247,12 +248,12 @@ to get locations of certificate files as well as the OAuth2 client ID, these are
 <span class="linenos">17</span>
 <span class="linenos">18</span><span class="n">validator</span> <span class="o">=</span> <span class="n">AccessTokenValidator</span><span class="p">(</span><span class="n">client_id</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">client_id</span><span class="p">,</span> <span class="n">certificate</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">client_certificate</span><span class="p">,</span>
 <span class="linenos">19</span>                                 <span class="n">private_key</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">client_private_key</span><span class="p">,</span>
-<span class="linenos">20</span>                                 <span class="n">introspection_url</span><span class="o">=</span><span class="s1">&#39;https://matls-auth.directory.energydata.org.uk/token/introspection&#39;</span><span class="p">)</span>
+<span class="linenos">20</span>                                 <span class="n">issuer_url</span><span class="o">=</span><span class="s1">&#39;https://matls-auth.directory.energydata.org.uk/&#39;</span><span class="p">)</span>
 <span class="linenos">21</span><span class="n">app</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 <span class="linenos">22</span>
 <span class="linenos">23</span>
 <span class="linenos">24</span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
-<span class="linenos">25</span><span class="nd">@validator</span><span class="o">.</span><span class="n">introspects</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;directory:software&#39;</span><span class="p">)</span>
+<span class="linenos">25</span><span class="nd">@validator</span><span class="o">.</span><span class="n">introspects</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 <span class="linenos">26</span><span class="k">def</span> <span class="nf">homepage</span><span class="p">():</span>
 <span class="linenos">27</span>    <span class="sd">&quot;&quot;&quot;</span>
 <span class="linenos">28</span><span class="sd">    This is a very simple route that doesn&#39;t do much, but as it&#39;s decorated with the validator</span>
@@ -261,12 +262,13 @@ to get locations of certificate files as well as the OAuth2 client ID, these are
 <span class="linenos">31</span><span class="sd">    &quot;&quot;&quot;</span>
 <span class="linenos">32</span>    <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;home: received MTLS HTTPS request from </span><span class="si">{</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_addr</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 <span class="linenos">33</span>    <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;home: token introspection response is </span><span class="si">{</span><span class="n">flask</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="n">introspection_response</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-<span class="linenos">34</span>    <span class="k">return</span> <span class="s1">&#39;&lt;html&gt;&lt;body&gt;&lt;h1&gt;Success&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;&#39;</span>
-<span class="linenos">35</span>
+<span class="linenos">34</span>    <span class="k">return</span> <span class="n">flask</span><span class="o">.</span><span class="n">send_from_directory</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="s1">&#39;/home/tom/Desktop/data-provider&#39;</span><span class="p">,</span>
+<span class="linenos">35</span>                                     <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;Postcode_level_all_meters_electricity_2019.csv&#39;</span><span class="p">)</span>
 <span class="linenos">36</span>
-<span class="linenos">37</span><span class="n">run_app</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="n">app</span><span class="p">,</span>
-<span class="linenos">38</span>        <span class="n">server_private_key</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">server_private_key</span><span class="p">,</span>
-<span class="linenos">39</span>        <span class="n">server_certificate</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">server_certificate</span><span class="p">)</span>
+<span class="linenos">37</span>
+<span class="linenos">38</span><span class="n">run_app</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="n">app</span><span class="p">,</span>
+<span class="linenos">39</span>        <span class="n">server_private_key</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">server_private_key</span><span class="p">,</span>
+<span class="linenos">40</span>        <span class="n">server_certificate</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">server_certificate</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -279,7 +281,7 @@ to get locations of certificate files as well as the OAuth2 client ID, these are
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
         <a href="api.html" class="btn btn-neutral float-right" title="Python API : ib1.openenergy.support" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="metadata.html" class="btn btn-neutral float-left" title="Metadata File Handling" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="gunicorn.html" class="btn btn-neutral float-left" title="Running a Data Provider with gunicorn" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
@@ -288,7 +290,7 @@ to get locations of certificate files as well as the OAuth2 client ID, these are
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on Jun 17, 2021.
+        Last updated on Jun 22, 2021.
       </span>
 
 </p>

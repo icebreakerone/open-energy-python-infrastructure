@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Providing OE Shared Data &mdash; Open Energy Infrastructure Support 0.2.3 documentation</title>
+  <title>Providing OE Shared Data &mdash; Open Energy Infrastructure Support 0.2.4 documentation</title>
   
 
   
@@ -41,7 +41,7 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.2.3 documentation"
+          title="Search within Open Energy Infrastructure Support 0.2.4 documentation"
           href="_static/opensearch.xml"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -73,7 +73,7 @@
             
             
               <div class="version">
-                0.2.3
+                0.2.4
               </div>
             
           
@@ -110,6 +110,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata File Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gunicorn.html">Running a Data Provider with gunicorn</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ssl_dev.html">Local Data Provider Development Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Python API : ib1.openenergy.support</a></li>
 </ul>
@@ -250,12 +251,12 @@ optional <code class="docutils literal notranslate"><span class="pre">scope</spa
 <span class="linenos">17</span>
 <span class="linenos">18</span><span class="n">validator</span> <span class="o">=</span> <span class="n">AccessTokenValidator</span><span class="p">(</span><span class="n">client_id</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">client_id</span><span class="p">,</span> <span class="n">certificate</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">client_certificate</span><span class="p">,</span>
 <span class="linenos">19</span>                                 <span class="n">private_key</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">client_private_key</span><span class="p">,</span>
-<span class="linenos">20</span>                                 <span class="n">introspection_url</span><span class="o">=</span><span class="s1">&#39;https://matls-auth.directory.energydata.org.uk/token/introspection&#39;</span><span class="p">)</span>
+<span class="linenos">20</span>                                 <span class="n">issuer_url</span><span class="o">=</span><span class="s1">&#39;https://matls-auth.directory.energydata.org.uk/&#39;</span><span class="p">)</span>
 <span class="linenos">21</span><span class="n">app</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 <span class="linenos">22</span>
 <span class="linenos">23</span>
 <span class="linenos">24</span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
-<span class="linenos">25</span><span class="nd">@validator</span><span class="o">.</span><span class="n">introspects</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;directory:software&#39;</span><span class="p">)</span>
+<span class="linenos">25</span><span class="nd">@validator</span><span class="o">.</span><span class="n">introspects</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 <span class="linenos">26</span><span class="k">def</span> <span class="nf">homepage</span><span class="p">():</span>
 <span class="linenos">27</span>    <span class="sd">&quot;&quot;&quot;</span>
 <span class="linenos">28</span><span class="sd">    This is a very simple route that doesn&#39;t do much, but as it&#39;s decorated with the validator</span>
@@ -264,12 +265,13 @@ optional <code class="docutils literal notranslate"><span class="pre">scope</spa
 <span class="linenos">31</span><span class="sd">    &quot;&quot;&quot;</span>
 <span class="linenos">32</span>    <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;home: received MTLS HTTPS request from </span><span class="si">{</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_addr</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 <span class="linenos">33</span>    <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;home: token introspection response is </span><span class="si">{</span><span class="n">flask</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="n">introspection_response</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-<span class="linenos">34</span>    <span class="k">return</span> <span class="s1">&#39;&lt;html&gt;&lt;body&gt;&lt;h1&gt;Success&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;&#39;</span>
-<span class="linenos">35</span>
+<span class="linenos">34</span>    <span class="k">return</span> <span class="n">flask</span><span class="o">.</span><span class="n">send_from_directory</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="s1">&#39;/home/tom/Desktop/data-provider&#39;</span><span class="p">,</span>
+<span class="linenos">35</span>                                     <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;Postcode_level_all_meters_electricity_2019.csv&#39;</span><span class="p">)</span>
 <span class="linenos">36</span>
-<span class="linenos">37</span><span class="n">run_app</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="n">app</span><span class="p">,</span>
-<span class="linenos">38</span>        <span class="n">server_private_key</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">server_private_key</span><span class="p">,</span>
-<span class="linenos">39</span>        <span class="n">server_certificate</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">server_certificate</span><span class="p">)</span>
+<span class="linenos">37</span>
+<span class="linenos">38</span><span class="n">run_app</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="n">app</span><span class="p">,</span>
+<span class="linenos">39</span>        <span class="n">server_private_key</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">server_private_key</span><span class="p">,</span>
+<span class="linenos">40</span>        <span class="n">server_certificate</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">server_certificate</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The simple route defined on line 26 has been decorated with <code class="docutils literal notranslate"><span class="pre">&#64;validator.introspects(scope='directory:software')</span></code>,
@@ -308,7 +310,7 @@ front-end system like <a class="reference external" href="https://www.nginx.com/
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on Jun 17, 2021.
+        Last updated on Jun 22, 2021.
       </span>
 
 </p>
