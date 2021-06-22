@@ -12,3 +12,7 @@ systems. This module includes support for running a |FAPI| compliant `Data Provi
 
 .. literalinclude:: ../../examples/gunicorn_provider.py
     :language: python
+
+To use this, firstly add the `gunicorn_cert_parser` as an argument when creating the `AccessTokenValidator` object, then
+run the application through the `ClientAuthApplication` ``run`` method. This will use gunicorn to run, as configured,
+requiring client SSL certs and using ``certifi`` as the CA store.

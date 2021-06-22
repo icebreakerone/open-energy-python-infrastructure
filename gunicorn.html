@@ -226,6 +226,9 @@ systems. This module includes support for running a <a class="reference external
 <span class="n">gunicorn_app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </pre></div>
 </div>
+<p>To use this, firstly add the <a class="reference internal" href="api.html#ib1.openenergy.support.gunicorn.gunicorn_cert_parser" title="ib1.openenergy.support.gunicorn.gunicorn_cert_parser"><code class="xref any py py-func docutils literal notranslate"><span class="pre">gunicorn_cert_parser</span></code></a> as an argument when creating the <a class="reference internal" href="api.html#ib1.openenergy.support.AccessTokenValidator" title="ib1.openenergy.support.AccessTokenValidator"><code class="xref any py py-class docutils literal notranslate"><span class="pre">AccessTokenValidator</span></code></a> object, then
+run the application through the <a class="reference internal" href="api.html#ib1.openenergy.support.gunicorn.ClientAuthApplication" title="ib1.openenergy.support.gunicorn.ClientAuthApplication"><code class="xref any py py-class docutils literal notranslate"><span class="pre">ClientAuthApplication</span></code></a> <code class="docutils literal notranslate"><span class="pre">run</span></code> method. This will use gunicorn to run, as configured,
+requiring client SSL certs and using <code class="docutils literal notranslate"><span class="pre">certifi</span></code> as the CA store.</p>
 </div>
 
 
