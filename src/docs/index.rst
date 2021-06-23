@@ -22,6 +22,7 @@ Contents
     service_provider
     data_provider
     metadata
+    ec2
     gunicorn
     ssl_dev
     api
