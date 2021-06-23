@@ -289,6 +289,13 @@ and similar which you can ignore or not as you prefer.</p>
 <p>You should see a message indicating success. This process will also have modified the Nginx config you created earlier
 to add the necessary configuration to <em>use</em> this new certificate, you can confirm this with
 <code class="docutils literal notranslate"><span class="pre">less</span> <span class="pre">/etc/nginx/conf.d/example.energydata.org.uk.conf</span></code> or by loading it into an editor to inspect the changes.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You may wish to add a cron rule at this point to check for certificate expiry and automatically renew the
+certificate - these are relatively short-lived and a certificate expiring will bring your service down. See
+the <a class="reference external" href="https://certbot.eff.org/docs/using.html?highlight=cron#automated-renewals">Automated Renewals</a> section
+of the Certbot docs for more details.</p>
+</div>
 </div>
 <div class="section" id="final-nginx-configuration">
 <h3>Final Nginx configuration<a class="headerlink" href="#final-nginx-configuration" title="Permalink to this headline">¶</a></h3>

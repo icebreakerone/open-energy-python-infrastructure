@@ -97,6 +97,13 @@ You should see a message indicating success. This process will also have modifie
 to add the necessary configuration to *use* this new certificate, you can confirm this with
 ``less /etc/nginx/conf.d/example.energydata.org.uk.conf`` or by loading it into an editor to inspect the changes.
 
+.. note::
+
+    You may wish to add a cron rule at this point to check for certificate expiry and automatically renew the
+    certificate - these are relatively short-lived and a certificate expiring will bring your service down. See
+    the `Automated Renewals <https://certbot.eff.org/docs/using.html?highlight=cron#automated-renewals>`_ section
+    of the Certbot docs for more details.
+
 Final Nginx configuration
 #########################
 
