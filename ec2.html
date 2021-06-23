@@ -1,0 +1,704 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Deploying a Data Provider to EC2 &mdash; Open Energy Infrastructure Support 0.2.4 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="search" type="application/opensearchdescription+xml"
+          title="Search within Open Energy Infrastructure Support 0.2.4 documentation"
+          href="_static/opensearch.xml"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Running a Data Provider with gunicorn" href="gunicorn.html" />
+    <link rel="prev" title="Metadata File Handling" href="metadata.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #0C3945" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Open Energy Infrastructure Support
+          
+
+          
+            
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="service_provider.html">Accessing OE Shared Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_provider.html">Providing OE Shared Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata File Handling</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Deploying a Data Provider to EC2</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installing-python-3-9">Installing Python 3.9</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-nginx">Installing Nginx</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-and-configuring-certbot">Installing and configuring Certbot</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#initial-nginx-configuration">Initial Nginx configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#certbot">Certbot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#final-nginx-configuration">Final Nginx configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#generating-key-material-using-the-directory">Generating key material using the directory</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#select-your-organisation">Select your organisation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#create-a-software-statement">Create a software statement</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#create-a-certificate">Create a certificate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rename-your-key-and-certificate">Rename your key and certificate</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-gunicorn-and-your-data-provider">Installing gunicorn and your Data Provider</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#gunicorn-configuration">gunicorn configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gunicorn-service">gunicorn service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-provider-code">Data Provider code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#add-some-data">Add some data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restarting-the-server-after-changes">Restarting the server after changes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#logging-and-monitoring">Logging and monitoring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#coffee">Coffee</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gunicorn.html">Running a Data Provider with gunicorn</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ssl_dev.html">Local Data Provider Development Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Python API : ib1.openenergy.support</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Open Energy Infrastructure Support</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Deploying a Data Provider to EC2</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="deploying-a-data-provider-to-ec2">
+<h1>Deploying a Data Provider to EC2<a class="headerlink" href="#deploying-a-data-provider-to-ec2" title="Permalink to this headline">¶</a></h1>
+<p>This guide will show you how to create and deploy a production-grade <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Data-Provider" title="(in Open Energy Technical Documentation)"><code class="xref any docutils literal notranslate"><span class="pre">Data</span> <span class="pre">Provider</span></code></a> to a fresh Amazon
+<a class="reference external" href="https://aws.amazon.com/ec2">EC2</a> instance. By the end of the guide you will have a publicly visible server able to
+publish shared data, secured by the <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Financial-Grade-API" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">FAPI</span></a> specification as required by Open Energy.</p>
+<p>Throughout this guide the domain <code class="docutils literal notranslate"><span class="pre">example.energydata.org.uk</span></code> is used - obviously you should change this to your own
+domain when you see it, bear in mind that it appears in filenames as well as in the contents of some of the
+configuration files themselves!</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Before proceeding, ensure you have the following:</p>
+<ol class="arabic simple">
+<li><p>An EC2 instance configured with Amazon Linux and a static IP address</p></li>
+<li><p>The ability to log into this instance with SSH as a user able to run <code class="docutils literal notranslate"><span class="pre">sudo</span></code></p></li>
+<li><p>Appropriately configured access to ports 80 and 443 on this server</p></li>
+<li><p>An account on the Open Energy Directory associated with an organisation</p></li>
+<li><p>A domain name which you control with sufficient access to add <code class="docutils literal notranslate"><span class="pre">A</span></code> records</p></li>
+<li><p>Approximately four hours of time and some coffee or other beverage of your choice</p></li>
+</ol>
+</div>
+<div class="section" id="installing-python-3-9">
+<h2>Installing Python 3.9<a class="headerlink" href="#installing-python-3-9" title="Permalink to this headline">¶</a></h2>
+<p>Copied from a tutorial <a class="reference external" href="https://tecadmin.net/install-python-3-9-on-amazon-linux/">here</a>, the following commands will
+install any missing prerequisites then install Python 3.9 to replace the default 3.7 included in Amazon Linux. This
+takes a few minutes, and ends up with an executable for <code class="docutils literal notranslate"><span class="pre">python3.9</span></code> added to the path, but does not replace the
+default Python 2 or 3.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; sudo yum install gcc openssl-devel bzip2-devel libffi-devel
+&gt; <span class="nb">cd</span> /opt
+&gt; sudo wget https://www.python.org/ftp/python/3.9.4/Python-3.9.4.tgz
+&gt; sudo tar xzf Python-3.9.4.tgz
+&gt; <span class="nb">cd</span> Python-3.9.4
+&gt; sudo ./configure --enable-optimizations
+&gt; sudo make altinstall
+</pre></div>
+</div>
+</div>
+<div class="section" id="installing-nginx">
+<h2>Installing Nginx<a class="headerlink" href="#installing-nginx" title="Permalink to this headline">¶</a></h2>
+<p>Nginx can be installed as an Amazon extra:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; sudo amazon-linux-extras install nginx1
+</pre></div>
+</div>
+</div>
+<div class="section" id="installing-and-configuring-certbot">
+<h2>Installing and configuring Certbot<a class="headerlink" href="#installing-and-configuring-certbot" title="Permalink to this headline">¶</a></h2>
+<p>Run the following commands to set up the necessary prerequisites and install the certbot configurations to work with
+Nginx:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; sudo wget -r --no-parent -A <span class="s1">&#39;epel-release-*.rpm&#39;</span> https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/e/
+&gt; sudo rpm -Uvh dl.fedoraproject.org/pub/epel/7/x86_64/Packages/e/epel-release-*.rpm
+&gt; sudo yum-config-manager --enable epel*
+&gt; sudo yum install -y certbot python2-certbot-nginx
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To proceed beyond this point you must have pointed your desired domain name at the static IP address of your EC2
+instance, and any DNS changes must have propagated through the system. You can verify this with tools like
+<code class="docutils literal notranslate"><span class="pre">nslookup</span></code> or <code class="docutils literal notranslate"><span class="pre">ping</span></code>.</p>
+</div>
+<div class="section" id="initial-nginx-configuration">
+<h3>Initial Nginx configuration<a class="headerlink" href="#initial-nginx-configuration" title="Permalink to this headline">¶</a></h3>
+<p>Create a new file, <code class="docutils literal notranslate"><span class="pre">/etc/nginx/conf.d/example.energydata.org.uk.conf</span></code>, with the following contents:</p>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-number">Listing 1 </span><span class="caption-text">/etc/nginx/conf.d/example.energydata.org.uk.conf - initial setup</span><a class="headerlink" href="#id3" title="Permalink to this code">¶</a></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">server</span> <span class="p">{</span>
+    <span class="n">listen</span> <span class="mi">80</span> <span class="n">default_server</span><span class="p">;</span>
+    <span class="n">listen</span> <span class="p">[::]:</span><span class="mi">80</span> <span class="n">default_server</span><span class="p">;</span>
+    <span class="n">root</span> <span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">html</span><span class="p">;</span>
+    <span class="n">server_name</span> <span class="n">example</span><span class="o">.</span><span class="n">energydata</span><span class="o">.</span><span class="n">org</span><span class="o">.</span><span class="n">uk</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<p>Restart Nginx to pick up the configuration you just added:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">sudo</span> <span class="n">systemctl</span> <span class="n">restart</span> <span class="n">nginx</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="certbot">
+<h3>Certbot<a class="headerlink" href="#certbot" title="Permalink to this headline">¶</a></h3>
+<p>Activate the <a class="reference external" href="https://certbot.eff.org/">Certbot</a> to get your free <a class="reference external" href="https://letsencrypt.org/">Let’s Encrypt</a> certificate:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">sudo</span> <span class="n">certbot</span> <span class="o">--</span><span class="n">nginx</span> <span class="o">-</span><span class="n">d</span> <span class="n">example</span><span class="o">.</span><span class="n">energydata</span><span class="o">.</span><span class="n">org</span><span class="o">.</span><span class="n">uk</span>
+</pre></div>
+</div>
+<p>This will ask you for an email address to which urgent notifications will be sent pertaining to certificate expiry etc,
+and request that you confirm acceptance of the terms and conditions, as well as checking for opt-in to mailing lists
+and similar which you can ignore or not as you prefer.</p>
+<p>You should see a message indicating success. This process will also have modified the Nginx config you created earlier
+to add the necessary configuration to <em>use</em> this new certificate, you can confirm this with
+<code class="docutils literal notranslate"><span class="pre">less</span> <span class="pre">/etc/nginx/conf.d/example.energydata.org.uk.conf</span></code> or by loading it into an editor to inspect the changes.</p>
+</div>
+<div class="section" id="final-nginx-configuration">
+<h3>Final Nginx configuration<a class="headerlink" href="#final-nginx-configuration" title="Permalink to this headline">¶</a></h3>
+<p>The modified configuration created by the Certbot is sufficient to expose an SSL enabled HTTP server, but we have to add
+some extra information before it will correctly pass through client certificates to our data provider. Edit the file and
+change it to the following:</p>
+<div class="literal-block-wrapper docutils container" id="id4">
+<div class="code-block-caption"><span class="caption-number">Listing 2 </span><span class="caption-text">/etc/nginx/conf.d/example.energydata.org.uk.conf - final state</span><a class="headerlink" href="#id4" title="Permalink to this code">¶</a></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    root /var/www/html;
+    server_name example.energydata.co.uk;
+}
+server {
+<span class="hll">    server_name example.energydata.org.uk;
+</span><span class="hll">
+</span><span class="hll">    listen [::]:443 ssl ipv6only=on;
+</span><span class="hll">    listen 443 ssl;
+</span><span class="hll">    ssl_certificate /etc/letsencrypt/live/example.energydata.org.uk/fullchain.pem;
+</span><span class="hll">    ssl_certificate_key /etc/letsencrypt/live/example.energydata.org.uk/privkey.pem;
+</span><span class="hll">    include /etc/letsencrypt/options-ssl-nginx.conf;
+</span><span class="hll">    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+</span>
+    root /home/ec2-user/public;
+
+    ssl_client_certificate /home/ec2-user/venv/lib/python3.9/site-packages/certifi/cacert.pem;
+    ssl_verify_client on;
+
+    location / {
+      try_files $uri @proxy_to_app;
+    }
+
+    location @proxy_to_app {
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header Host $http_host;
+      proxy_redirect off;
+      proxy_pass http://unix:/run/gunicorn.sock;
+      proxy_set_header X-OE-CLIENT-CERT $ssl_client_cert;
+    }
+
+    error_page 500 502 503 504 /500.html;
+    location = /500.html {
+      root /home/ec2-user/public;
+    }
+}
+server {
+    if ($host = example.energydata.org.uk) {
+        return 301 https://$host$request_uri;
+    }
+    listen 80 ;
+    listen [::]:80 ;
+    server_name example.energydata.org.uk;
+    return 404; # managed by Certbot
+}
+</pre></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The lines highlighted in yellow above are from the Certbot process, yours will, and should, be different! In general
+you will need to change any reference to <code class="docutils literal notranslate"><span class="pre">example.energydata.org.uk</span></code> to your own domain.</p>
+</div>
+<p>This configuration does a few things.</p>
+<ol class="arabic simple">
+<li><p>It configures an SSL server listening on port 443 (the default for HTTPS)</p></li>
+<li><p>It sets up client certificate validation and makes this mandatory - all connections on port 443 <em>must</em> present a
+client certificate. This is exactly what you want for a server, the sole role of which is to serve a shared data API,
+but you may want to configure this differently if you also want to serve content to web browsers rather than API
+clients. See the <a class="reference external" href="http://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_verify_client">Nginx docs</a> for more
+information</p></li>
+<li><p>In order to provide your application with access to the client certificates presented by <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Data-Consumer" title="(in Open Energy Technical Documentation)"><code class="xref any docutils literal notranslate"><span class="pre">Data</span> <span class="pre">Consumer</span></code></a> clients, it
+pushes any such client certificate into a header <code class="docutils literal notranslate"><span class="pre">X-OE-CLIENT-CERT</span></code></p></li>
+<li><p>It attempts to serve static content from <code class="docutils literal notranslate"><span class="pre">/home/ec2-user/public</span></code>, and falls back to your data provider application
+if the specified content does not exist, accessing the application through a UNIX socket</p></li>
+</ol>
+<p>Restart Nginx to pick up these extra changes:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; sudo systemctl restart nginx
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="generating-key-material-using-the-directory">
+<h2>Generating key material using the directory<a class="headerlink" href="#generating-key-material-using-the-directory" title="Permalink to this headline">¶</a></h2>
+<p>The certificate created by Certbot is used by the server part of the data provider. There is a second set of key
+material required, however, for the data provider to connect to the Open Energy authorisation server when validating
+tokens. To create these keys you will need to log into the directory <a class="reference external" href="https://web.directory.energydata.org.uk/">here</a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This requires you to have administrator access to an organisation within the directory. If you are part of our beta
+programme you should have this, if not please contact us and let us know your details and the details of the
+organisation on who’s behalf you should be able to act.</p>
+</div>
+<div class="section" id="select-your-organisation">
+<h3>Select your organisation<a class="headerlink" href="#select-your-organisation" title="Permalink to this headline">¶</a></h3>
+<div class="figure align-default" id="id5">
+<img alt="_images/directory_1.png" src="_images/directory_1.png" />
+<p class="caption"><span class="caption-number">Fig. 1 </span><span class="caption-text">Select your organisation, typically if you check the box at the top of the page you will only see the single one
+to which you have access.</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="create-a-software-statement">
+<h3>Create a software statement<a class="headerlink" href="#create-a-software-statement" title="Permalink to this headline">¶</a></h3>
+<div class="figure align-default" id="id6">
+<img alt="_images/directory_2.png" src="_images/directory_2.png" />
+<p class="caption"><span class="caption-number">Fig. 2 </span><span class="caption-text">With the organisation selected, scroll down to the <code class="docutils literal notranslate"><span class="pre">Software</span> <span class="pre">Statements</span></code> section. Click on it to open the section,
+in this case there are two existing ones but you wouldn’t expect to have any if this is the first time you’ve done
+this. Click on the <code class="docutils literal notranslate"><span class="pre">New</span> <span class="pre">Software</span> <span class="pre">Statement</span></code> box to create one.</span><a class="headerlink" href="#id6" title="Permalink to this image">¶</a></p>
+</div>
+<div class="figure align-default" id="id7">
+<img alt="_images/directory_3.png" src="_images/directory_3.png" />
+<p class="caption"><span class="caption-number">Fig. 3 </span><span class="caption-text">Populate the fields here to create a software statement.</span><a class="headerlink" href="#id7" title="Permalink to this image">¶</a></p>
+<div class="legend">
+<ul class="simple">
+<li><p>Set MODE to <code class="docutils literal notranslate"><span class="pre">Test</span></code></p></li>
+<li><p>Set VERSION to <code class="docutils literal notranslate"><span class="pre">1</span></code></p></li>
+<li><p>Set ENVIRONMENT to <code class="docutils literal notranslate"><span class="pre">test</span></code></p></li>
+<li><p>Set a suitably descriptive value for CLIENT NAME and DESCRIPTION</p></li>
+<li><p>It doesn’t matter what URI / URL you put in the other fields, but you have to put something in. The example
+here is as good a choice as any - because of how we use the directory these have no actual effect on anything.</p></li>
+</ul>
+<p>Scroll down and click on the button to save your software statement.</p>
+</div>
+</div>
+</div>
+<div class="section" id="create-a-certificate">
+<h3>Create a certificate<a class="headerlink" href="#create-a-certificate" title="Permalink to this headline">¶</a></h3>
+<div class="figure align-default" id="id8">
+<img alt="_images/directory_4.png" src="_images/directory_4.png" />
+<p class="caption"><span class="caption-number">Fig. 4 </span><span class="caption-text">Make a note of the <code class="docutils literal notranslate"><span class="pre">CLIENT</span> <span class="pre">ID</span></code> value now shown, you’ll need this later when setting up your data provider code.
+Scroll down if needed until the <code class="docutils literal notranslate"><span class="pre">Certificates</span></code> section is visible and click on it to expand it. Click on the
+<code class="docutils literal notranslate"><span class="pre">New</span> <span class="pre">Certificate</span></code> button.</span><a class="headerlink" href="#id8" title="Permalink to this image">¶</a></p>
+</div>
+<div class="figure align-default" id="id9">
+<img alt="_images/directory_5.png" src="_images/directory_5.png" />
+<p class="caption"><span class="caption-number">Fig. 5 </span><span class="caption-text">Select TRANSPORT as the certificate type and click <code class="docutils literal notranslate"><span class="pre">Continue</span></code></span><a class="headerlink" href="#id9" title="Permalink to this image">¶</a></p>
+</div>
+<div class="figure align-default" id="id10">
+<img alt="_images/directory_6.png" src="_images/directory_6.png" />
+<p class="caption"><span class="caption-number">Fig. 6 </span><span class="caption-text">The text shown here is a linux command which will generate a private key (which should never leave your server) and
+a CSR, or certificate signing request, which you will need to upload in the next step. This command needs to be run
+on your EC2 instance, it does not require <code class="docutils literal notranslate"><span class="pre">sudo</span></code> but must be run exactly as shown.</span><a class="headerlink" href="#id10" title="Permalink to this image">¶</a></p>
+<div class="legend">
+<p>When run, it will generate a <code class="docutils literal notranslate"><span class="pre">.key</span></code> and <code class="docutils literal notranslate"><span class="pre">.csr</span></code> file with unreasonably long names. You will need to upload the
+CSR file in the next step, so copy it off your EC2 instance to your local desktop using <code class="docutils literal notranslate"><span class="pre">scp</span></code>. Click <code class="docutils literal notranslate"><span class="pre">Continue</span></code></p>
+</div>
+</div>
+<div class="figure align-default" id="id11">
+<img alt="_images/directory_7.png" src="_images/directory_7.png" />
+<p class="caption"><span class="caption-number">Fig. 7 </span><span class="caption-text">Upload the <code class="docutils literal notranslate"><span class="pre">.csr</span></code> file you copied off the EC2 instance here and click <code class="docutils literal notranslate"><span class="pre">Continue</span></code>.</span><a class="headerlink" href="#id11" title="Permalink to this image">¶</a></p>
+</div>
+<div class="figure align-default" id="id12">
+<img alt="_images/directory_8.png" src="_images/directory_8.png" />
+<p class="caption"><span class="caption-number">Fig. 8 </span><span class="caption-text">You should now see your newly minted certificate. Use the small green arrow on the right to download the certificate
+itself, and use whatever mechanism you prefer to copy it across to your EC2 instance.</span><a class="headerlink" href="#id12" title="Permalink to this image">¶</a></p>
+<div class="legend">
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you are running linux on your local machine it might be simpler to do all the key generation locally and then
+copy both the private key and the certificate across to your EC2 instance - you don’t need the CSR file after
+this initial setup process.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="rename-your-key-and-certificate">
+<h3>Rename your key and certificate<a class="headerlink" href="#rename-your-key-and-certificate" title="Permalink to this headline">¶</a></h3>
+<p>To avoid having to continually type extremely long semi-random filenames, I prefer to rename the <code class="docutils literal notranslate"><span class="pre">.key</span></code> and <code class="docutils literal notranslate"><span class="pre">.pem</span></code>
+files you should now have on your EC2 home directory. The rest of this guide assumes you have placed both these files
+in a directory <code class="docutils literal notranslate"><span class="pre">/home/ec2-user/certs</span></code> and renamed them <code class="docutils literal notranslate"><span class="pre">a.key</span></code> and <code class="docutils literal notranslate"><span class="pre">a.pem</span></code> respectively. These filenames are
+referenced from the data provider code you will create in the final section of this guide, so if you haven’t done this
+you will need to make the corresponding changes there.</p>
+</div>
+</div>
+<div class="section" id="installing-gunicorn-and-your-data-provider">
+<h2>Installing gunicorn and your Data Provider<a class="headerlink" href="#installing-gunicorn-and-your-data-provider" title="Permalink to this headline">¶</a></h2>
+<p>All Python code, including the <code class="docutils literal notranslate"><span class="pre">gunicorn</span></code> WSGI container, will run from a virtual environment created in the
+<code class="docutils literal notranslate"><span class="pre">ec2-user</span></code> home directory. Create the environment, activate it, install the necessary libraries, and fetch missing
+root certificates used by the directory:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; <span class="nb">cd</span> ~
+&gt; python3.9 -m venv venv --upgrade-deps
+&gt; <span class="nb">source</span> ./venv/bin/activate
+&gt; pip install ib1.openenergy.support
+&gt; oe_install_cacerts
+</pre></div>
+</div>
+<div class="section" id="gunicorn-configuration">
+<h3>gunicorn configuration<a class="headerlink" href="#gunicorn-configuration" title="Permalink to this headline">¶</a></h3>
+<p>Create a file <code class="docutils literal notranslate"><span class="pre">/home/ec2-user/gunicorn.conf.py</span></code>:</p>
+<div class="literal-block-wrapper docutils container" id="id13">
+<div class="code-block-caption"><span class="caption-number">Listing 3 </span><span class="caption-text">/home/ec2-user/gunicorn.conf.py</span><a class="headerlink" href="#id13" title="Permalink to this code">¶</a></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">multiprocessing</span>
+
+<span class="n">bind</span> <span class="o">=</span> <span class="s1">&#39;unix:/run/gunicorn.sock&#39;</span>
+<span class="n">workers</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="n">timeout</span> <span class="o">=</span> <span class="mi">30</span>
+</pre></div>
+</div>
+</div>
+<p>The only critical line here is the <code class="docutils literal notranslate"><span class="pre">bind</span></code> command, which tells gunicorn that we want it to listen to the UNIX socket
+we previously configured Nginx to use.</p>
+</div>
+<div class="section" id="gunicorn-service">
+<h3>gunicorn service<a class="headerlink" href="#gunicorn-service" title="Permalink to this headline">¶</a></h3>
+<p>To run gunicorn as a service, and to have that service automatically start up when requests are received, you need to
+create two files in <code class="docutils literal notranslate"><span class="pre">/etc/systemd/system</span></code>:</p>
+<div class="literal-block-wrapper docutils container" id="id14">
+<div class="code-block-caption"><span class="caption-number">Listing 4 </span><span class="caption-text">/etc/systemd/system/gunicorn.service</span><a class="headerlink" href="#id14" title="Permalink to this code">¶</a></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>[Unit]
+Description=gunicorn daemon
+Requires=gunicorn.socket
+After=network.target
+
+[Service]
+Type=notify
+# the specific user that our service will run as
+User=ec2-user
+Group=ec2-user
+# another option for an even more restricted service is
+# DynamicUser=yes
+# see http://0pointer.net/blog/dynamic-users-with-systemd.html
+RuntimeDirectory=gunicorn
+WorkingDirectory=/home/ec2-user/
+ExecStart=/home/ec2-user/venv/bin/gunicorn data_provider:app
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id15">
+<div class="code-block-caption"><span class="caption-number">Listing 5 </span><span class="caption-text">/etc/systemd/system/gunicorn.socket</span><a class="headerlink" href="#id15" title="Permalink to this code">¶</a></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Unit</span><span class="p">]</span>
+<span class="n">Description</span><span class="o">=</span><span class="n">gunicorn</span> <span class="n">socket</span>
+
+<span class="p">[</span><span class="n">Socket</span><span class="p">]</span>
+<span class="n">ListenStream</span><span class="o">=/</span><span class="n">run</span><span class="o">/</span><span class="n">gunicorn</span><span class="o">.</span><span class="n">sock</span>
+<span class="c1"># Our service won&#39;t need permissions for the socket, since it</span>
+<span class="c1"># inherits the file descriptor by socket activation</span>
+<span class="c1"># only the nginx daemon will need access to the socket</span>
+<span class="n">SocketUser</span><span class="o">=</span><span class="n">nginx</span>
+<span class="c1"># Optionally restrict the socket permissions even more.</span>
+<span class="c1"># SocketMode=600</span>
+
+<span class="p">[</span><span class="n">Install</span><span class="p">]</span>
+<span class="n">WantedBy</span><span class="o">=</span><span class="n">sockets</span><span class="o">.</span><span class="n">target</span>
+</pre></div>
+</div>
+</div>
+<p>There’s nothing in either of these files specific to <code class="docutils literal notranslate"><span class="pre">example.energydata.org.uk</span></code> so create them exactly as shown
+above. To enable and start the socket run the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; sudo systemctl <span class="nb">enable</span> --now gunicorn.socket
+</pre></div>
+</div>
+</div>
+<div class="section" id="data-provider-code">
+<h3>Data Provider code<a class="headerlink" href="#data-provider-code" title="Permalink to this headline">¶</a></h3>
+<p>Finally, you need to provide the (very small!) piece of code which defines the data provider itself. Create a file
+<code class="docutils literal notranslate"><span class="pre">/home/ec2-user/data_provider.py</span></code> with the following contents:</p>
+<div class="literal-block-wrapper docutils container" id="id16">
+<div class="code-block-caption"><span class="caption-number">Listing 6 </span><span class="caption-text">/home/ec2-user/data_provider.py</span><a class="headerlink" href="#id16" title="Permalink to this code">¶</a></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">import</span> <span class="nn">flask</span>
+<span class="kn">from</span> <span class="nn">cryptography</span> <span class="kn">import</span> <span class="n">x509</span>
+<span class="kn">from</span> <span class="nn">cryptography.hazmat.backends</span> <span class="kn">import</span> <span class="n">default_backend</span>
+
+<span class="kn">from</span> <span class="nn">ib1.openenergy.support</span> <span class="kn">import</span> <span class="n">AccessTokenValidator</span>
+
+<span class="n">LOG</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;example.energydata.org.uk&#39;</span><span class="p">)</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">nginx_cert_parser</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pull certificate out of X-OE-CLIENT-CERT header from nginx</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cert_str</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;X-OE-CLIENT-CERT&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;found cert in header </span><span class="se">\n</span><span class="si">{</span><span class="n">cert_str</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x509</span><span class="o">.</span><span class="n">load_pem_x509_certificate</span><span class="p">(</span><span class="n">cert_str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ASCII&#39;</span><span class="p">),</span> <span class="n">default_backend</span><span class="p">())</span>
+
+
+<span class="n">validator</span> <span class="o">=</span> <span class="n">AccessTokenValidator</span><span class="p">(</span><span class="n">client_id</span><span class="o">=</span><span class="s1">&#39;olQh4BLV0mQUaM3OZbpXy&#39;</span><span class="p">,</span>
+                                 <span class="n">certificate</span><span class="o">=</span><span class="s1">&#39;/home/ec2-user/certs/a.pem&#39;</span><span class="p">,</span>
+                                 <span class="n">private_key</span><span class="o">=</span><span class="s1">&#39;/home/ec2-user/certs/a.key&#39;</span><span class="p">,</span>
+                                 <span class="n">issuer_url</span><span class="o">=</span><span class="s1">&#39;https://matls-auth.directory.energydata.org.uk/&#39;</span><span class="p">,</span>
+                                 <span class="n">client_cert_parser</span><span class="o">=</span><span class="n">nginx_cert_parser</span><span class="p">)</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&lt;path:data_file&gt;&#39;</span><span class="p">)</span>
+<span class="nd">@validator</span><span class="o">.</span><span class="n">introspects</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">homepage</span><span class="p">(</span><span class="n">data_file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is a very simple route that doesn&#39;t do much, but as it&#39;s decorated with the validator</span>
+<span class="sd">    token introspection endpoint it will trigger inspection of the supplied bearer token via the</span>
+<span class="sd">    directory introspection point, and the resultant object will be passed as</span>
+<span class="sd">    flask.g.introspection_response.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;home: token introspection response is </span><span class="si">{</span><span class="n">flask</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="n">introspection_response</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">flask</span><span class="o">.</span><span class="n">send_from_directory</span><span class="p">(</span><span class="s1">&#39;/home/ec2-user/shared_data&#39;</span><span class="p">,</span> <span class="n">data_file</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>This particular data provider implementation is very simple, it defines a single route which takes the name of a
+data file to be located in the <code class="docutils literal notranslate"><span class="pre">shared_data</span></code> directory, adds <code class="docutils literal notranslate"><span class="pre">.csv</span></code> to the filename and returns it. In the process
+of doing this, however, the validator configured in the first part of the file will kick in and ensure that the client
+making the request has presented both a valid client certificate and a valid access token.</p>
+</div>
+<div class="section" id="add-some-data">
+<h3>Add some data<a class="headerlink" href="#add-some-data" title="Permalink to this headline">¶</a></h3>
+<p>A data provider without data is a sad thing indeed. The code expects CSV files in a directory
+<code class="docutils literal notranslate"><span class="pre">/home/ec2-user/shared_data</span></code> along with any static content you wish to share (although see previous sections about
+enabling SSL without client certificates!) in <code class="docutils literal notranslate"><span class="pre">/home/ec2-user/public</span></code>. Create the directories:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">cd</span> <span class="o">~</span>
+<span class="o">&gt;</span> <span class="n">mkdir</span> <span class="n">public</span> <span class="n">shared_data</span>
+</pre></div>
+</div>
+<p>Put data of your choice in the <code class="docutils literal notranslate"><span class="pre">shared_data</span></code> folder. In our case we have:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(venv) [ec2-user@ip-172-31-16-197 ~]$ ls shared_data/
+tidy_DYTS01_CO2.csv  tidy_DYTS01_kWh.csv  tidy_DYTS02_kWh.csv
+</pre></div>
+</div>
+<p>These will be available at <code class="docutils literal notranslate"><span class="pre">https://example.energydata.org.uk/tidy_DYTS01_CO2</span></code> and so on, note that the code adds the
+<code class="docutils literal notranslate"><span class="pre">.csv</span></code> part to the file name when fetching it. In practice, it’s likely your data provider will be more complex than
+something which simply returns a file, but that should be a question of creating additional routes in the Flask
+application, no changes are required elsewhere.</p>
+</div>
+<div class="section" id="restarting-the-server-after-changes">
+<h3>Restarting the server after changes<a class="headerlink" href="#restarting-the-server-after-changes" title="Permalink to this headline">¶</a></h3>
+<p>Any changes to the data provider code may require a restart, to be safe run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; sudo systemctl restart gunicorn
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="logging-and-monitoring">
+<h2>Logging and monitoring<a class="headerlink" href="#logging-and-monitoring" title="Permalink to this headline">¶</a></h2>
+<p>As both gunicorn and Nginx are managed by systemd, you can use the regular tools to view logs, check status, stop and
+restart services etc as needed. In particular it’s useful to have a live view on the logs from your data provider, and
+you can do this with</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; journalctl -u gunicorn -f
+</pre></div>
+</div>
+<p>This will keep watching the application logs for changes and provide a rolling view of activity. Full use of systemd and
+its associated monitoring capabilities is outside of the scope of this guide however!</p>
+</div>
+<div class="section" id="coffee">
+<h2>Coffee<a class="headerlink" href="#coffee" title="Permalink to this headline">¶</a></h2>
+<p>If you’ve made it this far you’ve earned it…</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="gunicorn.html" class="btn btn-neutral float-right" title="Running a Data Provider with gunicorn" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="metadata.html" class="btn btn-neutral float-left" title="Metadata File Handling" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+<p>
+    &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
+    <span class="lastupdated">
+        Last updated on Jun 23, 2021.
+      </span>
+
+</p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+Licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
