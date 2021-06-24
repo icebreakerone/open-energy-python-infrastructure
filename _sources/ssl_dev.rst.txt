@@ -1,6 +1,11 @@
 Local Data Provider Development Mode
 ====================================
 
+.. deprecated:: 0.2.4
+    As of version 0.2.4 it's possible to run locally within a gunicorn container, as this is equivalently simple to
+    configure and considerably easier to use for unit testing and similar purposes, support for the SSL local dev
+    mode described here should be considered obsolete.
+
 .. warning::
     Please note! This should not be used in production. It is solely to help make your life simpler, when developing a
     :term:`data provider`, by allowing you to run everything locally with full SSL support enabled.

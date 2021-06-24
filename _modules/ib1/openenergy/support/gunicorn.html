@@ -101,6 +101,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../service_provider.html">Accessing OE Shared Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../data_provider.html">Providing OE Shared Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../metadata.html">Metadata File Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ec2.html">Deploying a Data Provider to EC2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../gunicorn.html">Running a Data Provider with gunicorn</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../ssl_dev.html">Local Data Provider Development Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Python API : ib1.openenergy.support</a></li>
@@ -225,7 +226,10 @@
 
 <div class="viewcode-block" id="ClientAuthApplication"><a class="viewcode-back" href="../../../../api.html#ib1.openenergy.support.gunicorn.ClientAuthApplication">[docs]</a><span class="k">class</span> <span class="nc">ClientAuthApplication</span><span class="p">(</span><span class="n">gunicorn</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">BaseApplication</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    GUnicorn application using the custom SSL worker. Uses certifi for its CA store.</span>
+<span class="sd">    GUnicorn application using the custom SSL worker. Uses certifi for its CA store. This is a helper class, mostly</span>
+<span class="sd">    useful when you need to run a data provider as part of a unit test, all it really does is remove the need for a</span>
+<span class="sd">    gunicorn.conf.py configuration file. See `this blog &lt;https://eugene.kovalev.systems/blog/flask_client_auth&gt;`_ for</span>
+<span class="sd">    more details on how to run a data provider within a test context using this class.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ClientAuthApplication.__init__"><a class="viewcode-back" href="../../../../api.html#ib1.openenergy.support.gunicorn.ClientAuthApplication.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">cert_path</span><span class="p">,</span> <span class="n">key_path</span><span class="p">,</span> <span class="n">hostname</span><span class="o">=</span><span class="s1">&#39;localhost&#39;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="s1">&#39;443&#39;</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
@@ -288,7 +292,7 @@
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on Jun 22, 2021.
+        Last updated on Jun 24, 2021.
       </span>
 
 </p>

@@ -201,7 +201,7 @@
             
   <div class="section" id="deploying-a-data-provider-to-ec2">
 <h1>Deploying a Data Provider to EC2<a class="headerlink" href="#deploying-a-data-provider-to-ec2" title="Permalink to this headline">¶</a></h1>
-<p>This guide will show you how to create and deploy a production-grade <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Data-Provider" title="(in Open Energy Technical Documentation)"><code class="xref any docutils literal notranslate"><span class="pre">Data</span> <span class="pre">Provider</span></code></a> to a fresh Amazon
+<p>This guide will show you how to create and deploy a production-grade <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Data-Provider" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">data provider</span></a> to a fresh Amazon
 <a class="reference external" href="https://aws.amazon.com/ec2">EC2</a> instance. By the end of the guide you will have a publicly visible server able to
 publish shared data, secured by the <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Financial-Grade-API" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">FAPI</span></a> specification as required by Open Energy.</p>
 <p>Throughout this guide the domain <code class="docutils literal notranslate"><span class="pre">example.energydata.org.uk</span></code> is used - obviously you should change this to your own
@@ -368,8 +368,8 @@ client certificate. This is exactly what you want for a server, the sole role of
 but you may want to configure this differently if you also want to serve content to web browsers rather than API
 clients. See the <a class="reference external" href="http://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_verify_client">Nginx docs</a> for more
 information</p></li>
-<li><p>In order to provide your application with access to the client certificates presented by <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Data-Consumer" title="(in Open Energy Technical Documentation)"><code class="xref any docutils literal notranslate"><span class="pre">Data</span> <span class="pre">Consumer</span></code></a> clients, it
-pushes any such client certificate into a header <code class="docutils literal notranslate"><span class="pre">X-OE-CLIENT-CERT</span></code></p></li>
+<li><p>In order to provide your application with access to the client certificates presented by <a class="reference external" href="https://icebreakerone.github.io/open-energy-technical-docs/main/glossary.html#term-Data-Consumer" title="(in Open Energy Technical Documentation)"><span class="xref std std-term">data consumer</span></a>
+clients, it pushes any such client certificate into a header <code class="docutils literal notranslate"><span class="pre">X-OE-CLIENT-CERT</span></code></p></li>
 <li><p>It attempts to serve static content from <code class="docutils literal notranslate"><span class="pre">/home/ec2-user/public</span></code>, and falls back to your data provider application
 if the specified content does not exist, accessing the application through a UNIX socket</p></li>
 </ol>
@@ -671,7 +671,7 @@ its associated monitoring capabilities is outside of the scope of this guide how
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on Jun 23, 2021.
+        Last updated on Jun 24, 2021.
       </span>
 
 </p>

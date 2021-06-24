@@ -405,6 +405,21 @@ class to build responses for invalid or missing tokens.</p>
 <dd><p>Enable HTTPConnection debug logging to the logging framework</p>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="ib1.openenergy.support.nginx_cert_parser">
+<span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.</span></span><span class="sig-name descname"><span class="pre">nginx_cert_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support.html#nginx_cert_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.nginx_cert_parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>A certificate parser to be used with the <a class="reference internal" href="#ib1.openenergy.support.AccessTokenValidator" title="ib1.openenergy.support.AccessTokenValidator"><code class="xref any py py-class docutils literal notranslate"><span class="pre">AccessTokenValidator</span></code></a> when running behind nginx or another
+similar proxy which terminates SSL connections and can be configured to push the presented client
+certificate into a header. In this case we use the header <code class="docutils literal notranslate"><span class="pre">X-OE-CLIENT-CERT</span></code>, this function removes
+any errant tab characters (introduced by nginx for some reason) and parses the contents of this header
+as a PEM format certificate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A parsed x509 Certificate object, or None if no cert presented in the header</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 <div class="section" id="metadata-apis">
 <h2>Metadata APIs<a class="headerlink" href="#metadata-apis" title="Permalink to this headline">¶</a></h2>
@@ -647,7 +662,10 @@ at <a class="reference external" href="https://eugene.kovalev.systems/blog/flask
 <dl class="py class">
 <dt class="sig sig-object py" id="ib1.openenergy.support.gunicorn.ClientAuthApplication">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.gunicorn.</span></span><span class="sig-name descname"><span class="pre">ClientAuthApplication</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cert_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hostname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'localhost'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'443'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support/gunicorn.html#ClientAuthApplication"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.gunicorn.ClientAuthApplication" title="Permalink to this definition">¶</a></dt>
-<dd><p>GUnicorn application using the custom SSL worker. Uses certifi for its CA store.</p>
+<dd><p>GUnicorn application using the custom SSL worker. Uses certifi for its CA store. This is a helper class, mostly
+useful when you need to run a data provider as part of a unit test, all it really does is remove the need for a
+gunicorn.conf.py configuration file. See <a class="reference external" href="https://eugene.kovalev.systems/blog/flask_client_auth">this blog</a> for
+more details on how to run a data provider within a test context using this class.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="ib1.openenergy.support.gunicorn.ClientAuthApplication.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cert_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hostname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'localhost'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'443'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support/gunicorn.html#ClientAuthApplication.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.gunicorn.ClientAuthApplication.__init__" title="Permalink to this definition">¶</a></dt>
@@ -790,7 +808,7 @@ or Consumer components.</p>
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on Jun 23, 2021.
+        Last updated on Jun 24, 2021.
       </span>
 
 </p>
