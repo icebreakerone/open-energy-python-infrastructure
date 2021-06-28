@@ -1,0 +1,280 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>ib1.openenergy.support.directory_tools &mdash; Open Energy Infrastructure Support 0.2.6 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/theme_overrides.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../../../../_static/favicon.png"/>
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="search" type="application/opensearchdescription+xml"
+          title="Search within Open Energy Infrastructure Support 0.2.6 documentation"
+          href="../../../../_static/opensearch.xml"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #0C3945" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> Open Energy Infrastructure Support
+          
+
+          
+            
+            <img src="../../../../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../service_provider.html">Accessing OE Shared Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../data_provider.html">Providing OE Shared Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metadata.html">Metadata File Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ec2.html">Deploying a Data Provider to EC2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../gunicorn.html">Running a Data Provider with gunicorn</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ssl_dev.html">Local Data Provider Development Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Python API : ib1.openenergy.support</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Open Energy Infrastructure Support</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../support.html">ib1.openenergy.support</a> &raquo;</li>
+        
+      <li>ib1.openenergy.support.directory_tools</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ib1.openenergy.support.directory_tools</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Command line tools used to monitor the contents of the directory, largely for internal Icebreaker use.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">argparse</span> <span class="kn">import</span> <span class="n">ArgumentParser</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">isfile</span>
+
+<span class="kn">from</span> <span class="nn">ib1.openenergy.support</span> <span class="kn">import</span> <span class="n">FAPISession</span><span class="p">,</span> <span class="n">RaidiamDirectory</span>
+
+<span class="n">LOG</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ib1.openenergy.support.directory_tools&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_directory_client"><a class="viewcode-back" href="../../../../api.html#ib1.openenergy.support.directory_tools.get_directory_client">[docs]</a><span class="k">def</span> <span class="nf">get_directory_client</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RaidiamDirectory</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse arguments and get a directory client</span>
+
+<span class="sd">    :param parser:</span>
+<span class="sd">        Existing parser to use, None by default will create a new one</span>
+<span class="sd">    :return:</span>
+<span class="sd">        A `RaidiamDirectory` client</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">check_file</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check that a file exists, logging complaints and returning false if it doesn&#39;t. If the argument</span>
+<span class="sd">        is None then interpret as optional.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">file_found</span> <span class="o">:=</span> <span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;SSL - </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> = </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s1"> not found!&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;SSL - </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> = </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">file_found</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">parser</span> <span class="ow">or</span> <span class="n">ArgumentParser</span><span class="p">()</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-k&#39;</span><span class="p">,</span> <span class="s1">&#39;--client_private_key&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Client private key file location&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;/home/tom/Desktop/certs/a.key&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-c&#39;</span><span class="p">,</span> <span class="s1">&#39;--client_certificate&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Client certificate file location&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;/home/tom/Desktop/certs/a.pem&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-id&#39;</span><span class="p">,</span> <span class="s1">&#39;--client_id&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;OAuth2 client ID for calls made from this app&#39;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;kZuAsn7UYZ98WWh29hDPf&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-iu&#39;</span><span class="p">,</span> <span class="s1">&#39;--issuer_url&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Issuer URL for auth service&#39;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;https://matls-auth.directory.energydata.org.uk&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-u&#39;</span><span class="p">,</span> <span class="s1">&#39;--directory_url&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Root directory URL&#39;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;https://matls-dirapi.directory.energydata.org.uk/&#39;</span><span class="p">)</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">check_file</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">client_certificate</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;client cert&#39;</span><span class="p">)</span>
+    <span class="n">check_file</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">client_private_key</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;client key&#39;</span><span class="p">)</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">FAPISession</span><span class="p">(</span><span class="n">client_id</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">client_id</span><span class="p">,</span> <span class="n">issuer_url</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">issuer_url</span><span class="p">,</span> <span class="n">requested_scopes</span><span class="o">=</span><span class="s1">&#39;directory:software&#39;</span><span class="p">,</span>
+                    <span class="n">private_key</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">client_private_key</span><span class="p">,</span> <span class="n">certificate</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">client_certificate</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">RaidiamDirectory</span><span class="p">(</span><span class="n">fapi</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">base_url</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">directory_url</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+<p>
+    &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
+    <span class="lastupdated">
+        Last updated on Jun 28, 2021.
+      </span>
+
+</p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+Licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

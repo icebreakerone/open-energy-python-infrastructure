@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>ib1.openenergy.support.metadata &mdash; Open Energy Infrastructure Support 0.2.1 documentation</title>
+  <title>ib1.openenergy.support.metadata &mdash; Open Energy Infrastructure Support 0.2.6 documentation</title>
   
 
   
@@ -41,7 +41,7 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.2.1 documentation"
+          title="Search within Open Energy Infrastructure Support 0.2.6 documentation"
           href="../../../../_static/opensearch.xml"/>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" /> 
@@ -71,7 +71,7 @@
             
             
               <div class="version">
-                0.2.1
+                0.2.6
               </div>
             
           
@@ -101,6 +101,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../service_provider.html">Accessing OE Shared Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../data_provider.html">Providing OE Shared Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../metadata.html">Metadata File Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ec2.html">Deploying a Data Provider to EC2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../gunicorn.html">Running a Data Provider with gunicorn</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../ssl_dev.html">Local Data Provider Development Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Python API : ib1.openenergy.support</a></li>
 </ul>
@@ -173,16 +175,16 @@
   <h1>Source code for ib1.openenergy.support.metadata</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">JSONDecodeError</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
+
 <span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">import</span> <span class="nn">yaml</span>
 <span class="kn">from</span> <span class="nn">pyld</span> <span class="kn">import</span> <span class="n">jsonld</span>
-<span class="kn">from</span> <span class="nn">requests</span> <span class="kn">import</span> <span class="n">HTTPError</span>
 <span class="kn">from</span> <span class="nn">yaml.parser</span> <span class="kn">import</span> <span class="n">ParserError</span>
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 
-<span class="kn">from</span> <span class="nn">yaml.scanner</span> <span class="kn">import</span> <span class="n">ScannerError</span>
+<span class="kn">from</span> <span class="nn">ib1.openenergy.support.raidiam</span> <span class="kn">import</span> <span class="n">AuthorisationServer</span>
 
 <span class="n">LOG</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ib1.openenergy.support.metadata&#39;</span><span class="p">)</span>
 
@@ -240,7 +242,12 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        content / dcat:keywords</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DCAT</span><span class="p">,</span> <span class="s1">&#39;keyword&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[])</span>
+
+        <span class="n">keywords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DCAT</span><span class="p">,</span> <span class="s1">&#39;keyword&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">keywords</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="c1"># If there&#39;s a single keyword, wrap it up in a list</span>
+            <span class="n">keywords</span> <span class="o">=</span> <span class="p">[</span><span class="n">keywords</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">keywords</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">title</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -328,13 +335,17 @@
     <span class="n">location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">error</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">exception</span><span class="p">:</span> <span class="ne">Exception</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">metadata</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Metadata</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
+    <span class="n">metadata</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Metadata</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">server</span><span class="p">:</span> <span class="n">AuthorisationServer</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
-<div class="viewcode-block" id="load_metadata"><a class="viewcode-back" href="../../../../api.html#ib1.openenergy.support.metadata.load_metadata">[docs]</a><span class="k">def</span> <span class="nf">load_metadata</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetadataLoadResult</span><span class="p">:</span>
+<div class="viewcode-block" id="load_metadata"><a class="viewcode-back" href="../../../../api.html#ib1.openenergy.support.metadata.load_metadata">[docs]</a><span class="k">def</span> <span class="nf">load_metadata</span><span class="p">(</span><span class="n">server</span><span class="p">:</span> <span class="n">AuthorisationServer</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetadataLoadResult</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Load metadata from a URL.</span>
 
+<span class="sd">    :param server:</span>
+<span class="sd">        `AuthorisationServer` from which this url was retrieved, or None if fetching directly</span>
 <span class="sd">    :param url:</span>
 <span class="sd">        url from which to load metadata</span>
 <span class="sd">    :param file:</span>
@@ -350,13 +361,13 @@
 
     <span class="k">if</span> <span class="n">file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;file:</span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s1"> and </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
-                                  <span class="n">error</span><span class="o">=</span><span class="s1">&#39;must provide exactly one of &quot;file&quot; or &quot;url&quot;&#39;</span><span class="p">)</span>
+                                  <span class="n">error</span><span class="o">=</span><span class="s1">&#39;must provide exactly one of &quot;file&quot; or &quot;url&quot;&#39;</span><span class="p">,</span>
+                                  <span class="n">server</span><span class="o">=</span><span class="n">server</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;loading metadata from url = </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="c1"># Use supplied session, or build a new one</span>
         <span class="k">if</span> <span class="n">session</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">session</span><span class="p">()</span>
-
 
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># Fetch data from the specified URL</span>
@@ -364,7 +375,8 @@
             <span class="c1"># If any errors occurred, raise the corresponding HTTPError</span>
             <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">he</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="s1">&#39;unable to retrieve metadata file&#39;</span><span class="p">,</span> <span class="n">exception</span><span class="o">=</span><span class="n">he</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="s1">&#39;unable to retrieve metadata file&#39;</span><span class="p">,</span> <span class="n">exception</span><span class="o">=</span><span class="n">he</span><span class="p">,</span>
+                                      <span class="n">server</span><span class="o">=</span><span class="n">server</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
@@ -378,7 +390,7 @@
                 <span class="c1"># Not YAML either, or not a dialect we can handle</span>
                 <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">url</span><span class="p">,</span>
                                           <span class="n">error</span><span class="o">=</span><span class="s1">&#39;unable to parse metadata file as either JSON or YAML&#39;</span><span class="p">,</span>
-                                          <span class="n">exception</span><span class="o">=</span><span class="n">pe</span><span class="p">)</span>
+                                          <span class="n">exception</span><span class="o">=</span><span class="n">pe</span><span class="p">,</span> <span class="n">server</span><span class="o">=</span><span class="n">server</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;loading metadata from file = </span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="c1"># Read from file on disk</span>
@@ -397,25 +409,27 @@
                         <span class="c1"># Not YAML either, or not a dialect we can handle</span>
                         <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;file:</span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
                                                   <span class="n">error</span><span class="o">=</span><span class="s1">&#39;unable to parse metadata file as either JSON or YAML&#39;</span><span class="p">,</span>
-                                                  <span class="n">exception</span><span class="o">=</span><span class="n">pe</span><span class="p">)</span>
+                                                  <span class="n">exception</span><span class="o">=</span><span class="n">pe</span><span class="p">,</span> <span class="n">server</span><span class="o">=</span><span class="n">server</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ioe</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;file:</span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
                                       <span class="n">error</span><span class="o">=</span><span class="s1">&#39;unable to load metadata file from disk&#39;</span><span class="p">,</span>
-                                      <span class="n">exception</span><span class="o">=</span><span class="n">ioe</span><span class="p">)</span>
+                                      <span class="n">exception</span><span class="o">=</span><span class="n">ioe</span><span class="p">,</span> <span class="n">server</span><span class="o">=</span><span class="n">server</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="s1">&#39;NONE&#39;</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="s1">&#39;must specify either file or url&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="s1">&#39;NONE&#39;</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="s1">&#39;must specify either file or url&#39;</span><span class="p">,</span> <span class="n">server</span><span class="o">=</span><span class="n">server</span><span class="p">)</span>
 
     <span class="n">location</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">file</span> <span class="k">else</span> <span class="n">url</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
         <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;fetched and parsed location=</span><span class="si">{</span><span class="n">location</span><span class="si">}</span><span class="s1">, contains </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="si">}</span><span class="s1"> items&#39;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="p">[</span><span class="n">Metadata</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">result</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="p">[</span><span class="n">Metadata</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">result</span><span class="p">],</span> <span class="n">server</span><span class="o">=</span><span class="n">server</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">ve</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="s1">&#39;invalid metadata description&#39;</span><span class="p">,</span> <span class="n">exception</span><span class="o">=</span><span class="n">ve</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="s1">&#39;invalid metadata description&#39;</span><span class="p">,</span> <span class="n">exception</span><span class="o">=</span><span class="n">ve</span><span class="p">,</span>
+                                      <span class="n">server</span><span class="o">=</span><span class="n">server</span><span class="p">)</span>
 
     <span class="c1"># No list item, this is a failure</span>
-    <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="s1">&#39;metadata does not contain a list as top level item&#39;</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="s1">&#39;metadata does not contain a list as top level item&#39;</span><span class="p">,</span>
+                              <span class="n">server</span><span class="o">=</span><span class="n">server</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -429,7 +443,7 @@
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on Jun 17, 2021.
+        Last updated on Jun 28, 2021.
       </span>
 
 </p>

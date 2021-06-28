@@ -1,0 +1,367 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>ib1.openenergy.support.ckan &mdash; Open Energy Infrastructure Support 0.2.6 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/theme_overrides.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../../../../_static/favicon.png"/>
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="search" type="application/opensearchdescription+xml"
+          title="Search within Open Energy Infrastructure Support 0.2.6 documentation"
+          href="../../../../_static/opensearch.xml"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #0C3945" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> Open Energy Infrastructure Support
+          
+
+          
+            
+            <img src="../../../../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../service_provider.html">Accessing OE Shared Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../data_provider.html">Providing OE Shared Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metadata.html">Metadata File Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ec2.html">Deploying a Data Provider to EC2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../gunicorn.html">Running a Data Provider with gunicorn</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ssl_dev.html">Local Data Provider Development Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Python API : ib1.openenergy.support</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Open Energy Infrastructure Support</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../support.html">ib1.openenergy.support</a> &raquo;</li>
+        
+      <li>ib1.openenergy.support.ckan</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ib1.openenergy.support.ckan</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Support for creating and updating records in a remote CKAN instance from various organisation and metadata types</span>
+<span class="sd">from elsewhere in this library.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">ckanapi</span> <span class="kn">import</span> <span class="n">RemoteCKAN</span><span class="p">,</span> <span class="n">NotFound</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">ib1.openenergy.support.metadata</span> <span class="kn">import</span> <span class="n">Metadata</span>
+<span class="kn">from</span> <span class="nn">ib1.openenergy.support.raidiam</span> <span class="kn">import</span> <span class="n">Organisation</span>
+
+<span class="n">LOG</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ib1.openenergy.support.ckan&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ckan_dataset_name"><a class="viewcode-back" href="../../../../api.html#ib1.openenergy.support.ckan.ckan_dataset_name">[docs]</a><span class="k">def</span> <span class="nf">ckan_dataset_name</span><span class="p">(</span><span class="n">org</span><span class="p">:</span> <span class="n">Organisation</span><span class="p">,</span> <span class="n">data_set</span><span class="p">:</span> <span class="n">Metadata</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates a stable dataset ID for a given organisation and metadata object, uses the literal &#39;oe&#39;, and</span>
+<span class="sd">    the ckan_legal_name forms of the organisation ID and data set stable identifier separated by &#39;-&#39; characters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ckan_legal_name</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;oe&#39;</span><span class="p">,</span>
+                                     <span class="n">ckan_legal_name</span><span class="p">(</span><span class="n">org</span><span class="o">.</span><span class="n">organisation_id</span><span class="p">),</span>
+                                     <span class="n">ckan_legal_name</span><span class="p">(</span><span class="n">data_set</span><span class="o">.</span><span class="n">stable_identifier</span><span class="p">)]))</span></div>
+
+
+<div class="viewcode-block" id="ckan_legal_name"><a class="viewcode-back" href="../../../../api.html#ib1.openenergy.support.ckan.ckan_legal_name">[docs]</a><span class="k">def</span> <span class="nf">ckan_legal_name</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CKAN names must be between 2 and 100 characters long and contain only lowercase alphanumeric characters,</span>
+<span class="sd">    &#39;-&#39; and &#39;_&#39;. This function makes a reasonable best effort to convert an arbitrary input string. Strings</span>
+<span class="sd">    below 2 characters long will raise a ValueError.</span>
+
+<span class="sd">    Longer strings are converted to lower case, stripped of all non-alphanumeric, non underscore or dash, characters,</span>
+<span class="sd">    then truncated to 100 characters if necessary.</span>
+
+<span class="sd">    :param s:</span>
+<span class="sd">        input string</span>
+<span class="sd">    :return:</span>
+<span class="sd">        valid CKAN name, as close as possible to the original</span>
+<span class="sd">    :raises ValueError:</span>
+<span class="sd">        if the string is too short</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">s</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unable to convert, input string is too short &quot;</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+    <span class="c1"># Convert to lower case and remove all non-word characters except &#39;_&#39; and &#39;-&#39;, then truncate to 100 chars</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^\w_-]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">lower</span><span class="p">())[:</span><span class="mi">100</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="ckan_dict_from_metadata"><a class="viewcode-back" href="../../../../api.html#ib1.openenergy.support.ckan.ckan_dict_from_metadata">[docs]</a><span class="k">def</span> <span class="nf">ckan_dict_from_metadata</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">Metadata</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a CKAN dict suitable for data package create or update operations from a `Metadata` object. Currently</span>
+<span class="sd">    handles title, notes, version, tags, and adds oe:dataSensitivityClass and dcat:versionNotes to the extras</span>
+<span class="sd">    dict. Tags are added without any associated vocabulary at this point.</span>
+
+<span class="sd">    :param m:</span>
+<span class="sd">        a `Metadata` object containing information about the data set to store or update</span>
+<span class="sd">    :return:</span>
+<span class="sd">        a dict suitable for CKAN update / create operations on data packages</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">ckan_extras</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        CKAN expects extras in the form of a list of dicts {key:..., value:...}, this function</span>
+<span class="sd">        converts a dictionary containing k:v pairs into a list of these dicts.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">value</span><span class="p">}</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+
+    <span class="k">def</span> <span class="nf">ckan_tags</span><span class="p">(</span><span class="n">tags</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        CKAN expects tags to be a list of {&#39;name&#39;:...&#39;} dicts, but we have lists of free text keywords</span>
+<span class="sd">        from dcat&#39;s keyword term, so munge a list of strings into this form.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">tag</span><span class="p">}</span> <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+        <span class="s1">&#39;notes&#39;</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+        <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+        <span class="s1">&#39;tags&#39;</span><span class="p">:</span> <span class="n">ckan_tags</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">keywords</span><span class="p">),</span>
+        <span class="s1">&#39;extras&#39;</span><span class="p">:</span> <span class="n">ckan_extras</span><span class="p">({</span><span class="s1">&#39;oe-sensitivityClass&#39;</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">data_sensitivity_class</span><span class="p">,</span>
+                               <span class="s1">&#39;dcat-versionNotes&#39;</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">version_notes</span><span class="p">})</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="update_or_create_ckan_record"><a class="viewcode-back" href="../../../../api.html#ib1.openenergy.support.ckan.update_or_create_ckan_record">[docs]</a><span class="k">def</span> <span class="nf">update_or_create_ckan_record</span><span class="p">(</span><span class="n">org</span><span class="p">:</span> <span class="n">Organisation</span><span class="p">,</span>
+                                 <span class="n">data_sets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Metadata</span><span class="p">],</span>
+                                 <span class="n">ckan_api_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                 <span class="n">ckan_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create or update records for a given datasets, each defined by a `Metadata` object, in the context</span>
+<span class="sd">    of an `Organisation` from the directory. The organisation will be created if required.</span>
+
+<span class="sd">    :param org:</span>
+<span class="sd">        `Organisation` to use as owner of this data set</span>
+<span class="sd">    :param data_sets:</span>
+<span class="sd">        list of `Metadata` containing information about the data sets</span>
+<span class="sd">    :param ckan_api_key:</span>
+<span class="sd">        api key to write to CKAN</span>
+<span class="sd">    :param ckan_url:</span>
+<span class="sd">        url of the CKAN instance</span>
+<span class="sd">    :return:</span>
+<span class="sd">        list of created or modified record from CKAN as dicts</span>
+<span class="sd">    :raises NotAuthorized:</span>
+<span class="sd">        if the supplied access token doesn&#39;t have necessary permissions</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ckan</span> <span class="o">=</span> <span class="n">RemoteCKAN</span><span class="p">(</span><span class="n">address</span><span class="o">=</span><span class="n">ckan_url</span><span class="p">,</span> <span class="n">apikey</span><span class="o">=</span><span class="n">ckan_api_key</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">inner</span><span class="p">():</span>
+        <span class="c1"># Create the organisation in CKAN if it isn&#39;t already present</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ckan</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">organization_show</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">org</span><span class="o">.</span><span class="n">organisation_id</span><span class="p">)</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;organisation id=</span><span class="si">{</span><span class="n">org</span><span class="o">.</span><span class="n">organisation_id</span><span class="si">}</span><span class="s1"> already exists in CKAN&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">NotFound</span><span class="p">:</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;creating new organisation in CKAN, id=</span><span class="si">{</span><span class="n">org</span><span class="o">.</span><span class="n">organisation_id</span><span class="si">}</span><span class="s1">, title=</span><span class="si">{</span><span class="n">org</span><span class="o">.</span><span class="n">organisation_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">ckan</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">organization_create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">org</span><span class="o">.</span><span class="n">organisation_id</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">org</span><span class="o">.</span><span class="n">organisation_name</span><span class="p">)</span>
+
+        <span class="c1"># Iterate over data sets</span>
+        <span class="k">for</span> <span class="n">data_set</span> <span class="ow">in</span> <span class="n">data_sets</span><span class="p">:</span>
+
+            <span class="c1"># Compute the ID for the dataset</span>
+            <span class="n">dataset_id</span> <span class="o">=</span> <span class="n">ckan_dataset_name</span><span class="p">(</span><span class="n">org</span><span class="o">=</span><span class="n">org</span><span class="p">,</span> <span class="n">data_set</span><span class="o">=</span><span class="n">data_set</span><span class="p">)</span>
+
+            <span class="c1"># Check whether the data package already exists in CKAN</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ckan</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">package_show</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">)</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;data package id=</span><span class="si">{</span><span class="n">dataset_id</span><span class="si">}</span><span class="s1"> already exists in CKAN, updating&#39;</span><span class="p">)</span>
+                <span class="c1"># Found existing package, use package update</span>
+                <span class="k">yield</span> <span class="n">ckan</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">package_update</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">,</span>
+                                                 <span class="o">**</span><span class="n">ckan_dict_from_metadata</span><span class="p">(</span><span class="n">data_set</span><span class="p">),</span>
+                                                 <span class="n">owner_org</span><span class="o">=</span><span class="n">org</span><span class="o">.</span><span class="n">organisation_id</span><span class="p">,</span>
+                                                 <span class="n">return_package_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">NotFound</span><span class="p">:</span>
+                <span class="c1"># Not found in CKAN, use package_create to build a new one</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;creating data package id=</span><span class="si">{</span><span class="n">dataset_id</span><span class="si">}</span><span class="s1"> in CKAN&#39;</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="n">ckan</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">package_create</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">ckan_dict_from_metadata</span><span class="p">(</span><span class="n">data_set</span><span class="p">),</span>
+                    <span class="n">owner_org</span><span class="o">=</span><span class="n">org</span><span class="o">.</span><span class="n">organisation_id</span><span class="p">,</span>
+                    <span class="n">return_package_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">inner</span><span class="p">())</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+<p>
+    &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
+    <span class="lastupdated">
+        Last updated on Jun 28, 2021.
+      </span>
+
+</p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+Licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

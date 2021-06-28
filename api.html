@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Python API : ib1.openenergy.support &mdash; Open Energy Infrastructure Support 0.2.5 documentation</title>
+  <title>Python API : ib1.openenergy.support &mdash; Open Energy Infrastructure Support 0.2.6 documentation</title>
   
 
   
@@ -41,7 +41,7 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.2.5 documentation"
+          title="Search within Open Energy Infrastructure Support 0.2.6 documentation"
           href="_static/opensearch.xml"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -72,7 +72,7 @@
             
             
               <div class="version">
-                0.2.5
+                0.2.6
               </div>
             
           
@@ -108,8 +108,8 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Python API : ib1.openenergy.support</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-ib1.openenergy.support">External APIs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#metadata-apis">Metadata APIs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ib1.openenergy.support.flask_ssl_dev">SSL Development APIs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#gunicorn-support-apis">Gunicorn support APIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ssl-development-apis">SSL Development APIs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#internal-apis">Internal APIs</a></li>
 </ul>
 </li>
@@ -543,14 +543,14 @@ of the metadata file.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="ib1.openenergy.support.metadata.MetadataLoadResult">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.metadata.</span></span><span class="sig-name descname"><span class="pre">MetadataLoadResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">location:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">error:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">exception:</span> <span class="pre">Optional[Exception]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">metadata:</span> <span class="pre">List[ib1.openenergy.support.metadata.Metadata]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support/metadata.html#MetadataLoadResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.metadata.MetadataLoadResult" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.metadata.</span></span><span class="sig-name descname"><span class="pre">MetadataLoadResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">location:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">error:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">exception:</span> <span class="pre">Optional[Exception]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">metadata:</span> <span class="pre">List[ib1.openenergy.support.metadata.Metadata]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em>, <em class="sig-param"><span class="pre">server:</span> <span class="pre">Optional[ib1.openenergy.support.raidiam.AuthorisationServer]</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support/metadata.html#MetadataLoadResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.metadata.MetadataLoadResult" title="Permalink to this definition">¶</a></dt>
 <dd><p>Information about the process of loading a metadata file from a URL or file location along
 with the results. This is used instead of raising exceptions during the load process in order
 to provide better reporting with mappings between org IDs and problems with their respective
 metadata files.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="ib1.openenergy.support.metadata.MetadataLoadResult.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">location:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">error:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">exception:</span> <span class="pre">Optional[Exception]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">metadata:</span> <span class="pre">List[ib1.openenergy.support.metadata.Metadata]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3.8/library/constants.html#None" title="(in Python v3.8)"><span class="pre">None</span></a><a class="headerlink" href="#ib1.openenergy.support.metadata.MetadataLoadResult.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">location:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">error:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">exception:</span> <span class="pre">Optional[Exception]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">metadata:</span> <span class="pre">List[ib1.openenergy.support.metadata.Metadata]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em>, <em class="sig-param"><span class="pre">server:</span> <span class="pre">Optional[ib1.openenergy.support.raidiam.AuthorisationServer]</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3.8/library/constants.html#None" title="(in Python v3.8)"><span class="pre">None</span></a><a class="headerlink" href="#ib1.openenergy.support.metadata.MetadataLoadResult.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
 </dd></dl>
 
@@ -564,11 +564,12 @@ metadata files.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ib1.openenergy.support.metadata.load_metadata">
-<span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.metadata.</span></span><span class="sig-name descname"><span class="pre">load_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#ib1.openenergy.support.metadata.MetadataLoadResult" title="ib1.openenergy.support.metadata.MetadataLoadResult"><span class="pre">ib1.openenergy.support.metadata.MetadataLoadResult</span></a><a class="reference internal" href="_modules/ib1/openenergy/support/metadata.html#load_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.metadata.load_metadata" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.metadata.</span></span><span class="sig-name descname"><span class="pre">load_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">server</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ib1.openenergy.support.raidiam.AuthorisationServer" title="ib1.openenergy.support.raidiam.AuthorisationServer"><span class="pre">ib1.openenergy.support.raidiam.AuthorisationServer</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#ib1.openenergy.support.metadata.MetadataLoadResult" title="ib1.openenergy.support.metadata.MetadataLoadResult"><span class="pre">ib1.openenergy.support.metadata.MetadataLoadResult</span></a><a class="reference internal" href="_modules/ib1/openenergy/support/metadata.html#load_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.metadata.load_metadata" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load metadata from a URL.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>server</strong> – <a class="reference internal" href="#ib1.openenergy.support.raidiam.AuthorisationServer" title="ib1.openenergy.support.raidiam.AuthorisationServer"><code class="xref any py py-class docutils literal notranslate"><span class="pre">AuthorisationServer</span></code></a> from which this url was retrieved, or None if fetching directly</p></li>
 <li><p><strong>url</strong> – url from which to load metadata</p></li>
 <li><p><strong>file</strong> – file path from which to load metadata, use either this or url, not both</p></li>
 <li><p><strong>session</strong> – if specified, use this <a class="reference external" href="https://docs.python-requests.org/en/master/api/#requests.Session" title="(in Requests v2.25.1)"><code class="xref any docutils literal notranslate"><span class="pre">requests.Session</span></code></a>, if not, create a new one</p></li>
@@ -578,71 +579,6 @@ metadata files.</p>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>a <a class="reference internal" href="#ib1.openenergy.support.metadata.MetadataLoadResult" title="ib1.openenergy.support.metadata.MetadataLoadResult"><code class="xref any py py-class docutils literal notranslate"><span class="pre">MetadataLoadResult</span></code></a> containing a report on the process, including actual <a class="reference internal" href="#ib1.openenergy.support.metadata.Metadata" title="ib1.openenergy.support.metadata.Metadata"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Metadata</span></code></a> objects if
 the load succeeded and found any metadata.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</div>
-<div class="section" id="module-ib1.openenergy.support.flask_ssl_dev">
-<span id="ssl-development-apis"></span><h2>SSL Development APIs<a class="headerlink" href="#module-ib1.openenergy.support.flask_ssl_dev" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="ib1.openenergy.support.flask_ssl_dev.SSLOptions">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.flask_ssl_dev.</span></span><span class="sig-name descname"><span class="pre">SSLOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">server_private_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_certificate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_private_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_certificate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support/flask_ssl_dev.html#SSLOptions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.flask_ssl_dev.SSLOptions" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py method">
-<dt class="sig sig-object py" id="ib1.openenergy.support.flask_ssl_dev.SSLOptions.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">server_private_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_certificate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_private_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_certificate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3.8/library/constants.html#None" title="(in Python v3.8)"><span class="pre">None</span></a><a class="headerlink" href="#ib1.openenergy.support.flask_ssl_dev.SSLOptions.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="ib1.openenergy.support.flask_ssl_dev.get_command_line_ssl_args">
-<span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.flask_ssl_dev.</span></span><span class="sig-name descname"><span class="pre">get_command_line_ssl_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default_server_private_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./a.key'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_server_certificate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./a.pem'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_client_private_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./b.key'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_client_certificate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./b.pem'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_client_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'CLIENT_ID'</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#ib1.openenergy.support.flask_ssl_dev.SSLOptions" title="ib1.openenergy.support.flask_ssl_dev.SSLOptions"><span class="pre">ib1.openenergy.support.flask_ssl_dev.SSLOptions</span></a><a class="reference internal" href="_modules/ib1/openenergy/support/flask_ssl_dev.html#get_command_line_ssl_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.flask_ssl_dev.get_command_line_ssl_args" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parse command line arguments for SSL file paths and private key password (optional)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>default_server_certificate</strong> – default location for app certificate, ‘./app.crt’. This is the certificate the web server is going to use to
-create an HTTPS endpoint, it is not the one from the directory!</p></li>
-<li><p><strong>default_server_private_key</strong> – default location for app private key, ‘./app.key’. This is the private key of the app certificate, and not the
-one you used when creating the raidiam cert.</p></li>
-<li><p><strong>default_client_certificate</strong> – default location for the client certificate</p></li>
-<li><p><strong>default_client_private_key</strong> – default location for the client private key</p></li>
-<li><p><strong>default_client_id</strong> – default OAuth2 client ID</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>parsed options object</p>
-</dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.8/library/exceptions.html#ValueError" title="(in Python v3.8)"><strong>ValueError</strong></a> – if any files are not specified, or not found</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="ib1.openenergy.support.flask_ssl_dev.run_app">
-<span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.flask_ssl_dev.</span></span><span class="sig-name descname"><span class="pre">run_app</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_private_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_certificate</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support/flask_ssl_dev.html#run_app"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.flask_ssl_dev.run_app" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run the provided app object, parsing command line arguments to get the various SSL parameters
-needed for client cert validation. Checks for existence of SSL related file paths, then runs the supplied
-flask app. This shouldn’t be used in production, but is a quick way to spin up an app with HTTPS and client auth
-enabled. Any routes in the resultant app will have access to a client cert (if present) through
-request.environ[“peercert”].</p>
-<p>In any real case we’d be running flask behind something like nginx, in which case client certificates are handled
-first by the proxy, and then generally pushed through as an additional header. This mechanism wouldn’t work in those
-cases, it really is just for development mode and any access to the client certs should allow for both possible
-mechanisms so that code works in both dev and production contexts.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>app</strong> – flask app to run with client certificate support</p></li>
-<li><p><strong>args</strong> – any additional positional arguments to pass to app.run</p></li>
-<li><p><strong>server_private_key</strong> – location of private key file for app SSL</p></li>
-<li><p><strong>server_certificate</strong> – app SSL certificate</p></li>
-<li><p><strong>kwargs</strong> – any keyword arguments to pass to app.run, ssl_context and request_handler are already
-set up by this function</p></li>
-</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -716,15 +652,95 @@ to pull certificates out of the named header.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="ssl-development-apis">
+<h2>SSL Development APIs<a class="headerlink" href="#ssl-development-apis" title="Permalink to this headline">¶</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This is deprecated since 0.2.4, use the gunicorn support above instead.</p>
+</div>
+<span class="target" id="module-ib1.openenergy.support.flask_ssl_dev"></span><dl class="py class">
+<dt class="sig sig-object py" id="ib1.openenergy.support.flask_ssl_dev.SSLOptions">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.flask_ssl_dev.</span></span><span class="sig-name descname"><span class="pre">SSLOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">server_private_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_certificate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_private_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_certificate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support/flask_ssl_dev.html#SSLOptions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.flask_ssl_dev.SSLOptions" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="ib1.openenergy.support.flask_ssl_dev.SSLOptions.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">server_private_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_certificate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_private_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_certificate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3.8/library/constants.html#None" title="(in Python v3.8)"><span class="pre">None</span></a><a class="headerlink" href="#ib1.openenergy.support.flask_ssl_dev.SSLOptions.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ib1.openenergy.support.flask_ssl_dev.get_command_line_ssl_args">
+<span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.flask_ssl_dev.</span></span><span class="sig-name descname"><span class="pre">get_command_line_ssl_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default_server_private_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./a.key'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_server_certificate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./a.pem'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_client_private_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./b.key'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_client_certificate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./b.pem'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_client_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'CLIENT_ID'</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#ib1.openenergy.support.flask_ssl_dev.SSLOptions" title="ib1.openenergy.support.flask_ssl_dev.SSLOptions"><span class="pre">ib1.openenergy.support.flask_ssl_dev.SSLOptions</span></a><a class="reference internal" href="_modules/ib1/openenergy/support/flask_ssl_dev.html#get_command_line_ssl_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.flask_ssl_dev.get_command_line_ssl_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse command line arguments for SSL file paths and private key password (optional)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>default_server_certificate</strong> – default location for app certificate, ‘./app.crt’. This is the certificate the web server is going to use to
+create an HTTPS endpoint, it is not the one from the directory!</p></li>
+<li><p><strong>default_server_private_key</strong> – default location for app private key, ‘./app.key’. This is the private key of the app certificate, and not the
+one you used when creating the raidiam cert.</p></li>
+<li><p><strong>default_client_certificate</strong> – default location for the client certificate</p></li>
+<li><p><strong>default_client_private_key</strong> – default location for the client private key</p></li>
+<li><p><strong>default_client_id</strong> – default OAuth2 client ID</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>parsed options object</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.8/library/exceptions.html#ValueError" title="(in Python v3.8)"><strong>ValueError</strong></a> – if any files are not specified, or not found</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ib1.openenergy.support.flask_ssl_dev.run_app">
+<span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.flask_ssl_dev.</span></span><span class="sig-name descname"><span class="pre">run_app</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_private_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_certificate</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support/flask_ssl_dev.html#run_app"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.flask_ssl_dev.run_app" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the provided app object, parsing command line arguments to get the various SSL parameters
+needed for client cert validation. Checks for existence of SSL related file paths, then runs the supplied
+flask app. This shouldn’t be used in production, but is a quick way to spin up an app with HTTPS and client auth
+enabled. Any routes in the resultant app will have access to a client cert (if present) through
+request.environ[“peercert”].</p>
+<p>In any real case we’d be running flask behind something like nginx, in which case client certificates are handled
+first by the proxy, and then generally pushed through as an additional header. This mechanism wouldn’t work in those
+cases, it really is just for development mode and any access to the client certs should allow for both possible
+mechanisms so that code works in both dev and production contexts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>app</strong> – flask app to run with client certificate support</p></li>
+<li><p><strong>args</strong> – any additional positional arguments to pass to app.run</p></li>
+<li><p><strong>server_private_key</strong> – location of private key file for app SSL</p></li>
+<li><p><strong>server_certificate</strong> – app SSL certificate</p></li>
+<li><p><strong>kwargs</strong> – any keyword arguments to pass to app.run, ssl_context and request_handler are already
+set up by this function</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
 <div class="section" id="internal-apis">
 <h2>Internal APIs<a class="headerlink" href="#internal-apis" title="Permalink to this headline">¶</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The classes below are primarily used internally within Open Energy to manage information in our
-membership directory, they are unlikely to be of interest to third parties implementing Data Provider
-or Consumer components.</p>
+membership directory and CKAN servers, they are unlikely to be of interest to third parties implementing
+Data Provider or Consumer components.</p>
 </div>
 <span class="target" id="module-ib1.openenergy.support.raidiam"></span><dl class="py class">
+<dt class="sig sig-object py" id="ib1.openenergy.support.raidiam.AdminUser">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.raidiam.</span></span><span class="sig-name descname"><span class="pre">AdminUser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_email</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support/raidiam.html#AdminUser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.raidiam.AdminUser" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="ib1.openenergy.support.raidiam.AdminUser.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_email</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3.8/library/constants.html#None" title="(in Python v3.8)"><span class="pre">None</span></a><a class="headerlink" href="#ib1.openenergy.support.raidiam.AdminUser.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="ib1.openenergy.support.raidiam.ApiDiscoveryEndpoint">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.raidiam.</span></span><span class="sig-name descname"><span class="pre">ApiDiscoveryEndpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_discovery_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_endpoint</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ib1/openenergy/support/raidiam.html#ApiDiscoveryEndpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.raidiam.ApiDiscoveryEndpoint" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
@@ -788,6 +804,90 @@ or Consumer components.</p>
 <dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
 </dd></dl>
 
+</dd></dl>
+
+<span class="target" id="module-ib1.openenergy.support.ckan"></span><p>Support for creating and updating records in a remote CKAN instance from various organisation and metadata types
+from elsewhere in this library.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="ib1.openenergy.support.ckan.ckan_dataset_name">
+<span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.ckan.</span></span><span class="sig-name descname"><span class="pre">ckan_dataset_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">org</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#ib1.openenergy.support.raidiam.Organisation" title="ib1.openenergy.support.raidiam.Organisation"><span class="pre">ib1.openenergy.support.raidiam.Organisation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_set</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#ib1.openenergy.support.metadata.Metadata" title="ib1.openenergy.support.metadata.Metadata"><span class="pre">ib1.openenergy.support.metadata.Metadata</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><a class="reference internal" href="_modules/ib1/openenergy/support/ckan.html#ckan_dataset_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.ckan.ckan_dataset_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates a stable dataset ID for a given organisation and metadata object, uses the literal ‘oe’, and
+the ckan_legal_name forms of the organisation ID and data set stable identifier separated by ‘-‘ characters</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ib1.openenergy.support.ckan.ckan_dict_from_metadata">
+<span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.ckan.</span></span><span class="sig-name descname"><span class="pre">ckan_dict_from_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#ib1.openenergy.support.metadata.Metadata" title="ib1.openenergy.support.metadata.Metadata"><span class="pre">ib1.openenergy.support.metadata.Metadata</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#dict" title="(in Python v3.8)"><span class="pre">dict</span></a><a class="reference internal" href="_modules/ib1/openenergy/support/ckan.html#ckan_dict_from_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.ckan.ckan_dict_from_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a CKAN dict suitable for data package create or update operations from a <a class="reference internal" href="#ib1.openenergy.support.metadata.Metadata" title="ib1.openenergy.support.metadata.Metadata"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Metadata</span></code></a> object. Currently
+handles title, notes, version, tags, and adds oe:dataSensitivityClass and dcat:versionNotes to the extras
+dict. Tags are added without any associated vocabulary at this point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>m</strong> – a <a class="reference internal" href="#ib1.openenergy.support.metadata.Metadata" title="ib1.openenergy.support.metadata.Metadata"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Metadata</span></code></a> object containing information about the data set to store or update</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a dict suitable for CKAN update / create operations on data packages</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ib1.openenergy.support.ckan.ckan_legal_name">
+<span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.ckan.</span></span><span class="sig-name descname"><span class="pre">ckan_legal_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><a class="reference internal" href="_modules/ib1/openenergy/support/ckan.html#ckan_legal_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.ckan.ckan_legal_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>CKAN names must be between 2 and 100 characters long and contain only lowercase alphanumeric characters,
+‘-‘ and ‘_’. This function makes a reasonable best effort to convert an arbitrary input string. Strings
+below 2 characters long will raise a ValueError.</p>
+<p>Longer strings are converted to lower case, stripped of all non-alphanumeric, non underscore or dash, characters,
+then truncated to 100 characters if necessary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>s</strong> – input string</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>valid CKAN name, as close as possible to the original</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.8/library/exceptions.html#ValueError" title="(in Python v3.8)"><strong>ValueError</strong></a> – if the string is too short</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ib1.openenergy.support.ckan.update_or_create_ckan_record">
+<span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.ckan.</span></span><span class="sig-name descname"><span class="pre">update_or_create_ckan_record</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">org</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#ib1.openenergy.support.raidiam.Organisation" title="ib1.openenergy.support.raidiam.Organisation"><span class="pre">ib1.openenergy.support.raidiam.Organisation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_sets</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ib1.openenergy.support.metadata.Metadata" title="ib1.openenergy.support.metadata.Metadata"><span class="pre">ib1.openenergy.support.metadata.Metadata</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ckan_api_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ckan_url</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="_modules/ib1/openenergy/support/ckan.html#update_or_create_ckan_record"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.ckan.update_or_create_ckan_record" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create or update records for a given datasets, each defined by a <a class="reference internal" href="#ib1.openenergy.support.metadata.Metadata" title="ib1.openenergy.support.metadata.Metadata"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Metadata</span></code></a> object, in the context
+of an <a class="reference internal" href="#ib1.openenergy.support.raidiam.Organisation" title="ib1.openenergy.support.raidiam.Organisation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Organisation</span></code></a> from the directory. The organisation will be created if required.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>org</strong> – <a class="reference internal" href="#ib1.openenergy.support.raidiam.Organisation" title="ib1.openenergy.support.raidiam.Organisation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Organisation</span></code></a> to use as owner of this data set</p></li>
+<li><p><strong>data_sets</strong> – list of <a class="reference internal" href="#ib1.openenergy.support.metadata.Metadata" title="ib1.openenergy.support.metadata.Metadata"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Metadata</span></code></a> containing information about the data sets</p></li>
+<li><p><strong>ckan_api_key</strong> – api key to write to CKAN</p></li>
+<li><p><strong>ckan_url</strong> – url of the CKAN instance</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of created or modified record from CKAN as dicts</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>NotAuthorized</strong> – if the supplied access token doesn’t have necessary permissions</p>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-ib1.openenergy.support.directory_tools"></span><p>Command line tools used to monitor the contents of the directory, largely for internal Icebreaker use.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="ib1.openenergy.support.directory_tools.get_directory_client">
+<span class="sig-prename descclassname"><span class="pre">ib1.openenergy.support.directory_tools.</span></span><span class="sig-name descname"><span class="pre">get_directory_client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#ib1.openenergy.support.RaidiamDirectory" title="ib1.openenergy.support.RaidiamDirectory"><span class="pre">ib1.openenergy.support.RaidiamDirectory</span></a><a class="reference internal" href="_modules/ib1/openenergy/support/directory_tools.html#get_directory_client"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ib1.openenergy.support.directory_tools.get_directory_client" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse arguments and get a directory client</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>parser</strong> – Existing parser to use, None by default will create a new one</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A <a class="reference internal" href="#ib1.openenergy.support.RaidiamDirectory" title="ib1.openenergy.support.RaidiamDirectory"><code class="xref any py py-class docutils literal notranslate"><span class="pre">RaidiamDirectory</span></code></a> client</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

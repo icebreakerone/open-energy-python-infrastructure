@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>ib1.openenergy.support &mdash; Open Energy Infrastructure Support 0.2.5 documentation</title>
+  <title>ib1.openenergy.support &mdash; Open Energy Infrastructure Support 0.2.6 documentation</title>
   
 
   
@@ -41,7 +41,7 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.2.5 documentation"
+          title="Search within Open Energy Infrastructure Support 0.2.6 documentation"
           href="../../../_static/opensearch.xml"/>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -71,7 +71,7 @@
             
             
               <div class="version">
-                0.2.5
+                0.2.6
               </div>
             
           
@@ -816,6 +816,19 @@
                 <span class="k">return</span> <span class="p">[</span><span class="n">build</span><span class="p">(</span><span class="n">server</span><span class="p">,</span> <span class="n">raidiam</span><span class="o">.</span><span class="n">AuthorisationServer</span><span class="p">)</span> <span class="k">for</span> <span class="n">server</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()]</span>
         <span class="k">except</span> <span class="n">RetryError</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;RaidiamDirectory.authorization_servers : max retries exceeded&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">admin_users</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">org_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fapi</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s1">organisations/</span><span class="si">{</span><span class="n">quote_plus</span><span class="p">(</span><span class="n">org_id</span><span class="p">)</span><span class="si">}</span><span class="s1">/adminusers&#39;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+                <span class="k">return</span> <span class="p">[</span><span class="n">build</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">raidiam</span><span class="o">.</span><span class="n">AdminUser</span><span class="p">)</span> <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()]</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">except</span> <span class="n">RetryError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;RaidiamDirectory.admin_users : max retries exceeded&#39;</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">[]</span></div>
 </pre></div>
 

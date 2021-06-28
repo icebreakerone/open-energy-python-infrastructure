@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>ib1.openenergy.support.raidiam &mdash; Open Energy Infrastructure Support 0.2.1 documentation</title>
+  <title>ib1.openenergy.support.raidiam &mdash; Open Energy Infrastructure Support 0.2.6 documentation</title>
   
 
   
@@ -41,7 +41,7 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.2.1 documentation"
+          title="Search within Open Energy Infrastructure Support 0.2.6 documentation"
           href="../../../../_static/opensearch.xml"/>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" /> 
@@ -71,7 +71,7 @@
             
             
               <div class="version">
-                0.2.1
+                0.2.6
               </div>
             
           
@@ -101,6 +101,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../service_provider.html">Accessing OE Shared Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../data_provider.html">Providing OE Shared Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../metadata.html">Metadata File Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ec2.html">Deploying a Data Provider to EC2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../gunicorn.html">Running a Data Provider with gunicorn</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../ssl_dev.html">Local Data Provider Development Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Python API : ib1.openenergy.support</a></li>
 </ul>
@@ -197,6 +199,12 @@
     <span class="n">parent_organisation_reference</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span></div>
 
 
+<div class="viewcode-block" id="AdminUser"><a class="viewcode-back" href="../../../../api.html#ib1.openenergy.support.raidiam.AdminUser">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">AdminUser</span><span class="p">:</span>
+    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">user_email</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
 <div class="viewcode-block" id="OrganisationAuthorityDomainClaim"><a class="viewcode-back" href="../../../../api.html#ib1.openenergy.support.raidiam.OrganisationAuthorityDomainClaim">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">OrganisationAuthorityDomainClaim</span><span class="p">:</span>
     <span class="n">organisation_authority_domain_claim_id</span><span class="p">:</span> <span class="nb">str</span>
@@ -271,7 +279,7 @@
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on Jun 17, 2021.
+        Last updated on Jun 28, 2021.
       </span>
 
 </p>
