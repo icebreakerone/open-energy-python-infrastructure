@@ -25,6 +25,12 @@ class Organisation:
 
 
 @dataclass(frozen=True)
+class AdminUser:
+    status: str
+    user_email: str
+
+
+@dataclass(frozen=True)
 class OrganisationAuthorityDomainClaim:
     organisation_authority_domain_claim_id: str
     authorisation_domain_name: str

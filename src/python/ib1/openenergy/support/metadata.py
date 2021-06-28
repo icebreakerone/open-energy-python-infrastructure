@@ -67,7 +67,12 @@ class Metadata:
         """
         content / dcat:keywords
         """
-        return self.content.get(DCAT, 'keyword', default=[])
+
+        keywords = self.content.get(DCAT, 'keyword', default=[])
+        if not isinstance(keywords, list):
+            # If there's a single keyword, wrap it up in a list
+            keywords = [keywords]
+        return keywords
 
     @property
     def title(self) -> str:
@@ -183,7 +188,6 @@ def load_metadata(url: str = None, file: str = None, session=None, **kwargs) -> 
         # Use supplied session, or build a new one
         if session is None:
             session = requests.session()
-
 
         try:
             # Fetch data from the specified URL
