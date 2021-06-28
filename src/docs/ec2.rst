@@ -1,7 +1,7 @@
 Deploying a Data Provider to EC2
 ================================
 
-This guide will show you how to create and deploy a production-grade `Data Provider` to a fresh Amazon
+This guide will show you how to create and deploy a production-grade :term:`data provider` to a fresh Amazon
 `EC2 <https://aws.amazon.com/ec2>`_ instance. By the end of the guide you will have a publicly visible server able to
 publish shared data, secured by the |FAPI| specification as required by Open Energy.
 
@@ -37,6 +37,19 @@ default Python 2 or 3.
     > cd Python-3.9.4
     > sudo ./configure --enable-optimizations
     > sudo make altinstall
+
+All Python code, including the ``gunicorn`` WSGI container, will run from a virtual environment created in the
+``ec2-user`` home directory. Create the environment, activate it, install the necessary libraries, and fetch missing
+root certificates used by the directory - these are necessary for nginx to correctly validate the presented client
+certificates:
+
+.. code-block:: bash
+
+    > cd ~
+    > python3.9 -m venv venv --upgrade-deps
+    > source ./venv/bin/activate
+    > pip install ib1.openenergy.support
+    > oe_install_cacerts
 
 Installing Nginx
 ----------------
@@ -128,8 +141,8 @@ This configuration does a few things.
    but you may want to configure this differently if you also want to serve content to web browsers rather than API
    clients. See the `Nginx docs <http://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_verify_client>`_ for more
    information
-3. In order to provide your application with access to the client certificates presented by `Data Consumer` clients, it
-   pushes any such client certificate into a header ``X-OE-CLIENT-CERT``
+3. In order to provide your application with access to the client certificates presented by :term:`data consumer`
+   clients, it pushes any such client certificate into a header ``X-OE-CLIENT-CERT``
 4. It attempts to serve static content from ``/home/ec2-user/public``, and falls back to your data provider application
    if the specified content does not exist, accessing the application through a UNIX socket
 
@@ -231,17 +244,8 @@ you will need to make the corresponding changes there.
 Installing gunicorn and your Data Provider
 ------------------------------------------
 
-All Python code, including the ``gunicorn`` WSGI container, will run from a virtual environment created in the
-``ec2-user`` home directory. Create the environment, activate it, install the necessary libraries, and fetch missing
-root certificates used by the directory:
-
-.. code-block:: bash
-
-    > cd ~
-    > python3.9 -m venv venv --upgrade-deps
-    > source ./venv/bin/activate
-    > pip install ib1.openenergy.support
-    > oe_install_cacerts
+The data provider code uses the virtual environment defined previously. The only remaining tasks are to create the
+necessary configuration for gunicorn and to provide the actual data provider implementation as a Flask app.
 
 gunicorn configuration
 ######################
