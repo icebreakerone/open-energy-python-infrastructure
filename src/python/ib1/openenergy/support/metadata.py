@@ -1,15 +1,15 @@
 import json
 import logging
+from dataclasses import dataclass, field
 from json import JSONDecodeError
-from typing import List, Dict, Tuple
+from typing import List, Dict
+
 import requests
 import yaml
 from pyld import jsonld
-from requests import HTTPError
 from yaml.parser import ParserError
-from dataclasses import dataclass, field
 
-from yaml.scanner import ScannerError
+from ib1.openenergy.support.raidiam import AuthorisationServer
 
 LOG = logging.getLogger('ib1.openenergy.support.metadata')
 
@@ -67,7 +67,12 @@ class Metadata:
         """
         content / dcat:keywords
         """
-        return self.content.get(DCAT, 'keyword', default=[])
+
+        keywords = self.content.get(DCAT, 'keyword', default=[])
+        if not isinstance(keywords, list):
+            # If there's a single keyword, wrap it up in a list
+            keywords = [keywords]
+        return keywords
 
     @property
     def title(self) -> str:
@@ -156,12 +161,16 @@ class MetadataLoadResult:
     error: str = None
     exception: Exception = None
     metadata: List[Metadata] = field(default_factory=list)
+    server: AuthorisationServer = None
 
 
-def load_metadata(url: str = None, file: str = None, session=None, **kwargs) -> MetadataLoadResult:
+def load_metadata(server: AuthorisationServer = None, url: str = None, file: str = None, session=None,
+                  **kwargs) -> MetadataLoadResult:
     """
     Load metadata from a URL.
 
+    :param server:
+        `AuthorisationServer` from which this url was retrieved, or None if fetching directly
     :param url:
         url from which to load metadata
     :param file:
@@ -177,13 +186,13 @@ def load_metadata(url: str = None, file: str = None, session=None, **kwargs) -> 
 
     if file is not None and url is not None:
         return MetadataLoadResult(location=f'file:{file} and {url}',
-                                  error='must provide exactly one of "file" or "url"')
+                                  error='must provide exactly one of "file" or "url"',
+                                  server=server)
     if url is not None:
         LOG.debug(f'loading metadata from url = {url}')
         # Use supplied session, or build a new one
         if session is None:
             session = requests.session()
-
 
         try:
             # Fetch data from the specified URL
@@ -191,7 +200,8 @@ def load_metadata(url: str = None, file: str = None, session=None, **kwargs) -> 
             # If any errors occurred, raise the corresponding HTTPError
             response.raise_for_status()
         except Exception as he:
-            return MetadataLoadResult(location=url, error='unable to retrieve metadata file', exception=he)
+            return MetadataLoadResult(location=url, error='unable to retrieve metadata file', exception=he,
+                                      server=server)
         try:
             result = response.json()
         except ValueError:
@@ -205,7 +215,7 @@ def load_metadata(url: str = None, file: str = None, session=None, **kwargs) -> 
                 # Not YAML either, or not a dialect we can handle
                 return MetadataLoadResult(location=url,
                                           error='unable to parse metadata file as either JSON or YAML',
-                                          exception=pe)
+                                          exception=pe, server=server)
     elif file is not None:
         LOG.debug(f'loading metadata from file = {file}')
         # Read from file on disk
@@ -224,22 +234,24 @@ def load_metadata(url: str = None, file: str = None, session=None, **kwargs) -> 
                         # Not YAML either, or not a dialect we can handle
                         return MetadataLoadResult(location=f'file:{file}',
                                                   error='unable to parse metadata file as either JSON or YAML',
-                                                  exception=pe)
+                                                  exception=pe, server=server)
         except IOError as ioe:
             return MetadataLoadResult(location=f'file:{file}',
                                       error='unable to load metadata file from disk',
-                                      exception=ioe)
+                                      exception=ioe, server=server)
     else:
-        return MetadataLoadResult(location='NONE', error='must specify either file or url')
+        return MetadataLoadResult(location='NONE', error='must specify either file or url', server=server)
 
     location = f'{file}' if file else url
 
     if isinstance(result, list):
         LOG.debug(f'fetched and parsed location={location}, contains {len(result)} items')
         try:
-            return MetadataLoadResult(location=location, metadata=[Metadata(item) for item in result])
+            return MetadataLoadResult(location=location, metadata=[Metadata(item) for item in result], server=server)
         except ValueError as ve:
-            return MetadataLoadResult(location=location, error='invalid metadata description', exception=ve)
+            return MetadataLoadResult(location=location, error='invalid metadata description', exception=ve,
+                                      server=server)
 
     # No list item, this is a failure
-    return MetadataLoadResult(location=location, error='metadata does not contain a list as top level item')
+    return MetadataLoadResult(location=location, error='metadata does not contain a list as top level item',
+                              server=server)

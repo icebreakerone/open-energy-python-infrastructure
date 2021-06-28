@@ -644,3 +644,16 @@ class RaidiamDirectory:
         except RetryError:
             logging.error('RaidiamDirectory.authorization_servers : max retries exceeded')
             return []
+
+    def admin_users(self, org_id: str):
+        try:
+            response = self.fapi.session.get(f'{self.base_url}organisations/{quote_plus(org_id)}/adminusers')
+            try:
+                response.raise_for_status()
+                return [build(user, raidiam.AdminUser) for user in response.json()]
+            except Exception as e:
+                logging.error(e)
+                return []
+        except RetryError:
+            logging.error('RaidiamDirectory.admin_users : max retries exceeded')
+            return []
