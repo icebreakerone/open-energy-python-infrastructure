@@ -85,7 +85,7 @@ def ckan_dict_from_metadata(m: Metadata) -> dict:
 def update_or_create_ckan_record(org: Organisation,
                                  data_sets: List[Metadata],
                                  ckan_api_key: str,
-                                 ckan_url: str) -> Generator[Union[Dict, str], None, None]:
+                                 ckan_url: str) -> List[Dict]:
     """
     Create or update records for a given datasets, each defined by a `Metadata` object, in the context
     of an `Organisation` from the directory. The organisation will be created if required.
@@ -99,39 +99,43 @@ def update_or_create_ckan_record(org: Organisation,
     :param ckan_url:
         url of the CKAN instance
     :return:
-        generator over created or modified record from CKAN as dicts
+        list of created or modified record from CKAN as dicts
     :raises NotAuthorized:
         if the supplied access token doesn't have necessary permissions
     """
     ckan = RemoteCKAN(address=ckan_url, apikey=ckan_api_key)
-    # Create the organisation in CKAN if it isn't already present
-    try:
-        ckan.action.organization_show(id=org.organisation_id)
-        LOG.info(f'organisation id={org.organisation_id} already exists in CKAN')
-    except NotFound:
-        LOG.info(f'creating new organisation in CKAN, id={org.organisation_id}, title={org.organisation_name}')
-        ckan.action.organization_create(name=org.organisation_id, title=org.organisation_name)
 
-    # Iterate over data sets
-    for data_set in data_sets:
-
-        # Compute the ID for the dataset
-        dataset_id = ckan_dataset_name(org=org, data_set=data_set)
-
-        # Check whether the data package already exists in CKAN
+    def inner():
+        # Create the organisation in CKAN if it isn't already present
         try:
-            ckan.action.package_show(id=dataset_id)
-            LOG.info(f'data package id={dataset_id} already exists in CKAN, updating')
-            # Found existing package, use package update
-            yield ckan.action.package_update(name=dataset_id,
-                                             **ckan_dict_from_metadata(data_set),
-                                             owner_org=org.organisation_id,
-                                             return_package_dict=True)
+            ckan.action.organization_show(id=org.organisation_id)
+            LOG.info(f'organisation id={org.organisation_id} already exists in CKAN')
         except NotFound:
-            # Not found in CKAN, use package_create to build a new one
-            LOG.info(f'creating data package id={dataset_id} in CKAN')
-            yield ckan.action.package_create(
-                name=dataset_id,
-                **ckan_dict_from_metadata(data_set),
-                owner_org=org.organisation_id,
-                return_package_dict=True)
+            LOG.info(f'creating new organisation in CKAN, id={org.organisation_id}, title={org.organisation_name}')
+            ckan.action.organization_create(name=org.organisation_id, title=org.organisation_name)
+
+        # Iterate over data sets
+        for data_set in data_sets:
+
+            # Compute the ID for the dataset
+            dataset_id = ckan_dataset_name(org=org, data_set=data_set)
+
+            # Check whether the data package already exists in CKAN
+            try:
+                ckan.action.package_show(id=dataset_id)
+                LOG.info(f'data package id={dataset_id} already exists in CKAN, updating')
+                # Found existing package, use package update
+                yield ckan.action.package_update(name=dataset_id,
+                                                 **ckan_dict_from_metadata(data_set),
+                                                 owner_org=org.organisation_id,
+                                                 return_package_dict=True)
+            except NotFound:
+                # Not found in CKAN, use package_create to build a new one
+                LOG.info(f'creating data package id={dataset_id} in CKAN')
+                yield ckan.action.package_create(
+                    name=dataset_id,
+                    **ckan_dict_from_metadata(data_set),
+                    owner_org=org.organisation_id,
+                    return_package_dict=True)
+
+    return list(inner())

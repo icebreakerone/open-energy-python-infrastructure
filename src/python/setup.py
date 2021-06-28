@@ -17,6 +17,7 @@ setup(
     install_requires=['requests', 'flask', 'cachetools', 'cryptography', 'pyyaml', 'PyLD', 'pyjwt', 'pem', 'gunicorn',
                       'ckanapi'],
     entry_points={
-        'console_scripts': ['oe_install_cacerts=ib1.openenergy.support.cacert:main']
+        'console_scripts': ['oe_install_cacerts=ib1.openenergy.support.cacert:main',
+                            'oe_harvest=ib1.openenergy.support.metadata_harvester:harvest']
     }
 )
