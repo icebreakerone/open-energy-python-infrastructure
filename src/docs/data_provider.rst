@@ -25,7 +25,7 @@ Example data provider
 The example below shows the simplest possible secure application. It configures an instance of
 `AccessTokenValidator` with:
 
-* ``introspection_url`` : The URL of the token introspection endpoint on the authorization server
+* ``issuer_url`` : The URL of the authorization server
 * ``client_id`` : OAuth2 client ID used when making requests to the introspection endpoint
 * ``private_key`` : Location on disk of the private key used when making requests to the introspection endpoint
 * ``certificate`` : Location on disk of the certificate used when making requests to the introspection endpoint
