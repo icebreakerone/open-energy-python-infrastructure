@@ -24,7 +24,7 @@ please ask us!) you can configure the `FAPISession` with:
 * ``private_key`` : The file path of the private key
 * ``certificate`` : The file path of the certificate
 * ``client_id`` : The OAuth client ID
-* ``token_url`` : The URL of the token endpoint of the authorization server
+* ``issuer_url`` : The URL of the authorization server
 * ``requested_scopes`` : The OAuth2 scopes to request for any tokens. This should be a string, if multiple scopes are
   required they should be separated by spaces within this string
 

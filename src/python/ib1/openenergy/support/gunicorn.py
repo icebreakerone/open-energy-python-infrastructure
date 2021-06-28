@@ -51,7 +51,10 @@ class CustomSyncWorker(SyncWorker):
 
 class ClientAuthApplication(gunicorn.app.base.BaseApplication):
     """
-    GUnicorn application using the custom SSL worker. Uses certifi for its CA store.
+    GUnicorn application using the custom SSL worker. Uses certifi for its CA store. This is a helper class, mostly
+    useful when you need to run a data provider as part of a unit test, all it really does is remove the need for a
+    gunicorn.conf.py configuration file. See `this blog <https://eugene.kovalev.systems/blog/flask_client_auth>`_ for
+    more details on how to run a data provider within a test context using this class.
     """
 
     def __init__(self, app, cert_path, key_path, hostname='localhost', port='443', num_workers=4, timeout=30):

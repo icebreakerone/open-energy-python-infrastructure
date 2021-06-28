@@ -14,6 +14,7 @@ import flask
 import jwt
 import requests
 from cachetools import cached, TTLCache
+from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from requests.adapters import HTTPAdapter
@@ -272,6 +273,33 @@ def build_error_response(error=None, code=400, scope=None, description=None, uri
          'Cache-Control': 'no-store',
          'Pragma': 'no-cache'})
     return res
+
+
+def nginx_cert_parser():
+    """
+    A certificate parser to be used with the `AccessTokenValidator` when running behind nginx or another
+    similar proxy which terminates SSL connections and can be configured to push the presented client
+    certificate into a header. In this case we use the header ``X-OE-CLIENT-CERT``, this function removes
+    any errant tab characters (introduced by nginx for some reason) and parses the contents of this header
+    as a PEM format certificate.
+
+    :return:
+        A parsed x509 Certificate object, or None if no cert presented in the header
+    """
+    log = logging.getLogger('ib1.oe.support.nginx_cert_parser')
+    try:
+        cert_str = flask.request.headers['X-OE-CLIENT-CERT'].replace('\t', '')
+        log.info(f'found cert in header \n{cert_str}')
+        return x509.load_pem_x509_certificate(cert_str.encode('ASCII'), default_backend())
+    except KeyError:
+        log.info(f'no header X-OE-CLIENT-CERT in request')
+        return None
+    except ValueError as ve:
+        log.info(f'unable to parse certificate : {str(ve)}')
+        return None
+    except Exception as fallback:
+        log.info(f'unanticipated exception while parsing certificate from header : {str(fallback)}')
+        return None
 
 
 class AccessTokenValidator:
