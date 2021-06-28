@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Deploying a Data Provider to EC2 &mdash; Open Energy Infrastructure Support 0.2.4 documentation</title>
+  <title>Deploying a Data Provider to EC2 &mdash; Open Energy Infrastructure Support 0.2.5 documentation</title>
   
 
   
@@ -41,7 +41,7 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.2.4 documentation"
+          title="Search within Open Energy Infrastructure Support 0.2.5 documentation"
           href="_static/opensearch.xml"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -73,7 +73,7 @@
             
             
               <div class="version">
-                0.2.4
+                0.2.5
               </div>
             
           
@@ -232,6 +232,17 @@ default Python 2 or 3.</p>
 &gt; <span class="nb">cd</span> Python-3.9.4
 &gt; sudo ./configure --enable-optimizations
 &gt; sudo make altinstall
+</pre></div>
+</div>
+<p>All Python code, including the <code class="docutils literal notranslate"><span class="pre">gunicorn</span></code> WSGI container, will run from a virtual environment created in the
+<code class="docutils literal notranslate"><span class="pre">ec2-user</span></code> home directory. Create the environment, activate it, install the necessary libraries, and fetch missing
+root certificates used by the directory - these are necessary for nginx to correctly validate the presented client
+certificates:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; <span class="nb">cd</span> ~
+&gt; python3.9 -m venv venv --upgrade-deps
+&gt; <span class="nb">source</span> ./venv/bin/activate
+&gt; pip install ib1.openenergy.support
+&gt; oe_install_cacerts
 </pre></div>
 </div>
 </div>
@@ -473,16 +484,8 @@ you will need to make the corresponding changes there.</p>
 </div>
 <div class="section" id="installing-gunicorn-and-your-data-provider">
 <h2>Installing gunicorn and your Data Provider<a class="headerlink" href="#installing-gunicorn-and-your-data-provider" title="Permalink to this headline">¶</a></h2>
-<p>All Python code, including the <code class="docutils literal notranslate"><span class="pre">gunicorn</span></code> WSGI container, will run from a virtual environment created in the
-<code class="docutils literal notranslate"><span class="pre">ec2-user</span></code> home directory. Create the environment, activate it, install the necessary libraries, and fetch missing
-root certificates used by the directory:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; <span class="nb">cd</span> ~
-&gt; python3.9 -m venv venv --upgrade-deps
-&gt; <span class="nb">source</span> ./venv/bin/activate
-&gt; pip install ib1.openenergy.support
-&gt; oe_install_cacerts
-</pre></div>
-</div>
+<p>The data provider code uses the virtual environment defined previously. The only remaining tasks are to create the
+necessary configuration for gunicorn and to provide the actual data provider implementation as a Flask app.</p>
 <div class="section" id="gunicorn-configuration">
 <h3>gunicorn configuration<a class="headerlink" href="#gunicorn-configuration" title="Permalink to this headline">¶</a></h3>
 <p>Create a file <code class="docutils literal notranslate"><span class="pre">/home/ec2-user/gunicorn.conf.py</span></code>:</p>
@@ -565,24 +568,12 @@ above. To enable and start the socket run the following command:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
 
 <span class="kn">import</span> <span class="nn">flask</span>
-<span class="kn">from</span> <span class="nn">cryptography</span> <span class="kn">import</span> <span class="n">x509</span>
-<span class="kn">from</span> <span class="nn">cryptography.hazmat.backends</span> <span class="kn">import</span> <span class="n">default_backend</span>
 
-<span class="kn">from</span> <span class="nn">ib1.openenergy.support</span> <span class="kn">import</span> <span class="n">AccessTokenValidator</span>
+<span class="kn">from</span> <span class="nn">ib1.openenergy.support</span> <span class="kn">import</span> <span class="n">AccessTokenValidator</span><span class="p">,</span> <span class="n">nginx_cert_parser</span>
 
 <span class="n">LOG</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;example.energydata.org.uk&#39;</span><span class="p">)</span>
 
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">nginx_cert_parser</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Pull certificate out of X-OE-CLIENT-CERT header from nginx</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">cert_str</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;X-OE-CLIENT-CERT&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-    <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;found cert in header </span><span class="se">\n</span><span class="si">{</span><span class="n">cert_str</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">x509</span><span class="o">.</span><span class="n">load_pem_x509_certificate</span><span class="p">(</span><span class="n">cert_str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ASCII&#39;</span><span class="p">),</span> <span class="n">default_backend</span><span class="p">())</span>
-
 
 <span class="n">validator</span> <span class="o">=</span> <span class="n">AccessTokenValidator</span><span class="p">(</span><span class="n">client_id</span><span class="o">=</span><span class="s1">&#39;olQh4BLV0mQUaM3OZbpXy&#39;</span><span class="p">,</span>
                                  <span class="n">certificate</span><span class="o">=</span><span class="s1">&#39;/home/ec2-user/certs/a.pem&#39;</span><span class="p">,</span>
@@ -671,7 +662,7 @@ its associated monitoring capabilities is outside of the scope of this guide how
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on Jun 24, 2021.
+        Last updated on Jun 28, 2021.
       </span>
 
 </p>

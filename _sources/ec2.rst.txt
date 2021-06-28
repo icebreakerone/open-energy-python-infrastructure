@@ -38,6 +38,19 @@ default Python 2 or 3.
     > sudo ./configure --enable-optimizations
     > sudo make altinstall
 
+All Python code, including the ``gunicorn`` WSGI container, will run from a virtual environment created in the
+``ec2-user`` home directory. Create the environment, activate it, install the necessary libraries, and fetch missing
+root certificates used by the directory - these are necessary for nginx to correctly validate the presented client
+certificates:
+
+.. code-block:: bash
+
+    > cd ~
+    > python3.9 -m venv venv --upgrade-deps
+    > source ./venv/bin/activate
+    > pip install ib1.openenergy.support
+    > oe_install_cacerts
+
 Installing Nginx
 ----------------
 
@@ -231,17 +244,8 @@ you will need to make the corresponding changes there.
 Installing gunicorn and your Data Provider
 ------------------------------------------
 
-All Python code, including the ``gunicorn`` WSGI container, will run from a virtual environment created in the
-``ec2-user`` home directory. Create the environment, activate it, install the necessary libraries, and fetch missing
-root certificates used by the directory:
-
-.. code-block:: bash
-
-    > cd ~
-    > python3.9 -m venv venv --upgrade-deps
-    > source ./venv/bin/activate
-    > pip install ib1.openenergy.support
-    > oe_install_cacerts
+The data provider code uses the virtual environment defined previously. The only remaining tasks are to create the
+necessary configuration for gunicorn and to provide the actual data provider implementation as a Flask app.
 
 gunicorn configuration
 ######################
