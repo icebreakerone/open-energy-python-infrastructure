@@ -14,6 +14,38 @@ from ib1.openenergy.support.raidiam import Organisation, AuthorisationServer
 LOG = logging.getLogger('ib1.openenergy.support.metadata_harvester')
 
 
+def configure_logging(options):
+    def level():
+        lv = options.log_level
+        if lv == 'DEBUG':
+            return logging.DEBUG
+        if lv == 'INFO':
+            return logging.INFO
+        if lv == 'WARNING':
+            return logging.WARNING
+        return logging.ERROR
+
+    logging.basicConfig(level=level())
+
+
+def check_metadata():
+    """
+    Command line tool to fetch a metadata file, attempt to parse it, and print the MetadataLoadResult to stdout
+
+    Run with ``oe_check_metadata --url=URL [-l=[DEBUG|INFO|WARN|ERROR]]``
+    """
+    parser = ArgumentParser()
+    parser.description = 'Fetch a metadata file and attempt to parse it, printing the results. Use this to check ' \
+                         'individual metadata file locations for compatibility with the harvester.'
+    parser.add_argument('-l', '--log_level', type=str, help='log level, defaults to ERROR', default='ERROR',
+                        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'])
+    parser.add_argument('-u', '--url', type=str, help='url for metadata file', required=True)
+    options = parser.parse_args()
+    configure_logging(options)
+    result = load_metadata(url=options.url)
+    print(result)
+
+
 def harvest():
     """
     Run the harvester, producing a CSV format file to stdout capturing the results.
@@ -37,18 +69,7 @@ def harvest():
     ckan_url = options.ckan_url
     ckan_api_key = options.ckan_api_key
 
-    # Configure logging
-    def level():
-        l = options.log_level
-        if l == 'DEBUG':
-            return logging.DEBUG
-        if l == 'INFO':
-            return logging.INFO
-        if l == 'WARNING':
-            return logging.WARNING
-        return logging.ERROR
-
-    logging.basicConfig(level=level())
+    configure_logging(options)
 
     # Access directory, get metadata URLs, fetch and parse metadata
     org_to_reports = gather_metadata_files(directory=directory)
