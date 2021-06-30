@@ -77,16 +77,16 @@ class ApiResource:
 class AuthorisationServer:
     authorisation_server_id: str
     organisation_id: str
-    auto_registration_supported: bool
+    auto_registration_supported: bool = False
 
-    customer_friendly_description: str
-    customer_friendly_logo_uri: str
-    customer_friendly_name: str
-    developer_portal_uri: str
-    terms_of_service_uri: str
+    customer_friendly_description: str = ''
+    customer_friendly_logo_uri: str = ''
+    customer_friendly_name: str = ''
+    developer_portal_uri: str = ''
+    terms_of_service_uri: str = ''
 
-    open_i_d_discovery_document: str
-    payload_signing_cert_location_uri: str
+    open_i_d_discovery_document: str = ''
+    payload_signing_cert_location_uri: str = ''
     parent_authorisation_server_id: str = ''
     api_resources: List[ApiResource] = None
     notification_webhook: str = ''
