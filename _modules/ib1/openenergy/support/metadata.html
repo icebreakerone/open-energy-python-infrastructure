@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>ib1.openenergy.support.metadata &mdash; Open Energy Infrastructure Support 0.2.6 documentation</title>
+  <title>ib1.openenergy.support.metadata &mdash; Open Energy Infrastructure Support 0.2.7 documentation</title>
   
 
   
@@ -41,7 +41,7 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.2.6 documentation"
+          title="Search within Open Energy Infrastructure Support 0.2.7 documentation"
           href="../../../../_static/opensearch.xml"/>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" /> 
@@ -71,7 +71,7 @@
             
             
               <div class="version">
-                0.2.6
+                0.2.7
               </div>
             
           
@@ -175,6 +175,7 @@
   <h1>Source code for ib1.openenergy.support.metadata</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">JSONDecodeError</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
@@ -182,7 +183,9 @@
 <span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">import</span> <span class="nn">yaml</span>
 <span class="kn">from</span> <span class="nn">pyld</span> <span class="kn">import</span> <span class="n">jsonld</span>
+<span class="kn">from</span> <span class="nn">yaml</span> <span class="kn">import</span> <span class="n">YAMLError</span>
 <span class="kn">from</span> <span class="nn">yaml.parser</span> <span class="kn">import</span> <span class="n">ParserError</span>
+<span class="kn">from</span> <span class="nn">yaml.scanner</span> <span class="kn">import</span> <span class="n">ScannerError</span>
 
 <span class="kn">from</span> <span class="nn">ib1.openenergy.support.raidiam</span> <span class="kn">import</span> <span class="n">AuthorisationServer</span>
 
@@ -208,7 +211,7 @@
 <span class="sd">    Currently models the content part of the metadata file as a `JSONLDContainer`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Metadata.__init__"><a class="viewcode-back" href="../../../../api.html#ib1.openenergy.support.metadata.Metadata.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Metadata.__init__"><a class="viewcode-back" href="../../../../api.html#ib1.openenergy.support.metadata.Metadata.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a new metadata container. Currently just parses the ``content`` section</span>
 <span class="sd">        of the metadata file.</span>
@@ -221,7 +224,11 @@
         <span class="k">if</span> <span class="s1">&#39;content&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;no content item defined&#39;</span><span class="p">)</span>
         <span class="c1"># Attempt to parse the JSON-LD content</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">JSONLDContainer</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">])</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">JSONLDContainer</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">])</span>
+        <span class="c1"># Complain if we don&#39;t have the necessary mandatory values present in the content section</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">require_values</span><span class="p">({</span><span class="n">DCAT</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;version&#39;</span><span class="p">,</span> <span class="s1">&#39;versionNotes&#39;</span><span class="p">],</span>
+                                     <span class="n">DC</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">],</span>
+                                     <span class="n">OE</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;sensitivityClass&#39;</span><span class="p">,</span> <span class="s1">&#39;dataSetStableIdentifier&#39;</span><span class="p">]})</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">stable_identifier</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -242,7 +249,6 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        content / dcat:keywords</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">keywords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DCAT</span><span class="p">,</span> <span class="s1">&#39;keyword&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[])</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">keywords</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="c1"># If there&#39;s a single keyword, wrap it up in a list</span>
@@ -292,6 +298,25 @@
         <span class="c1"># Expand out any namespace prefixes defined in the context</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ld</span> <span class="o">=</span> <span class="n">jsonld</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">d</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
 
+<div class="viewcode-block" id="JSONLDContainer.require_values"><a class="viewcode-back" href="../../../../api.html#ib1.openenergy.support.metadata.JSONLDContainer.require_values">[docs]</a>    <span class="k">def</span> <span class="nf">require_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Require that this container has the specified values, defined as a dict of namespace to list of terms.</span>
+
+<span class="sd">        :param d:</span>
+<span class="sd">            Dict of str namespace to list of str terms that must be present</span>
+<span class="sd">        :raises:</span>
+<span class="sd">            ValueError if any specified values are not present in this container</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">missing_values</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">ns</span><span class="p">,</span> <span class="n">terms</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">fterm</span> <span class="o">:=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">ns</span><span class="si">}{</span><span class="n">term</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ld</span><span class="p">:</span>
+                        <span class="k">yield</span> <span class="n">fterm</span>
+
+        <span class="k">if</span> <span class="n">missing</span> <span class="o">:=</span> <span class="nb">list</span><span class="p">(</span><span class="n">missing_values</span><span class="p">()):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;container is missing required values </span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="JSONLDContainer.get"><a class="viewcode-back" href="../../../../api.html#ib1.openenergy.support.metadata.JSONLDContainer.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">namespace</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">term</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get a property, handles looking for the @value entries</span>
@@ -336,10 +361,44 @@
     <span class="n">error</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">exception</span><span class="p">:</span> <span class="ne">Exception</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">metadata</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Metadata</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-    <span class="n">server</span><span class="p">:</span> <span class="n">AuthorisationServer</span> <span class="o">=</span> <span class="kc">None</span></div>
+    <span class="n">server</span><span class="p">:</span> <span class="n">AuthorisationServer</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pformat</span>
+        <span class="k">return</span> <span class="n">pformat</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="load_yaml_from_bytes"><a class="viewcode-back" href="../../../../api.html#ib1.openenergy.support.metadata.load_yaml_from_bytes">[docs]</a><span class="k">def</span> <span class="nf">load_yaml_from_bytes</span><span class="p">(</span><span class="n">b</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">convert_tabs_to_spaces</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Attempt to load YAML from a set of bytes.</span>
+
+<span class="sd">    :param b:</span>
+<span class="sd">        bytes to load</span>
+<span class="sd">    :param convert_tabs_to_spaces:</span>
+<span class="sd">        if True (default), an initial failure to load YAML will be retried after converting all</span>
+<span class="sd">        tab characters in the input to double spaces. This is done after converting the bytes to</span>
+<span class="sd">        a string with UTF8 encoding, and after the tabs are stripped the string is encoded back</span>
+<span class="sd">        to UTF8 bytes before passing back to the yaml loader</span>
+<span class="sd">    :return:</span>
+<span class="sd">        yaml parsed as a dict</span>
+<span class="sd">    :raises:</span>
+<span class="sd">        YAMLError if unable to parse the input bytes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="k">except</span> <span class="n">YAMLError</span> <span class="k">as</span> <span class="n">ye</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">convert_tabs_to_spaces</span><span class="p">:</span>
+            <span class="n">new_bytes</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;UTF8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;UTF8&#39;</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">new_bytes</span><span class="p">)</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;YAML file parse passed after removing tabs, technically not valid but continuing...&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">result</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ye</span></div>
 
 
 <div class="viewcode-block" id="load_metadata"><a class="viewcode-back" href="../../../../api.html#ib1.openenergy.support.metadata.load_metadata">[docs]</a><span class="k">def</span> <span class="nf">load_metadata</span><span class="p">(</span><span class="n">server</span><span class="p">:</span> <span class="n">AuthorisationServer</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">convert_tabs_to_spaces</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetadataLoadResult</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Load metadata from a URL.</span>
@@ -352,6 +411,11 @@
 <span class="sd">        file path from which to load metadata, use either this or url, not both</span>
 <span class="sd">    :param session:</span>
 <span class="sd">        if specified, use this `requests.Session`, if not, create a new one</span>
+<span class="sd">    :param convert_tabs_to_spaces:</span>
+<span class="sd">        normally YAML is invalid if it uses tab characters as indentation. If this argument is set to true, a second</span>
+<span class="sd">        attempt will be made to parse the file if a scanner error occurs, first doing a global search and replace to</span>
+<span class="sd">        change all tab characters to double spaces. Defaults to False, as this isn&#39;t really &#39;allowed&#39; according to the</span>
+<span class="sd">        spec.</span>
 <span class="sd">    :param kwargs:</span>
 <span class="sd">        any additional arguments to pass into the get request</span>
 <span class="sd">    :return:</span>
@@ -383,14 +447,14 @@
             <span class="c1"># Not a problem, try YAML</span>
             <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;url=</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s1"> not valid JSON, trying YAML&#39;</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">result</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">load_yaml_from_bytes</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
                 <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;url=</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s1"> parsed as YAML&#39;</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">pe</span><span class="p">:</span>
+            <span class="k">except</span> <span class="n">YAMLError</span> <span class="k">as</span> <span class="n">ye</span><span class="p">:</span>
                 <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;unable to parse metadata file from url=</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s1"> as either JSON or YAML&#39;</span><span class="p">)</span>
                 <span class="c1"># Not YAML either, or not a dialect we can handle</span>
                 <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">url</span><span class="p">,</span>
                                           <span class="n">error</span><span class="o">=</span><span class="s1">&#39;unable to parse metadata file as either JSON or YAML&#39;</span><span class="p">,</span>
-                                          <span class="n">exception</span><span class="o">=</span><span class="n">pe</span><span class="p">,</span> <span class="n">server</span><span class="o">=</span><span class="n">server</span><span class="p">)</span>
+                                          <span class="n">exception</span><span class="o">=</span><span class="n">ye</span><span class="p">,</span> <span class="n">server</span><span class="o">=</span><span class="n">server</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;loading metadata from file = </span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="c1"># Read from file on disk</span>
@@ -402,14 +466,14 @@
                 <span class="k">except</span> <span class="n">JSONDecodeError</span><span class="p">:</span>
                     <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;file=</span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s1"> not valid JSON, trying YAML&#39;</span><span class="p">)</span>
                     <span class="k">try</span><span class="p">:</span>
-                        <span class="n">result</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                        <span class="n">result</span> <span class="o">=</span> <span class="n">load_yaml_from_bytes</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
                         <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;file=</span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s1"> parsed as YAML&#39;</span><span class="p">)</span>
-                    <span class="k">except</span> <span class="n">ParserError</span> <span class="k">as</span> <span class="n">pe</span><span class="p">:</span>
+                    <span class="k">except</span> <span class="n">YAMLError</span> <span class="k">as</span> <span class="n">ye</span><span class="p">:</span>
                         <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;unable to parse metadata file from file=</span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s1"> as either JSON or YAML&#39;</span><span class="p">)</span>
                         <span class="c1"># Not YAML either, or not a dialect we can handle</span>
                         <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;file:</span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
                                                   <span class="n">error</span><span class="o">=</span><span class="s1">&#39;unable to parse metadata file as either JSON or YAML&#39;</span><span class="p">,</span>
-                                                  <span class="n">exception</span><span class="o">=</span><span class="n">pe</span><span class="p">,</span> <span class="n">server</span><span class="o">=</span><span class="n">server</span><span class="p">)</span>
+                                                  <span class="n">exception</span><span class="o">=</span><span class="n">ye</span><span class="p">,</span> <span class="n">server</span><span class="o">=</span><span class="n">server</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ioe</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;file:</span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
                                       <span class="n">error</span><span class="o">=</span><span class="s1">&#39;unable to load metadata file from disk&#39;</span><span class="p">,</span>
@@ -421,8 +485,16 @@
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
         <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;fetched and parsed location=</span><span class="si">{</span><span class="n">location</span><span class="si">}</span><span class="s1">, contains </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="si">}</span><span class="s1"> items&#39;</span><span class="p">)</span>
+
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="p">[</span><span class="n">Metadata</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">result</span><span class="p">],</span> <span class="n">server</span><span class="o">=</span><span class="n">server</span><span class="p">)</span>
+            <span class="k">def</span> <span class="nf">build_metadata</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">yield</span> <span class="n">Metadata</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">ve</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unable to parse metadata item </span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s1"> : </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">ve</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">ve</span>
+
+            <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">build_metadata</span><span class="p">()),</span> <span class="n">server</span><span class="o">=</span><span class="n">server</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">ve</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">MetadataLoadResult</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="s1">&#39;invalid metadata description&#39;</span><span class="p">,</span> <span class="n">exception</span><span class="o">=</span><span class="n">ve</span><span class="p">,</span>
                                       <span class="n">server</span><span class="o">=</span><span class="n">server</span><span class="p">)</span>
@@ -443,7 +515,7 @@
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on Jun 28, 2021.
+        Last updated on Jun 30, 2021.
       </span>
 
 </p>

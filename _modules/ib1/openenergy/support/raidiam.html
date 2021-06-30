@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>ib1.openenergy.support.raidiam &mdash; Open Energy Infrastructure Support 0.2.6 documentation</title>
+  <title>ib1.openenergy.support.raidiam &mdash; Open Energy Infrastructure Support 0.2.7 documentation</title>
   
 
   
@@ -41,7 +41,7 @@
 
     
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Search within Open Energy Infrastructure Support 0.2.6 documentation"
+          title="Search within Open Energy Infrastructure Support 0.2.7 documentation"
           href="../../../../_static/opensearch.xml"/>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" /> 
@@ -71,7 +71,7 @@
             
             
               <div class="version">
-                0.2.6
+                0.2.7
               </div>
             
           
@@ -252,16 +252,16 @@
 <span class="k">class</span> <span class="nc">AuthorisationServer</span><span class="p">:</span>
     <span class="n">authorisation_server_id</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">organisation_id</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">auto_registration_supported</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">auto_registration_supported</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 
-    <span class="n">customer_friendly_description</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">customer_friendly_logo_uri</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">customer_friendly_name</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">developer_portal_uri</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">terms_of_service_uri</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">customer_friendly_description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">customer_friendly_logo_uri</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">customer_friendly_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">developer_portal_uri</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">terms_of_service_uri</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
-    <span class="n">open_i_d_discovery_document</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">payload_signing_cert_location_uri</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">open_i_d_discovery_document</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">payload_signing_cert_location_uri</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
     <span class="n">parent_authorisation_server_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
     <span class="n">api_resources</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ApiResource</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">notification_webhook</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
@@ -279,7 +279,7 @@
 <p>
     &#169; Copyright <a href="https://opencorporates.com/companies/gb/12156788">Icebreaker One Limited</a>.
     <span class="lastupdated">
-        Last updated on Jun 28, 2021.
+        Last updated on Jun 30, 2021.
       </span>
 
 </p>
