@@ -1,5 +1,6 @@
 import json
 import logging
+import pprint
 from dataclasses import dataclass, field
 from json import JSONDecodeError
 from typing import List, Dict
@@ -7,7 +8,9 @@ from typing import List, Dict
 import requests
 import yaml
 from pyld import jsonld
+from yaml import YAMLError
 from yaml.parser import ParserError
+from yaml.scanner import ScannerError
 
 from ib1.openenergy.support.raidiam import AuthorisationServer
 
@@ -33,7 +36,7 @@ class Metadata:
     Currently models the content part of the metadata file as a `JSONLDContainer`
     """
 
-    def __init__(self, d: Dict = None):
+    def __init__(self, d: Dict):
         """
         Create a new metadata container. Currently just parses the ``content`` section
         of the metadata file.
@@ -47,6 +50,10 @@ class Metadata:
             raise ValueError('no content item defined')
         # Attempt to parse the JSON-LD content
         self.content = JSONLDContainer(d['content'])
+        # Complain if we don't have the necessary mandatory values present in the content section
+        self.content.require_values({DCAT: ['version', 'versionNotes'],
+                                     DC: ['title', 'description'],
+                                     OE: ['sensitivityClass', 'dataSetStableIdentifier']})
 
     @property
     def stable_identifier(self) -> str:
@@ -67,7 +74,6 @@ class Metadata:
         """
         content / dcat:keywords
         """
-
         keywords = self.content.get(DCAT, 'keyword', default=[])
         if not isinstance(keywords, list):
             # If there's a single keyword, wrap it up in a list
@@ -117,6 +123,25 @@ class JSONLDContainer:
         # Expand out any namespace prefixes defined in the context
         self.ld = jsonld.expand(d)[0]
 
+    def require_values(self, d: Dict[str, List[str]]):
+        """
+        Require that this container has the specified values, defined as a dict of namespace to list of terms.
+
+        :param d:
+            Dict of str namespace to list of str terms that must be present
+        :raises:
+            ValueError if any specified values are not present in this container
+        """
+
+        def missing_values():
+            for ns, terms in d.items():
+                for term in terms:
+                    if (fterm := f'{ns}{term}') not in self.ld:
+                        yield fterm
+
+        if missing := list(missing_values()):
+            raise ValueError(f'container is missing required values {", ".join(missing)}')
+
     def get(self, namespace: str, term: str, default=None):
         """
         Get a property, handles looking for the @value entries
@@ -163,8 +188,42 @@ class MetadataLoadResult:
     metadata: List[Metadata] = field(default_factory=list)
     server: AuthorisationServer = None
 
+    def __repr__(self):
+        from pprint import pformat
+        return pformat(vars(self), indent=4, width=1)
+
+
+def load_yaml_from_bytes(b: bytes, convert_tabs_to_spaces=True):
+    """
+    Attempt to load YAML from a set of bytes.
+
+    :param b:
+        bytes to load
+    :param convert_tabs_to_spaces:
+        if True (default), an initial failure to load YAML will be retried after converting all
+        tab characters in the input to double spaces. This is done after converting the bytes to
+        a string with UTF8 encoding, and after the tabs are stripped the string is encoded back
+        to UTF8 bytes before passing back to the yaml loader
+    :return:
+        yaml parsed as a dict
+    :raises:
+        YAMLError if unable to parse the input bytes
+    """
+    try:
+        result = yaml.safe_load(b)
+        return result
+    except YAMLError as ye:
+        if convert_tabs_to_spaces:
+            new_bytes: bytes = b.decode('UTF8').replace('\t', ' ' * 2).encode('UTF8')
+            result = yaml.safe_load(new_bytes)
+            LOG.warning('YAML file parse passed after removing tabs, technically not valid but continuing...')
+            return result
+        else:
+            raise ye
+
 
 def load_metadata(server: AuthorisationServer = None, url: str = None, file: str = None, session=None,
+                  convert_tabs_to_spaces=True,
                   **kwargs) -> MetadataLoadResult:
     """
     Load metadata from a URL.
@@ -177,6 +236,11 @@ def load_metadata(server: AuthorisationServer = None, url: str = None, file: str
         file path from which to load metadata, use either this or url, not both
     :param session:
         if specified, use this `requests.Session`, if not, create a new one
+    :param convert_tabs_to_spaces:
+        normally YAML is invalid if it uses tab characters as indentation. If this argument is set to true, a second
+        attempt will be made to parse the file if a scanner error occurs, first doing a global search and replace to
+        change all tab characters to double spaces. Defaults to False, as this isn't really 'allowed' according to the
+        spec.
     :param kwargs:
         any additional arguments to pass into the get request
     :return:
@@ -208,14 +272,14 @@ def load_metadata(server: AuthorisationServer = None, url: str = None, file: str
             # Not a problem, try YAML
             LOG.debug(f'url={url} not valid JSON, trying YAML')
             try:
-                result = yaml.safe_load(response.content)
+                result = load_yaml_from_bytes(response.content)
                 LOG.debug(f'url={url} parsed as YAML')
-            except Exception as pe:
+            except YAMLError as ye:
                 LOG.error(f'unable to parse metadata file from url={url} as either JSON or YAML')
                 # Not YAML either, or not a dialect we can handle
                 return MetadataLoadResult(location=url,
                                           error='unable to parse metadata file as either JSON or YAML',
-                                          exception=pe, server=server)
+                                          exception=ye, server=server)
     elif file is not None:
         LOG.debug(f'loading metadata from file = {file}')
         # Read from file on disk
@@ -227,14 +291,14 @@ def load_metadata(server: AuthorisationServer = None, url: str = None, file: str
                 except JSONDecodeError:
                     LOG.debug(f'file={file} not valid JSON, trying YAML')
                     try:
-                        result = yaml.safe_load(s)
+                        result = load_yaml_from_bytes(s)
                         LOG.debug(f'file={file} parsed as YAML')
-                    except ParserError as pe:
+                    except YAMLError as ye:
                         LOG.error(f'unable to parse metadata file from file={file} as either JSON or YAML')
                         # Not YAML either, or not a dialect we can handle
                         return MetadataLoadResult(location=f'file:{file}',
                                                   error='unable to parse metadata file as either JSON or YAML',
-                                                  exception=pe, server=server)
+                                                  exception=ye, server=server)
         except IOError as ioe:
             return MetadataLoadResult(location=f'file:{file}',
                                       error='unable to load metadata file from disk',
@@ -246,8 +310,16 @@ def load_metadata(server: AuthorisationServer = None, url: str = None, file: str
 
     if isinstance(result, list):
         LOG.debug(f'fetched and parsed location={location}, contains {len(result)} items')
+
         try:
-            return MetadataLoadResult(location=location, metadata=[Metadata(item) for item in result], server=server)
+            def build_metadata():
+                for index, item in enumerate(result):
+                    try:
+                        yield Metadata(item)
+                    except ValueError as ve:
+                        raise ValueError(f'Unable to parse metadata item {index} : {str(ve)}') from ve
+
+            return MetadataLoadResult(location=location, metadata=list(build_metadata()), server=server)
         except ValueError as ve:
             return MetadataLoadResult(location=location, error='invalid metadata description', exception=ve,
                                       server=server)

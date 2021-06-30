@@ -2,7 +2,7 @@ from setuptools import setup, find_namespace_packages
 
 setup(
     name='ib1.openenergy.support',
-    version='0.2.6',
+    version='0.2.7',
     author='Tom Oinn',
     author_email='tom.oinn@icebreakerone.org',
     url='https://github.com/icebreakerone/open-energy-python-infrastructure',
@@ -18,6 +18,7 @@ setup(
                       'ckanapi'],
     entry_points={
         'console_scripts': ['oe_install_cacerts=ib1.openenergy.support.cacert:main',
-                            'oe_harvest=ib1.openenergy.support.metadata_harvester:harvest']
+                            'oe_harvest=ib1.openenergy.support.metadata_harvester:harvest',
+                            'oe_check_metadata=ib1.openenergy.support.metadata_harvester:check_metadata']
     }
 )
