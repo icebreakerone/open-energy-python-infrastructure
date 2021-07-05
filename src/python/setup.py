@@ -15,7 +15,7 @@ setup(
                  'Topic :: Scientific/Engineering'],
     packages=find_namespace_packages(),
     install_requires=['requests', 'flask', 'cachetools', 'cryptography', 'pyyaml', 'PyLD', 'pyjwt', 'pem', 'gunicorn',
-                      'ckanapi'],
+                      'ckanapi', 'jinja2'],
     entry_points={
         'console_scripts': ['oe_install_cacerts=ib1.openenergy.support.cacert:main',
                             'oe_harvest=ib1.openenergy.support.metadata_harvester:harvest',

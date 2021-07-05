@@ -1,12 +1,16 @@
 import csv
 import logging
+import pprint
 from argparse import ArgumentParser
 from concurrent.futures import ThreadPoolExecutor, Future
 from io import StringIO
-from typing import List, Dict, Tuple, Generator
+from typing import List, Dict, Tuple, Generator, Optional
+
+import jinja2
+from jinja2 import TemplateNotFound, Template
 
 from ib1.openenergy.support import RaidiamDirectory
-from ib1.openenergy.support.ckan import update_or_create_ckan_record, ckan_dataset_name
+from ib1.openenergy.support.ckan import update_or_create_ckan_record, ckan_dataset_name, ckan_dict_from_metadata
 from ib1.openenergy.support.directory_tools import get_directory_client
 from ib1.openenergy.support.metadata import Metadata, load_metadata, MetadataLoadResult
 from ib1.openenergy.support.raidiam import Organisation, AuthorisationServer
@@ -28,6 +32,21 @@ def configure_logging(options):
     logging.basicConfig(level=level())
 
 
+def get_template(options) -> Optional[Template]:
+    """
+    Load a jinja2 template from options.template, returning it or None if either no template is specified or
+    the specified template file can't be found.
+    """
+    if options.template:
+        try:
+            template_loader = jinja2.FileSystemLoader(searchpath='./')
+            template_environment = jinja2.Environment(loader=template_loader)
+            return template_environment.get_template(options.template)
+        except TemplateNotFound:
+            LOG.error(f'unable to find jinja2 template at {options.template}, using default description')
+    return None
+
+
 def check_metadata():
     """
     Command line tool to fetch a metadata file, attempt to parse it, and print the MetadataLoadResult to stdout
@@ -40,10 +59,19 @@ def check_metadata():
     parser.add_argument('-l', '--log_level', type=str, help='log level, defaults to ERROR', default='ERROR',
                         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'])
     parser.add_argument('-u', '--url', type=str, help='url for metadata file', required=True)
+    parser.add_argument('-t', '--template', type=str, help='location for a Jinja2 template on disk to use',
+                        default=None, required=False)
     options = parser.parse_args()
     configure_logging(options)
     result = load_metadata(url=options.url)
+    print(f'Metadata load result [{"error" if result.error else "success"}]:')
     print(result)
+
+    if result.metadata:
+        for index, m in enumerate(result.metadata):
+            print(f'\nCKAN dictionary from item {index}:')
+            pprint.PrettyPrinter(indent=2).pprint(
+                ckan_dict_from_metadata(m=m, description_template=get_template(options)))
 
 
 def harvest():
@@ -60,6 +88,8 @@ def harvest():
     parser.add_argument('-cu', '--ckan_url', type=str,
                         help='CKAN URL, defaults to http://search-beta.energydata.org.uk/',
                         default='http://search-beta.energydata.org.uk/')
+    parser.add_argument('-t', '--template', type=str, help='location for a Jinja2 template on disk to use',
+                        default=None, required=False)
 
     # Get cryptographic and directory properties
     directory = get_directory_client(parser=parser)
@@ -81,7 +111,8 @@ def harvest():
         if metadata_list:
             # If we had any metadata, update the entries in CKAN
             update_or_create_ckan_record(org=org, data_sets=metadata_list,
-                                         ckan_url=ckan_url, ckan_api_key=ckan_api_key)
+                                         ckan_url=ckan_url, ckan_api_key=ckan_api_key,
+                                         description_template=get_template(options))
 
     # Print out the CSV format report to stdout, we'd expect this to be pushed somewhere as a report of
     # the metadata load process.
