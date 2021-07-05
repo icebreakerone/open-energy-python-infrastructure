@@ -3,10 +3,12 @@ Support for creating and updating records in a remote CKAN instance from various
 from elsewhere in this library.
 """
 import logging
+import pprint
 import re
+from typing import List, Dict, Optional
 
 from ckanapi import RemoteCKAN, NotFound
-from typing import List, Generator, Dict, Union
+from jinja2 import Template
 
 from ib1.openenergy.support.metadata import Metadata
 from ib1.openenergy.support.raidiam import Organisation
@@ -46,7 +48,7 @@ def ckan_legal_name(s: str) -> str:
     return re.sub(r'[^\w_-]', '', s.lower())[:100]
 
 
-def ckan_dict_from_metadata(m: Metadata) -> dict:
+def ckan_dict_from_metadata(m: Metadata, description_template: Optional[Template] = None) -> dict:
     """
     Create a CKAN dict suitable for data package create or update operations from a `Metadata` object. Currently
     handles title, notes, version, tags, and adds oe:dataSensitivityClass and dcat:versionNotes to the extras
@@ -54,6 +56,10 @@ def ckan_dict_from_metadata(m: Metadata) -> dict:
 
     :param m:
         a `Metadata` object containing information about the data set to store or update
+    :param description_template:
+        optionally, a Jinja2 Template object can be provided which will be used to generate the description text
+        for this Metadata object. The template is produced with a single item in the context called ``m`` which
+        contains the `Metadata`, as well as a pre-configured `PrettyPrinter` instance as ``pp``
     :return:
         a dict suitable for CKAN update / create operations on data packages
     """
@@ -74,18 +80,22 @@ def ckan_dict_from_metadata(m: Metadata) -> dict:
 
     return {
         'title': m.title,
-        'notes': m.description,
+        'notes': m.description if description_template is None else
+        description_template.render(m=m,
+                                    pp=pprint.PrettyPrinter(
+                                        indent=2)),
         'version': m.version,
         'tags': ckan_tags(m.keywords),
-        'extras': ckan_extras({'oe-sensitivityClass': m.data_sensitivity_class,
-                               'dcat-versionNotes': m.version_notes})
+        'extras': ckan_extras({'oe:sensitivityClass': m.data_sensitivity_class,
+                               'dcat:versionNotes': m.version_notes})
     }
 
 
 def update_or_create_ckan_record(org: Organisation,
                                  data_sets: List[Metadata],
                                  ckan_api_key: str,
-                                 ckan_url: str) -> List[Dict]:
+                                 ckan_url: str,
+                                 description_template: Optional[Template] = None) -> List[Dict]:
     """
     Create or update records for a given datasets, each defined by a `Metadata` object, in the context
     of an `Organisation` from the directory. The organisation will be created if required.
@@ -98,6 +108,11 @@ def update_or_create_ckan_record(org: Organisation,
         api key to write to CKAN
     :param ckan_url:
         url of the CKAN instance
+    :param description_template:
+        optionally, a Jinja2 Template object can be provided which will be used to generate the description text
+        for this Metadata object. The template is produced with a single item in the context called 'm' which
+        contains the Metadata. If this is not supplied, the description for the CKAN record is taken directly from the
+        description in the content block in the metadata
     :return:
         list of created or modified record from CKAN as dicts
     :raises NotAuthorized:
@@ -126,7 +141,9 @@ def update_or_create_ckan_record(org: Organisation,
                 LOG.info(f'data package id={dataset_id} already exists in CKAN, updating')
                 # Found existing package, use package update
                 yield ckan.action.package_update(name=dataset_id,
-                                                 **ckan_dict_from_metadata(data_set),
+                                                 **ckan_dict_from_metadata(
+                                                     data_set,
+                                                     description_template=description_template),
                                                  owner_org=org.organisation_id,
                                                  return_package_dict=True)
             except NotFound:
@@ -134,7 +151,9 @@ def update_or_create_ckan_record(org: Organisation,
                 LOG.info(f'creating data package id={dataset_id} in CKAN')
                 yield ckan.action.package_create(
                     name=dataset_id,
-                    **ckan_dict_from_metadata(data_set),
+                    **ckan_dict_from_metadata(
+                        data_set,
+                        description_template=description_template),
                     owner_org=org.organisation_id,
                     return_package_dict=True)
 

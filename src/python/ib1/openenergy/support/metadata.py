@@ -1,6 +1,5 @@
 import json
 import logging
-import pprint
 from dataclasses import dataclass, field
 from json import JSONDecodeError
 from typing import List, Dict
@@ -9,8 +8,6 @@ import requests
 import yaml
 from pyld import jsonld
 from yaml import YAMLError
-from yaml.parser import ParserError
-from yaml.scanner import ScannerError
 
 from ib1.openenergy.support.raidiam import AuthorisationServer
 
@@ -54,6 +51,27 @@ class Metadata:
         self.content.require_values({DCAT: ['version', 'versionNotes'],
                                      DC: ['title', 'description'],
                                      OE: ['sensitivityClass', 'dataSetStableIdentifier']})
+
+        if 'transport' not in d:
+            raise ValueError('no transport item defined')
+        self.transport = d['transport']
+
+        if 'access' not in d:
+            raise ValueError('no access item defined')
+        self.access = d['access']
+
+        if 'representation' not in d:
+            raise ValueError('no representation item defined')
+        self.representation = d['representation']
+
+    @property
+    def mime(self) -> str:
+        """
+        representation / mime
+        """
+        if 'mime' in self.representation:
+            return self.representation['mime']
+        return ''
 
     @property
     def stable_identifier(self) -> str:
