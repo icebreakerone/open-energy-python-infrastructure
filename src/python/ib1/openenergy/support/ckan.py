@@ -2,9 +2,12 @@
 Support for creating and updating records in a remote CKAN instance from various organisation and metadata types
 from elsewhere in this library.
 """
+import json
 import logging
 import pprint
 import re
+from datetime import date
+from io import StringIO
 from typing import List, Dict, Optional
 
 from ckanapi import RemoteCKAN, NotFound
@@ -87,7 +90,8 @@ def ckan_dict_from_metadata(m: Metadata, description_template: Optional[Template
         'version': m.version,
         'tags': ckan_tags(m.keywords),
         'extras': ckan_extras({'oe:sensitivityClass': m.data_sensitivity_class,
-                               'dcat:versionNotes': m.version_notes})
+                               'dcat:versionNotes': m.version_notes}),
+
     }
 
 
@@ -135,26 +139,81 @@ def update_or_create_ckan_record(org: Organisation,
             # Compute the ID for the dataset
             dataset_id = ckan_dataset_name(org=org, data_set=data_set)
 
+            # Helper function to build a resource dict wrapping a string up in a StringIO so the CKAN
+            # API thinks it's a file and is prepared to accept it as an upload.
+            def resource_dict(content: str, **kwargs):
+                return {'package_id': dataset_id,
+                        'url': 'dummy-value',
+                        'upload': StringIO(content),
+                        **kwargs}
+
+            # Build resource dicts. These are used to upload strings as 'resource files' attached to the data set
+            # entities in CKAN. We currently use this to show the OpenAPI block, CSVW JSON-LD block if present,
+            # and the access rules block if the sensitivity class is OE-SA or OS-SB
+            resources = []
+            if 'http' in data_set.transport:
+                # Build JSON string containing the OpenAPI block, used to support
+                # https://extensions.ckan.org/extension/openapiviewer/ if installed
+                open_api_string = json.dumps(data_set.transport['http'])
+                # Create file-like object from it
+                resources.append(resource_dict(content=open_api_string,
+                                               description=f'Swagger (OpenAPI) specification for **{data_set.title}**',
+                                               name='OpenAPI Specification',
+                                               format='json',
+                                               type='api',
+                                               mimetype='application/json'))
+            if 'csvw' in data_set.representation:
+                # Build JSON-LD string containing the CSVW representation
+                csvw_string = json.dumps(data_set.representation['csvw'])
+                resources.append(resource_dict(content=csvw_string,
+                                               description=f'CSV for the Web JSON-LD for **{data_set.title}**',
+                                               name='CSVW JSON-LD Definition',
+                                               format='json',
+                                               type='documentation',
+                                               mimetype='application/ld+json'))
+            # Build access rules
+            if data_set.data_sensitivity_class.upper() in ['OE-SA', 'OE-SB']:
+                def map_date(item):
+                    if isinstance(item, date):
+                        return item.isoformat()
+                    return str(item)
+
+                resources.append(resource_dict(content=json.dumps(data_set.access, default=map_date),
+                                               description=f'Open Energy shared data access and licensing '
+                                                           f'specification for **{data_set.title}**',
+                                               format='json',
+                                               name='Open Energy Shared Data access rules',
+                                               type='documentation',
+                                               mimetype='application/json'))
+
             # Check whether the data package already exists in CKAN
             try:
                 ckan.action.package_show(id=dataset_id)
                 LOG.info(f'data package id={dataset_id} already exists in CKAN, updating')
                 # Found existing package, use package update
-                yield ckan.action.package_update(name=dataset_id,
-                                                 **ckan_dict_from_metadata(
-                                                     data_set,
-                                                     description_template=description_template),
-                                                 owner_org=org.organisation_id,
-                                                 return_package_dict=True)
+                result = ckan.action.package_update(name=dataset_id,
+                                                    **ckan_dict_from_metadata(
+                                                        data_set,
+                                                        description_template=description_template),
+                                                    resources=[],
+                                                    owner_org=org.organisation_id,
+                                                    return_package_dict=True)
+                for resource in resources:
+                    ckan.action.resource_create(**resource)
+                yield result
             except NotFound:
                 # Not found in CKAN, use package_create to build a new one
                 LOG.info(f'creating data package id={dataset_id} in CKAN')
-                yield ckan.action.package_create(
+                result = ckan.action.package_create(
                     name=dataset_id,
                     **ckan_dict_from_metadata(
                         data_set,
                         description_template=description_template),
+                    resources=resources,
                     owner_org=org.organisation_id,
                     return_package_dict=True)
+                for resource in resources:
+                    ckan.action.resource_create(**resource)
+                yield result
 
     return list(inner())
