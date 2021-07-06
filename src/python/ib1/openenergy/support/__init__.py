@@ -1,15 +1,17 @@
 import base64
 import email.utils
 import http.client
+import json
 import logging
 import urllib.parse
 import uuid
+from dataclasses import dataclass
 from datetime import datetime
 from functools import wraps, partial
 from time import time, strftime, gmtime
 from typing import Dict, List, Type, TypeVar
 from urllib.parse import quote_plus
-from dataclasses import dataclass
+
 import flask
 import jwt
 import requests
@@ -618,6 +620,47 @@ class RaidiamDirectory:
     def __init__(self, fapi: FAPISession, base_url: str = 'https://matls-dirapi.directory.energydata.org.uk/'):
         self.fapi = fapi
         self.base_url = base_url
+
+    def update_client_metadata(self, org_id: str, client_metadata: dict) -> bool:
+        """
+        Admin users only, this will not work with regular access tokens. This method is only applicable to internal
+        Open Energy use, a regular org admin capability will not work with it. The associated session must have the
+        ``software:website`` scope using a ``jwt-bearer`` token to impersonate a super-user within the directory. To
+        do this the client used must be provisioned for these tokens, which is something only Raidiam can do.
+
+        :param org_id:
+            organisation ID, all clients under this org ID will be updated
+        :param client_metadata:
+            new client metadata to set for all clients within this organisation
+        :returns:
+            True if the update succeeded, False otherwise
+        """
+        if client_metadata is None:
+            client_metadata = {}
+        try:
+            u = f'{self.base_url}organisations/{quote_plus(org_id)}/softwarestatements'
+            response = self.fapi.session.get(u)
+            response.raise_for_status()
+            statements = response.json()
+            for statement in statements:
+                ss_id = statement['SoftwareStatementId']
+                LOG.debug(f'RaidiamDirectory.update_client_metadata : updating client metadata '
+                          f'for org {org_id}, software statement {ss_id}')
+                filtered = {k: statement[k] for k in statement if
+                            k in ['ClientName', 'ClientUri', 'Description', 'Environment', 'LogoUri', 'Mode',
+                                  'RedirectUri', 'TermsOfServiceUri', 'Version', 'AdditionalSoftwareMetadata']}
+                if 'RedirectUri' not in filtered or len(filtered['RedirectUri']) == 0:
+                    filtered['RedirectUri'] = ['https://fakeuri.example.org']
+                filtered['AdditionalSoftwareMetadata'] = json.dumps(client_metadata)
+                response = self.fapi.session.put(url=f'{u}/{quote_plus(ss_id)}', json=filtered)
+                response.raise_for_status()
+            LOG.debug(f'RaidiamDirectory.update_client_metadata : updated {len(statements)} statements')
+            return True
+        except RetryError:
+            LOG.error('RaidiamDirectory.update_client_metadata : max retries exceeded')
+        except Exception as e:
+            LOG.error(e)
+        return False
 
     def organisations(self) -> List[raidiam.Organisation]:
         """
