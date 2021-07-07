@@ -90,6 +90,8 @@ def harvest():
                         default='http://search-beta.energydata.org.uk/')
     parser.add_argument('-t', '--template', type=str, help='location for a Jinja2 template on disk to use',
                         default=None, required=False)
+    parser.add_argument('-d', '--dry_run', default=False, action='store_true',
+                        help='set this flag to prevent all write operations')
 
     # Get cryptographic and directory properties
     directory = get_directory_client(parser=parser)
@@ -101,6 +103,9 @@ def harvest():
 
     configure_logging(options)
 
+    if options.dry_run:
+        LOG.info('Dry run flag set, results will not be written to CKAN')
+
     # Access directory, get metadata URLs, fetch and parse metadata
     org_to_reports = gather_metadata_files(directory=directory)
 
@@ -108,7 +113,7 @@ def harvest():
     for org in org_to_reports:
         # Flatten the list of lists of `Metadata` objects
         metadata_list = [item for sublist in [report.metadata for report in org_to_reports[org]] for item in sublist]
-        if metadata_list:
+        if metadata_list and not options.dry_run:
             # If we had any metadata, update the entries in CKAN
             update_or_create_ckan_record(org=org, data_sets=metadata_list,
                                          ckan_url=ckan_url, ckan_api_key=ckan_api_key,
