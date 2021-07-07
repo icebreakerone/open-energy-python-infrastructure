@@ -84,7 +84,7 @@ def harvest():
                          'links, resolves them, fetches files, parses as metadata, pushes information to CKAN'
     parser.add_argument('-l', '--log_level', type=str, help='log level, defaults to ERROR', default='ERROR',
                         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'])
-    parser.add_argument('-ck', '--ckan_api_key', type=str, help='CKAN API key', required=True)
+    parser.add_argument('-ck', '--ckan_api_key', type=str, help='CKAN API key', default=None)
     parser.add_argument('-cu', '--ckan_url', type=str,
                         help='CKAN URL, defaults to http://search-beta.energydata.org.uk/',
                         default='http://search-beta.energydata.org.uk/')
@@ -100,6 +100,10 @@ def harvest():
     options = parser.parse_args()
     ckan_url = options.ckan_url
     ckan_api_key = options.ckan_api_key
+
+    if ckan_api_key is None and not options.dry_run:
+        print('Dry-run not specified but no CKAN API key provided - unable to proceed.')
+        exit(0)
 
     configure_logging(options)
 
