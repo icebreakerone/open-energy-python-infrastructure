@@ -27,7 +27,8 @@ def get_directory_client(parser=None) -> RaidiamDirectory:
         """
         if f:
             path = abspath(f)
-            if not (file_found := isfile(path)):
+            file_found = isfile(path)
+            if not file_found:
                 LOG.error(f'SSL - {name} = {path} not found!')
             else:
                 LOG.info(f'SSL - {name} = {path}')

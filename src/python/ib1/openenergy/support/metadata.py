@@ -154,10 +154,11 @@ class JSONLDContainer:
         def missing_values():
             for ns, terms in d.items():
                 for term in terms:
-                    if (fterm := f'{ns}{term}') not in self.ld:
+                    fterm = f'{ns}{term}'
+                    if fterm not in self.ld:
                         yield fterm
-
-        if missing := list(missing_values()):
+        missing = list(missing_values())
+        if missing:
             raise ValueError(f'container is missing required values {", ".join(missing)}')
 
     def get(self, namespace: str, term: str, default=None):
