@@ -1,11 +1,12 @@
 import logging
 import ssl
 from argparse import ArgumentParser
+from dataclasses import dataclass
 from os.path import abspath, isfile
+
 import certifi
 import werkzeug.serving
 from cryptography import x509
-from dataclasses import dataclass
 
 LOG = logging.getLogger('ib1.oe.support.flask_ssl_dev')
 
@@ -98,7 +99,8 @@ def get_command_line_ssl_args(default_server_private_key='./a.key',
         """
         if f:
             path = abspath(f)
-            if not (file_found := isfile(path)):
+            file_found = isfile(path)
+            if not file_found:
                 LOG.error(f'SSL - {name} = {path} not found!')
             else:
                 LOG.info(f'SSL - {name} = {path}')

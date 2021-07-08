@@ -606,9 +606,9 @@ def build(d: Dict, cls: Type[D], date_format_string='%Y-%m-%dT%H:%M:%S.%fZ') -> 
         return value
 
     known_fields = list(cls.__dataclass_fields__.keys())
-    return cls(**{name: map_field(name, d[key])
+    return cls(**{camelcase_to_python(key): map_field(camelcase_to_python(key), d[key])
                   for key in d
-                  if (name := camelcase_to_python(key)) in known_fields})
+                  if camelcase_to_python(key) in known_fields})
 
 
 class RaidiamDirectory:
