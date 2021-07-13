@@ -20,6 +20,7 @@ setup(
     entry_points={
         'console_scripts': ['oe_install_cacerts=ib1.openenergy.support.cacert:main',
                             'oe_harvest=ib1.openenergy.support.metadata_harvester:harvest',
-                            'oe_check_metadata=ib1.openenergy.support.metadata_harvester:check_metadata']
+                            'oe_check_metadata=ib1.openenergy.support.metadata_harvester:check_metadata',
+                            'oe_keygen=ib1.openenergy.support.keygen:oe_keygen']
     }
 )
