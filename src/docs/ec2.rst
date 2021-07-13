@@ -15,7 +15,7 @@ configuration files themselves!
 
     1. An EC2 instance configured with Amazon Linux and a static IP address
     2. The ability to log into this instance with SSH as a user able to run ``sudo``
-    3. Appropriately configured access to ports 80 and 443 on this server
+    3. Appropriately configured `access to ports 80 and 443 <https://aws.amazon.com/premiumsupport/knowledge-center/connect-http-https-ec2/>`_ on this server
     4. An account on the Open Energy Directory associated with an organisation
     5. A domain name which you control with sufficient access to add ``A`` records
     6. Approximately four hours of time and some coffee or other beverage of your choice
