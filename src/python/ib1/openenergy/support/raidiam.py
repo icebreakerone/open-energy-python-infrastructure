@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List
 
@@ -25,9 +25,62 @@ class Organisation:
 
 
 @dataclass(frozen=True)
+class SoftwareStatement:
+    status: str
+    client_id: str
+    client_name: str
+    environment: str
+    organisation_id: str
+    software_statement_id: str
+    description: str = ''
+    mode: str = ''
+    rts_client_created: bool = False
+    on_behalf_of: str = ''
+    policy_uri: str = ''
+    client_uri: str = ''
+    logo_uri: str = ''
+    terms_of_service_uri: str = ''
+    version: int = 0
+    locked: bool = ''
+    redirect_url: List[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class SoftwareStatementCertificate:
+    organisation_id: str = ''
+    client_name: str = ''
+    status: str = ''
+    valid_from_date_time: str = ''
+    expiry_date_time: str = ''
+    e: str = ''
+    key_type: str = ''
+    kid: str = ''
+    kty: str = ''
+    n: str = ''
+    use: str = ''
+    x5t: str = ''
+    x5thash256: str = ''
+    x5u: str = ''
+    signed_cert_path: str = ''
+    jwk_path: str = ''
+    org_jwk_path: str = ''
+    x5c: List[str] = field(default_factory=list)
+    software_statement_ids: List[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class DomainRoleDetails:
+    authorisation_domain_name: str
+    authorisation_domain_role_name: str
+    status: str
+    contact_role: str
+
+
+@dataclass(frozen=True)
 class AdminUser:
     status: str
     user_email: str
+    domain_role_details: List[DomainRoleDetails] = field(default_factory=list)
 
 
 @dataclass(frozen=True)

@@ -1,6 +1,7 @@
 import base64
 import email.utils
 import http.client
+import inspect
 import json
 import logging
 import urllib.parse
@@ -663,40 +664,50 @@ class RaidiamDirectory:
         return False
 
     def organisations(self) -> List[raidiam.Organisation]:
-        """
-        Get all `Organisation` entities within the directory
-        """
-        try:
-            response = self.fapi.session.get(f'{self.base_url}organisations').json()['content']
-            return [build(org, raidiam.Organisation) for org in response]
-        except RetryError:
-            logging.error('RaidiamDirectory.organisations : max retries exceeded')
-            return []
+        return self._resolve(entity_type=raidiam.Organisation, url=f'{self.base_url}organisations', wrap='content')
 
     def authorisation_servers(self, org_id: str) -> List[raidiam.AuthorisationServer]:
-        try:
-            response = self.fapi.session.get(f'{self.base_url}organisations/{quote_plus(org_id)}/authorisationservers')
-            if response.status_code != 200:
-                try:
-                    response.raise_for_status()
-                except Exception as e:
-                    logging.error(e)
-                    return []
-            else:
-                return [build(server, raidiam.AuthorisationServer) for server in response.json()]
-        except RetryError:
-            logging.error('RaidiamDirectory.authorization_servers : max retries exceeded')
-            return []
+        return self._resolve(entity_type=raidiam.AuthorisationServer,
+                             url=f'{self.base_url}organisations/{quote_plus(org_id)}/authorisationservers')
 
-    def admin_users(self, org_id: str):
+    def _resolve(self, entity_type, url, wrap=None) -> List:
+        """
+        Retrieve JSON and build entities
+
+        :param entity_type:
+            entity type to construct
+        :param url:
+            URL to query
+        :param wrap:
+            optional, query this property of the top level item returned by the API call
+        :return:
+            a list of ``entity_type``
+        """
+        caller_name = inspect.getouterframes(inspect.currentframe())[1][3]
         try:
-            response = self.fapi.session.get(f'{self.base_url}organisations/{quote_plus(org_id)}/adminusers')
+            response = self.fapi.session.get(url=url)
             try:
                 response.raise_for_status()
-                return [build(user, raidiam.AdminUser) for user in response.json()]
             except Exception as e:
-                logging.error(e)
+                logging.error(f'RaidiamDirectory.{caller_name} {e}')
                 return []
+            j = response.json()
+            if wrap is not None:
+                j = j[wrap]
+            return [build(entity, entity_type) for entity in j]
         except RetryError:
-            logging.error('RaidiamDirectory.admin_users : max retries exceeded')
+            logging.error(f'RaidiamDirectory.{caller_name} : max retries exceeded')
             return []
+
+    def software_statements(self, org_id: str) -> List[raidiam.SoftwareStatement]:
+        return self._resolve(entity_type=raidiam.SoftwareStatement,
+                             url=f'{self.base_url}organisations/{quote_plus(org_id)}/softwarestatements')
+
+    def software_statement_certificates(self, org_id: str, ss_id: str) -> List[raidiam.SoftwareStatementCertificate]:
+        return self._resolve(entity_type=raidiam.SoftwareStatementCertificate,
+                             url=f'{self.base_url}organisations/{quote_plus(org_id)}'
+                                 f'/softwarestatements/{quote_plus(ss_id)}/certificates')
+
+    def admin_users(self, org_id: str):
+        return self._resolve(entity_type=raidiam.AdminUser,
+                             url=f'{self.base_url}organisations/{quote_plus(org_id)}/adminusers')
