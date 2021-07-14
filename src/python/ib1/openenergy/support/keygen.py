@@ -61,12 +61,16 @@ def oe_keygen():
     parser.add_argument('-s', '--software_statement_id', type=str, help='Software statement ID', required=True)
     parser.add_argument('-k', '--key_file', type=str, help='Key filename, defaults to oe.key', default='oe.key')
     parser.add_argument('-c', '--csr_file', type=str, help='CSR filename, defaults to oe.csr', default='oe.csr')
+    parser.add_argument('-o', '--organisation', type=str, help='Organisation field for certificate', required=True)
+    parser.add_argument('-u', '--organisation_unit', type=str,
+                        help='Organisation unit field, must match org ID in directory', required=True)
     options = parser.parse_args()
     logging.basicConfig(level=logging.INFO)
 
     # Create key and CSR
     key = create_private_key()
-    csr = create_csr(key=key, software_statement_id=options.software_statement_id)
+    csr = create_csr(key=key, software_statement_id=options.software_statement_id, organisation=options.organisation,
+                     organisation_unit=options.organisation_unit)
 
     LOG.info(f'created key / csr pair for software statement {options.software_statement_id}')
 
