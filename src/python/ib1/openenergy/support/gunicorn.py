@@ -2,14 +2,15 @@
 Support for gunicorn with client certificates, with much help from a blog
 at https://eugene.kovalev.systems/blog/flask_client_auth
 """
+import base64
+import logging
+
+import certifi
+import flask
 import gunicorn.app.base
 from cryptography import x509
 from cryptography.x509 import Certificate
 from gunicorn.workers.sync import SyncWorker
-import logging
-import flask
-import certifi
-import base64
 
 #: Log to ib1.openenergy.support.gunicorn
 LOG = logging.getLogger('ib1.openenergy.support.gunicorn')
@@ -38,14 +39,15 @@ class CustomSyncWorker(SyncWorker):
 
     def handle_request(self, listener, req, client, addr):
         cert_bytes = client.getpeercert(binary_form=True)
-        cert = base64.b64encode(cert_bytes)
-        LOG.info(f'retrieved client certificate {cert} with type {type(cert)}')
-        # Push certificate into headers
-        headers = dict(req.headers)
-        headers[CERT_NAME] = cert
-        req.headers = list(headers.items())
-        # Delegate to super
-        LOG.info(req.headers)
+        if cert_bytes:
+            cert = base64.b64encode(cert_bytes)
+            LOG.info(f'retrieved client certificate {cert} with type {type(cert)}')
+            # Push certificate into headers
+            headers = dict(req.headers)
+            headers[CERT_NAME] = cert
+            req.headers = list(headers.items())
+            # Delegate to super
+            LOG.info(req.headers)
         super(CustomSyncWorker, self).handle_request(listener, req, client, addr)
 
 
@@ -57,7 +59,8 @@ class ClientAuthApplication(gunicorn.app.base.BaseApplication):
     more details on how to run a data provider within a test context using this class.
     """
 
-    def __init__(self, app, cert_path, key_path, hostname='localhost', port='443', num_workers=4, timeout=30):
+    def __init__(self, app, cert_path, key_path, hostname='localhost', port='443', num_workers=4, timeout=30,
+                 cert_reqs=2):
         """
         Create a new application runner
 
@@ -75,6 +78,9 @@ class ClientAuthApplication(gunicorn.app.base.BaseApplication):
             Number of concurrent workers, defaults to 4
         :param timeout:
             Timeout, defaults to 30
+        :param cert_reqs:
+            Mode for client certificate requirements, defaults to 2 to require client certs. Set to 0 to disable this
+            for e.g. running a relying party in code grant mode or similar
         """
         self.options = {
             'bind': f'{hostname}:{port}',
@@ -84,7 +90,7 @@ class ClientAuthApplication(gunicorn.app.base.BaseApplication):
             'ca_certs': certifi.where(),
             'certfile': cert_path,
             'keyfile': key_path,
-            'cert_reqs': 2,
+            'cert_reqs': cert_reqs,
             'do_handshake_on_connect': True
         }
         self.application = app
