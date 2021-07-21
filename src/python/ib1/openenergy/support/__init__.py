@@ -1,9 +1,12 @@
 import base64
 import email.utils
+import hashlib
 import http.client
 import inspect
 import json
 import logging
+import secrets
+import string
 import urllib.parse
 import uuid
 from dataclasses import dataclass
@@ -43,21 +46,148 @@ def httpclient_logging_patch(level=logging.DEBUG):
     http.client.HTTPConnection.debuglevel = 1
 
 
+def code_verifier(length: int = 128):
+    """
+    Return a cryptographically random string as specified in RFC7636 section 4.1
+
+    See https://datatracker.ietf.org/doc/html/rfc7636#section-4.1
+
+    :param length:
+        length of the generated string, minimum 43, maximum 128. Defaults to 128
+    :return:
+    """
+    vocab = string.ascii_letters + '-._~0123456789'
+    return ''.join([secrets.choice(vocab) for _ in range(length)])
+
+
 class CodeAuthMethod:
     """
-    Additional auth logic passed to the FAPISession to enable code grant handling
+    Additional auth logic passed to the FAPISession to enable code grant handling. Handles PKCE (RFC7636)
     """
 
-    def __init__(self, code: str, redirect_uri: str):
-        self.code = code
+    def __init__(self, redirect_uri: str, client_id: str):
+        """
+        Create a new code auth method with empty state, this needs to have a code created before use
+
+        :param redirect_uri:
+            The redirect back to the login callback
+        """
         self.redirect_uri = redirect_uri
+        self.client_id = client_id
+        self._code = None
         self._refresh_token = None
+        # RFC7636 logic (OAuth PKCE)
+        self._verifier = code_verifier()
+        self._code_challenge = CodeAuthMethod.code_challenge(self._verifier)
+        # State, re-use the verifier logic here because why not
+        self._state = code_verifier()
+
+    def as_jwt(self, secret: str) -> str:
+        """
+        Serialise the state of this code auth method to a JWT, encoding with the supplied symmetric key
+
+        :param secret:
+            Symmetric key used to encode the JWT
+        :returns:
+            Serialised JWT string represnting this object
+        """
+        d = {
+            'redirect_uri': self.redirect_uri,
+            'client_id': self.client_id,
+            'state': self._state,
+            'verifier': self._verifier,
+            'code_challenge': self._code_challenge
+        }
+        if self._code:
+            d['code'] = self._code
+        if self._refresh_token:
+            d['refresh_token'] = self._refresh_token
+        return jwt.encode(d, secret, algorithm='HS256')
+
+    @staticmethod
+    def from_jwt(encoded_jwt: str, secret: str) -> 'CodeAuthMethod':
+        """
+        Deserialise the supplied JWT, as a string, into a CodeAuthMethod, decoding with the supplied symmetric key
+
+        :param encoded_jwt:
+            String containing a JWT
+        :param secret:
+            Symmetric key used to decode the JWT
+        :returns:
+            Deserialised instance of `CodeAuthMethod`
+        """
+        d = jwt.decode(encoded_jwt, secret, algorithms=['HS256'])
+        code_auth = CodeAuthMethod(redirect_uri=d['redirect_uri'],
+                                   client_id=d['client_id'])
+        code_auth._state = d['state']
+        code_auth._verifier = d['verifier']
+        code_auth._code_challenge = d['code_challenge']
+        if 'code' in d:
+            code_auth._code = d['code']
+        if 'refresh_token' in d:
+            code_auth._refresh_token = d['refresh_token']
+        return code_auth
+
+    def get_auth_uri(self, scopes: List[str], auth_uri: str):
+        """
+        Build an appropriate URI for the auth endpoint, including the necessary parameters
+
+        :param scopes:
+            Scopes to request, list of strings
+        :param auth_uri:
+            Base URI of the auth endpoint, query parameters will be added to this
+        :return:
+            URI of the auth endpoint with appropriate query parameters
+        """
+        query_data = {'client_id': self.client_id,
+                      'redirect_uri': self.redirect_uri,
+                      'scope': ' '.join(scopes or []),
+                      'state': self._state,
+                      'prompt': 'consent',
+                      'response_mode': 'fragment.jwt',
+                      'response_type': 'code',
+                      'code_challenge': self._code_challenge,
+                      'code_challenge_method': 'S256'}
+        url_parts = list(urllib.parse.urlparse(auth_uri))
+        url_parts[4] = urllib.parse.urlencode(query_data, quote_via=urllib.parse.quote)
+        LOG.debug(query_data)
+        return urllib.parse.urlunparse(url_parts)
+
+    @property
+    def code(self):
+        return self._code
+
+    @code.setter
+    def code(self, value):
+        if self._code is None:
+            self._code = value
+        else:
+            raise ValueError(f'attempt to set code, but code is already defined')
+
+    @staticmethod
+    def code_challenge(verifier: str):
+        """
+        Create a code challenge based on a code verifier, as defined by RFC7636 section 4.2
+
+        See https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
+
+        :param verifier:
+            code verifier string
+        :return:
+            code challenge string
+        """
+        m = hashlib.sha256()
+        m.update(verifier.encode(encoding='ASCII'))
+        hash_bytes = m.digest()
+        return base64.urlsafe_b64encode(hash_bytes).decode(encoding='ASCII').replace('=', '')
 
     def get_token(self, session, client_id, scopes, openid_configuration):
         """
         Method to either use a refresh token to obtain an access token (if we have one) or
         to use an auth code to get the access / refresh token pair if we don't
         """
+        if self._code is None:
+            raise ValueError(f'must set code before attempting to acquire access token for client {client_id}')
 
         def make_request(token_request):
             LOG.debug(f'Attempting to acquire authorization_code token {token_request}')
@@ -78,7 +208,9 @@ class CodeAuthMethod:
             return make_request(token_request={'client_id': client_id,
                                                'scope': scopes,
                                                'grant_type': 'authorization_code',
-                                               'code': self.code})
+                                               'code': self._code,
+                                               'code_verifier': self._verifier,
+                                               'redirect_uri': self.redirect_uri})
         else:
             # Use the refresh token, potentially updating it
             return make_request(token_request={'client_id': client_id,
@@ -181,6 +313,7 @@ class FAPISession(AuthBase):
         self._session.auth = self
         self.plain_session = requests.Session()
         self.plain_session.cert = certificate, private_key
+        self.issuer_url = issuer_url
 
         # Configure retries
         retry_strategy = Retry(total=retries,
@@ -210,9 +343,32 @@ class FAPISession(AuthBase):
         # for code and jwt-bearer grants when needed, if not provided we default to client_credentials
         self.auth_method = auth_method
 
-        # If we have a code we need to use it immediately to acquire an access / refresh token pair
-        if isinstance(self.auth_method, CodeAuthMethod):
-            self._get_token()
+    def as_jwt(self, secret: str) -> str:
+        d = {
+            'client_id': self.client_id,
+            'scopes': self.scopes,
+            'private_key': self._session.cert[1],
+            'certificate': self._session.cert[0],
+            'issuer_url': self.issuer_url
+        }
+        if self._token:
+            d['token'] = self._token
+        LOG.debug(f'serialising to jwt {d}')
+        return jwt.encode(d, secret, algorithm='HS256')
+
+    @staticmethod
+    def from_jwt(encoded_jwt: str, secret: str) -> 'FAPISession':
+        d = jwt.decode(encoded_jwt, secret, algorithms=['HS256'])
+        LOG.debug(f'restoring from jwt {d}')
+        fapi = FAPISession(client_id=d['client_id'],
+                           issuer_url=d['issuer_url'],
+                           requested_scopes=d['scopes'],
+                           private_key=d['private_key'],
+                           certificate=d['certificate']
+                           )
+        if 'token' in d:
+            fapi._token = d['token']
+        return fapi
 
     @property
     def session(self):
@@ -721,7 +877,7 @@ class RaidiamDirectory:
                                   'RedirectUri', 'TermsOfServiceUri', 'Version', 'AdditionalSoftwareMetadata']}
                 if 'RedirectUri' not in filtered or len(filtered['RedirectUri']) == 0:
                     filtered['RedirectUri'] = ['https://fakeuri.example.org']
-                filtered['RedirectUri'] = ['https://127.0.0.1:5000/login/callback']
+                filtered['RedirectUri'] = ['https://127.0.0.1:5001/login/callback']
                 filtered['AdditionalSoftwareMetadata'] = json.dumps(client_metadata)
                 response = self.fapi.session.put(url=f'{u}/{quote_plus(ss_id)}', json=filtered)
                 response.raise_for_status()
