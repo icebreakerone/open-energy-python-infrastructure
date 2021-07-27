@@ -65,12 +65,16 @@ class CodeAuthMethod:
     Additional auth logic passed to the FAPISession to enable code grant handling. Handles PKCE (RFC7636)
     """
 
-    def __init__(self, redirect_uri: str, client_id: str):
+    def __init__(self, redirect_uri: str, client_id: str, issuer_uri: str):
         """
         Create a new code auth method with empty state, this needs to have a code created before use
 
         :param redirect_uri:
             The redirect back to the login callback
+        :param client_id:
+            Client ID, used for validation of response JWT
+        :param issuer_uri:
+            Issuer URI, used for validation of response JWT
         """
         self.redirect_uri = redirect_uri
         self.client_id = client_id
@@ -81,6 +85,7 @@ class CodeAuthMethod:
         self._code_challenge = CodeAuthMethod.code_challenge(self._verifier)
         # State, re-use the verifier logic here because why not
         self._state = code_verifier()
+        self.issuer_uri = issuer_uri
 
     def as_jwt(self, secret: str) -> str:
         """
@@ -96,13 +101,21 @@ class CodeAuthMethod:
             'client_id': self.client_id,
             'state': self._state,
             'verifier': self._verifier,
-            'code_challenge': self._code_challenge
+            'code_challenge': self._code_challenge,
+            'issuer_uri': self.issuer_uri
         }
         if self._code:
             d['code'] = self._code
         if self._refresh_token:
             d['refresh_token'] = self._refresh_token
         return jwt.encode(d, secret, algorithm='HS256')
+
+    @property
+    def state(self):
+        return self._state
+
+    def invalidate_state(self):
+        self._state = code_verifier()
 
     @staticmethod
     def from_jwt(encoded_jwt: str, secret: str) -> 'CodeAuthMethod':
@@ -118,7 +131,8 @@ class CodeAuthMethod:
         """
         d = jwt.decode(encoded_jwt, secret, algorithms=['HS256'])
         code_auth = CodeAuthMethod(redirect_uri=d['redirect_uri'],
-                                   client_id=d['client_id'])
+                                   client_id=d['client_id'],
+                                   issuer_uri=d['issuer_uri'])
         code_auth._state = d['state']
         code_auth._verifier = d['verifier']
         code_auth._code_challenge = d['code_challenge']
@@ -284,7 +298,8 @@ class FAPISession(AuthBase):
     Can also be used as a requests authenticator
     """
 
-    def __init__(self, client_id, issuer_url, requested_scopes, private_key, certificate, retries=3, auth_method=None):
+    def __init__(self, client_id, issuer_url, requested_scopes, private_key, certificate, retries=3, auth_method=None,
+                 openid_configuration=None):
         """
         Build a new FAPI session. This doesn't immediately trigger any requests to the token
         endpoint, these are made when the session is accessed, and only if needed.
@@ -314,6 +329,7 @@ class FAPISession(AuthBase):
         self.plain_session = requests.Session()
         self.plain_session.cert = certificate, private_key
         self.issuer_url = issuer_url
+        self._introspection_response = None
 
         # Configure retries
         retry_strategy = Retry(total=retries,
@@ -326,12 +342,15 @@ class FAPISession(AuthBase):
         self.plain_session.mount('https://', adapter)
         self.plain_session.mount('http://', adapter)
 
-        # Get OpenID configuration
-        self.openid_configuration = build(cls=OpenIDConfiguration, d=self.plain_session.get(
-            OpenIDConfiguration.oidc_configuration_url(issuer_url)).json())
-
         # Holds the current token state, initially None
         self._token = None
+
+        # If not already specified, retrieve the openid configuration
+        if openid_configuration:
+            self.openid_configuration = openid_configuration
+        else:
+            self.openid_configuration = build(cls=OpenIDConfiguration, d=self.plain_session.get(
+                OpenIDConfiguration.oidc_configuration_url(self.issuer_url)).json())
 
         # Check whether the scopes requested are in the supported scopes from the config
         self.scopes = requested_scopes
@@ -357,14 +376,15 @@ class FAPISession(AuthBase):
         return jwt.encode(d, secret, algorithm='HS256')
 
     @staticmethod
-    def from_jwt(encoded_jwt: str, secret: str) -> 'FAPISession':
+    def from_jwt(encoded_jwt: str, secret: str, openid_configuration=None) -> 'FAPISession':
         d = jwt.decode(encoded_jwt, secret, algorithms=['HS256'])
         LOG.debug(f'restoring from jwt {d}')
         fapi = FAPISession(client_id=d['client_id'],
                            issuer_url=d['issuer_url'],
                            requested_scopes=d['scopes'],
                            private_key=d['private_key'],
-                           certificate=d['certificate']
+                           certificate=d['certificate'],
+                           openid_configuration=openid_configuration
                            )
         if 'token' in d:
             fapi._token = d['token']
@@ -392,13 +412,15 @@ class FAPISession(AuthBase):
     def introspection_response(self) -> Dict:
         """
         Introspect on our own token, useful to see what the resource server will see when it asks
-        about this client.
+        about this client. Fetches once then caches
         """
-        response = self.plain_session.post(url=self.openid_configuration.introspection_endpoint,
-                                           data={'token': self.access_token,
-                                                 'client_id': self.client_id})
-        response.raise_for_status()
-        return response.json()
+        if self._introspection_response is None:
+            response = self.plain_session.post(url=self.openid_configuration.introspection_endpoint,
+                                               data={'token': self.access_token,
+                                                     'client_id': self.client_id})
+            response.raise_for_status()
+            self._introspection_response = response.json()
+        return self._introspection_response
 
     def _get_token(self) -> str:
         """
@@ -747,6 +769,7 @@ class OpenIDConfiguration:
     authorization_endpoint: str
     scopes_supported: List[str]
     grant_types_supported: List[str]
+    jwks_uri: str
 
     @staticmethod
     def oidc_configuration_url(issuer_url: str):
@@ -846,6 +869,46 @@ class RaidiamDirectory:
     def __init__(self, fapi: FAPISession, base_url: str = 'https://matls-dirapi.directory.energydata.org.uk/'):
         self.fapi = fapi
         self.base_url = base_url
+        self._jwks_uri = None
+        self._ss_id = None
+
+    @property
+    def self_org_id(self) -> str:
+        """
+        Introspect on our own token to get the org ID of the org to which the token was issued
+        """
+        return self.fapi.introspection_response['organisation_id']
+
+    @property
+    def self_ss_id(self) -> str:
+        """
+        Introspect on our own token to get the software statement ID corresponding to our internal client ID,
+        caches the value as this cannot change and we have to traverse the directory model to find it.
+        """
+        if self._ss_id is None:
+            for ss in self.software_statements(org_id=self.self_org_id):
+                if ss.client_id is not None and ss.client_id == self.fapi.client_id:
+                    self._ss_id = ss.software_statement_id
+                    break
+        return self._ss_id
+
+    def get_ssa_claims(self, org_id: str, ss_id: str) -> Dict:
+        """
+        Retrieves the SSA claims (currently does not perform signature verification)
+
+        :param org_id:
+            organisation ID
+        :param ss_id:
+            software statement ID
+        :return:
+            dict of claims in the SSA
+        """
+        ssa_response = self.fapi.session.get(
+            f'{self.base_url}organisations/{org_id}/softwarestatements/{ss_id}/assertion')
+        ssa_response.raise_for_status()
+        encoded_jwt = ssa_response.text
+        decoded_jwt = jwt.decode(jwt=encoded_jwt, options={"verify_signature": False})
+        return decoded_jwt
 
     def update_client_metadata(self, org_id: str, client_metadata: dict) -> bool:
         """
