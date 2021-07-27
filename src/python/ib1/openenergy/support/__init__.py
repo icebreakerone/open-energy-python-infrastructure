@@ -1,9 +1,12 @@
 import base64
 import email.utils
+import hashlib
 import http.client
 import inspect
 import json
 import logging
+import secrets
+import string
 import urllib.parse
 import uuid
 from dataclasses import dataclass
@@ -43,6 +46,250 @@ def httpclient_logging_patch(level=logging.DEBUG):
     http.client.HTTPConnection.debuglevel = 1
 
 
+def code_verifier(length: int = 128):
+    """
+    Return a cryptographically random string as specified in RFC7636 section 4.1
+
+    See https://datatracker.ietf.org/doc/html/rfc7636#section-4.1
+
+    :param length:
+        length of the generated string, minimum 43, maximum 128. Defaults to 128
+    :return:
+    """
+    vocab = string.ascii_letters + '-._~0123456789'
+    return ''.join([secrets.choice(vocab) for _ in range(length)])
+
+
+class CodeAuthMethod:
+    """
+    Additional auth logic passed to the FAPISession to enable code grant handling. Handles PKCE (RFC7636)
+    """
+
+    def __init__(self, redirect_uri: str, client_id: str, issuer_uri: str):
+        """
+        Create a new code auth method with empty state, this needs to have a code created before use
+
+        :param redirect_uri:
+            The redirect back to the login callback
+        :param client_id:
+            Client ID, used for validation of response JWT
+        :param issuer_uri:
+            Issuer URI, used for validation of response JWT
+        """
+        self.redirect_uri = redirect_uri
+        self.client_id = client_id
+        self._code = None
+        self._refresh_token = None
+        # RFC7636 logic (OAuth PKCE)
+        self._verifier = code_verifier()
+        self._code_challenge = CodeAuthMethod.code_challenge(self._verifier)
+        # State, re-use the verifier logic here because why not
+        self._state = code_verifier()
+        self.issuer_uri = issuer_uri
+
+    def as_jwt(self, secret: str) -> str:
+        """
+        Serialise the state of this code auth method to a JWT, encoding with the supplied symmetric key
+
+        :param secret:
+            Symmetric key used to encode the JWT
+        :returns:
+            Serialised JWT string represnting this object
+        """
+        d = {
+            'redirect_uri': self.redirect_uri,
+            'client_id': self.client_id,
+            'state': self._state,
+            'verifier': self._verifier,
+            'code_challenge': self._code_challenge,
+            'issuer_uri': self.issuer_uri
+        }
+        if self._code:
+            d['code'] = self._code
+        if self._refresh_token:
+            d['refresh_token'] = self._refresh_token
+        return jwt.encode(d, secret, algorithm='HS256')
+
+    @property
+    def state(self):
+        return self._state
+
+    def invalidate_state(self):
+        self._state = code_verifier()
+
+    @staticmethod
+    def from_jwt(encoded_jwt: str, secret: str) -> 'CodeAuthMethod':
+        """
+        Deserialise the supplied JWT, as a string, into a CodeAuthMethod, decoding with the supplied symmetric key
+
+        :param encoded_jwt:
+            String containing a JWT
+        :param secret:
+            Symmetric key used to decode the JWT
+        :returns:
+            Deserialised instance of `CodeAuthMethod`
+        """
+        d = jwt.decode(encoded_jwt, secret, algorithms=['HS256'])
+        code_auth = CodeAuthMethod(redirect_uri=d['redirect_uri'],
+                                   client_id=d['client_id'],
+                                   issuer_uri=d['issuer_uri'])
+        code_auth._state = d['state']
+        code_auth._verifier = d['verifier']
+        code_auth._code_challenge = d['code_challenge']
+        if 'code' in d:
+            code_auth._code = d['code']
+        if 'refresh_token' in d:
+            code_auth._refresh_token = d['refresh_token']
+        return code_auth
+
+    def get_auth_uri(self, scopes: List[str], auth_uri: str):
+        """
+        Build an appropriate URI for the auth endpoint, including the necessary parameters
+
+        :param scopes:
+            Scopes to request, list of strings
+        :param auth_uri:
+            Base URI of the auth endpoint, query parameters will be added to this
+        :return:
+            URI of the auth endpoint with appropriate query parameters
+        """
+        query_data = {'client_id': self.client_id,
+                      'redirect_uri': self.redirect_uri,
+                      'scope': ' '.join(scopes or []),
+                      'state': self._state,
+                      'prompt': 'consent',
+                      'response_mode': 'fragment.jwt',
+                      'response_type': 'code',
+                      'code_challenge': self._code_challenge,
+                      'code_challenge_method': 'S256'}
+        url_parts = list(urllib.parse.urlparse(auth_uri))
+        url_parts[4] = urllib.parse.urlencode(query_data, quote_via=urllib.parse.quote)
+        LOG.debug(query_data)
+        return urllib.parse.urlunparse(url_parts)
+
+    @property
+    def code(self):
+        return self._code
+
+    @code.setter
+    def code(self, value):
+        if self._code is None:
+            self._code = value
+        else:
+            raise ValueError(f'attempt to set code, but code is already defined')
+
+    @staticmethod
+    def code_challenge(verifier: str):
+        """
+        Create a code challenge based on a code verifier, as defined by RFC7636 section 4.2
+
+        See https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
+
+        :param verifier:
+            code verifier string
+        :return:
+            code challenge string
+        """
+        m = hashlib.sha256()
+        m.update(verifier.encode(encoding='ASCII'))
+        hash_bytes = m.digest()
+        return base64.urlsafe_b64encode(hash_bytes).decode(encoding='ASCII').replace('=', '')
+
+    def get_token(self, session, client_id, scopes, openid_configuration):
+        """
+        Method to either use a refresh token to obtain an access token (if we have one) or
+        to use an auth code to get the access / refresh token pair if we don't
+        """
+        if self._code is None:
+            raise ValueError(f'must set code before attempting to acquire access token for client {client_id}')
+
+        def make_request(token_request):
+            LOG.debug(f'Attempting to acquire authorization_code token {token_request}')
+            response = session.post(url=openid_configuration.token_endpoint,
+                                    data=token_request)
+            if response.status_code == 200:
+                LOG.debug('Acquired authorization_code token')
+                j = response.json()
+                if 'refresh_token' in j:
+                    LOG.debug(f'Acquired refresh token')
+                    self._refresh_token = j['refresh_token']
+                return j
+            LOG.error(f'Unable to acquire authorization_code token : {response.json()}')
+            response.raise_for_status()
+
+        if self._refresh_token is None:
+            # No refresh token, use the code
+            return make_request(token_request={'client_id': client_id,
+                                               'scope': scopes,
+                                               'grant_type': 'authorization_code',
+                                               'code': self._code,
+                                               'code_verifier': self._verifier,
+                                               'redirect_uri': self.redirect_uri})
+        else:
+            # Use the refresh token, potentially updating it
+            return make_request(token_request={'client_id': client_id,
+                                               'scope': scopes,
+                                               'grant_type': 'refresh_token',
+                                               'refresh_token': self._refresh_token})
+
+
+class JWTBearerAuthMethod:
+    """
+    Additional auth logic passed to the FAPISession to enable jwt-bearer tokens
+    """
+
+    def __init__(self, jwt_bearer_email: str, signing_private_key: str, signing_key_password: str = None):
+        """
+        :param jwt_bearer_email:
+            This should be the email address of a user to impersonate. This will then
+            switch the client to jwt-bearer grant type. This will only work if the corresponding client has been
+            provisioned appropriately in the directory itself, otherwise this will fail. It should only ever be used
+            by our internal Open Energy clients needing to write to the directory, and can be entirely ignored by other
+            users.
+        :param signing_private_key:
+            Path to private key set as a signing key in the directory.
+        :param signing_key_password:
+            If specified, will be used as the password when loading the private signing key
+        """
+        self.jwt_bearer_email = jwt_bearer_email
+        with open(signing_private_key, 'rb') as key_file:
+            self.signing_private_key = serialization.load_pem_private_key(data=key_file.read(),
+                                                                          backend=default_backend(),
+                                                                          password=signing_key_password)
+
+    def get_token(self, session, client_id, scopes, openid_configuration):
+        """
+        Method to get a token using jwt-bearer grant
+
+        :return:
+            A dict containing the response from the token endpoint
+        :raises:
+            HTTPError if the call doesn't return status 200
+        """
+        if 'urn:ietf:params:oauth:grant-type:jwt-bearer' not in openid_configuration.grant_types_supported:
+            raise ValueError(f'Client {client_id} does not support jwt-bearer tokens')
+        now = int(time())
+        data = {'client_id': client_id,
+                'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                'scope': scopes,
+                'assertion': jwt.encode({'iss': client_id,
+                                         'sub': self.jwt_bearer_email,
+                                         'aud': openid_configuration.token_endpoint,
+                                         'exp': now + 60 * 1,
+                                         'iat': now,
+                                         'jti': str(uuid.uuid4())},
+                                        key=self.signing_private_key,
+                                        algorithm='PS256')}
+        LOG.debug(f'Attempting to acquire jwt-bearer token for {self.jwt_bearer_email} : {data}')
+        response = session.post(url=openid_configuration.token_endpoint,
+                                data=data)
+        if response.status_code == 200:
+            LOG.debug(f'Acquired jwt-bearer token for {self.jwt_bearer_email}')
+            return response.json()
+        LOG.error(f'Unable to acquire jwt-bearer token : {response.json()}')
+        response.raise_for_status()
+
+
 class FAPISession(AuthBase):
     """
     Similar to a requests session, but handles management of a single access token. It acquires the token when required,
@@ -51,8 +298,8 @@ class FAPISession(AuthBase):
     Can also be used as a requests authenticator
     """
 
-    def __init__(self, client_id, issuer_url, requested_scopes, private_key, certificate, jwt_bearer_email=None,
-                 signing_private_key=None, retries=3):
+    def __init__(self, client_id, issuer_url, requested_scopes, private_key, certificate, retries=3, auth_method=None,
+                 openid_configuration=None):
         """
         Build a new FAPI session. This doesn't immediately trigger any requests to the token
         endpoint, these are made when the session is accessed, and only if needed.
@@ -66,20 +313,14 @@ class FAPISession(AuthBase):
             Location of private key used for MTLS, and to sign
         :param certificate:
             Location of certificate used for MTLS
-        :param jwt_bearer_email:
-            Defaults to None. If specified, this should be the email address of a user to impersonate. This will then
-            switch the client to jwt-bearer grant type. This will only work if the corresponding client has been
-            provisioned appropriately in the directory itself, otherwise this will fail. It should only ever be used
-            by our internal Open Energy clients needing to write to the directory, and can be entirely ignored by other
-            users.
-        :param signing_private_key:
-            Default to None, must be provided if jwt_bearer_email is set. Path to private key set as a signing key
-            in the directory.
         :param retries:
             Number of retries that will be used when accessing GET endpoints through the underlying plain and FAPI
             enabled sessions within this object. Defaults to 3, set to 0 to disable retries. Requests which respond
             with statii in [429, 502, 503, 504] will be retried, exponential back-off is applied to avoid overwhelming
             resources.
+        :param auth_method:
+            If not specified, the FAPISession will use a client_credentials, otherwise the supplied object will be used
+            to acquire new tokens. Currently `CodeAuthMethod` and `JWTBearerAuthMethod` are implemented.
         """
         self.client_id = client_id
         self._session = requests.Session()
@@ -87,7 +328,10 @@ class FAPISession(AuthBase):
         self._session.auth = self
         self.plain_session = requests.Session()
         self.plain_session.cert = certificate, private_key
+        self.issuer_url = issuer_url
+        self._introspection_response = None
 
+        # Configure retries
         retry_strategy = Retry(total=retries,
                                status_forcelist=[429, 502, 503, 504],
                                method_whitelist=["HEAD", "GET", "OPTIONS"],
@@ -98,32 +342,53 @@ class FAPISession(AuthBase):
         self.plain_session.mount('https://', adapter)
         self.plain_session.mount('http://', adapter)
 
-        self.openid_configuration = build(cls=OpenIDConfiguration, d=self.plain_session.get(
-            OpenIDConfiguration.oidc_configuration_url(issuer_url)).json())
-
+        # Holds the current token state, initially None
         self._token = None
-        self.scopes = requested_scopes
+
+        # If not already specified, retrieve the openid configuration
+        if openid_configuration:
+            self.openid_configuration = openid_configuration
+        else:
+            self.openid_configuration = build(cls=OpenIDConfiguration, d=self.plain_session.get(
+                OpenIDConfiguration.oidc_configuration_url(self.issuer_url)).json())
+
         # Check whether the scopes requested are in the supported scopes from the config
+        self.scopes = requested_scopes
         for scope in self.scopes.split(' '):
             if scope not in self.openid_configuration.scopes_supported:
                 LOG.warning(f'Requested scope "{scope}" not in supported scopes.')
-        # If a signing private key location is provided, load the key from it
-        if signing_private_key:
-            with open(signing_private_key, 'rb') as key_file:
-                self._signing_private_key = serialization.load_pem_private_key(data=key_file.read(),
-                                                                               backend=default_backend(),
-                                                                               password=None)
-        else:
-            self._signing_private_key = None
-        # Setting this means we're going to try creating jwt-bearer assertion tokens
-        self._jwt_bearer_email = jwt_bearer_email
-        # If jwt bearer email is set we MUST also have a signing key
-        if self._jwt_bearer_email is not None and self._signing_private_key is None:
-            raise ValueError('Signing private key must be provided if JST bearer email set!')
-        # If jwt bearer email is set then check the client supports this scope
-        if self._jwt_bearer_email and 'urn:ietf:params:oauth:grant-type:jwt-bearer' \
-                not in self.openid_configuration.grant_types_supported:
-            raise ValueError(f'Client {self.client_id} does not support jwt-bearer tokens')
+
+        # Auth-meta specifies alternative token acquisition algorithms, in our case these are used
+        # for code and jwt-bearer grants when needed, if not provided we default to client_credentials
+        self.auth_method = auth_method
+
+    def as_jwt(self, secret: str) -> str:
+        d = {
+            'client_id': self.client_id,
+            'scopes': self.scopes,
+            'private_key': self._session.cert[1],
+            'certificate': self._session.cert[0],
+            'issuer_url': self.issuer_url
+        }
+        if self._token:
+            d['token'] = self._token
+        LOG.debug(f'serialising to jwt {d}')
+        return jwt.encode(d, secret, algorithm='HS256')
+
+    @staticmethod
+    def from_jwt(encoded_jwt: str, secret: str, openid_configuration=None) -> 'FAPISession':
+        d = jwt.decode(encoded_jwt, secret, algorithms=['HS256'])
+        LOG.debug(f'restoring from jwt {d}')
+        fapi = FAPISession(client_id=d['client_id'],
+                           issuer_url=d['issuer_url'],
+                           requested_scopes=d['scopes'],
+                           private_key=d['private_key'],
+                           certificate=d['certificate'],
+                           openid_configuration=openid_configuration
+                           )
+        if 'token' in d:
+            fapi._token = d['token']
+        return fapi
 
     @property
     def session(self):
@@ -147,31 +412,36 @@ class FAPISession(AuthBase):
     def introspection_response(self) -> Dict:
         """
         Introspect on our own token, useful to see what the resource server will see when it asks
-        about this client.
+        about this client. Fetches once then caches
         """
-        response = self.plain_session.post(url=self.openid_configuration.introspection_endpoint,
-                                           data={'token': self.access_token,
-                                                 'client_id': self.client_id})
-        response.raise_for_status()
-        return response.json()
+        if self._introspection_response is None:
+            response = self.plain_session.post(url=self.openid_configuration.introspection_endpoint,
+                                               data={'token': self.access_token,
+                                                     'client_id': self.client_id})
+            response.raise_for_status()
+            self._introspection_response = response.json()
+        return self._introspection_response
 
     def _get_token(self) -> str:
         """
         Internal method to fetch a new bearer token if necessary and return it. A new token is
-        obtained if there either isn't one, or we have one but it's expired. If a user email was
-        supplied this will attempt to use the jwt-bearer grant type, otherwise it'll use client-credentials
+        obtained if there either isn't one, or we have one but it's expired. If an alternative
+        auth meta object was provided this will be used to acquire the token, otherwise the default
+        is to use a client_credentials grant.
 
         :return:
             String representation of the access token
         :raises requests.HTTPError:
             if the token acquisition fails for any reason, this method raises the corresponding
             HTTPError from the requests library
-
         """
         now = time()
         if self._token is None or self._token['expiry_time'] <= now:
-            if self._jwt_bearer_email:
-                d = self._get_jwt_bearer_token()
+            if self.auth_method:
+                d = self.auth_method.get_token(session=self.plain_session,
+                                               client_id=self.client_id,
+                                               scopes=self.scopes,
+                                               openid_configuration=self.openid_configuration)
             else:
                 d = self._get_client_credentials_grant_token()
 
@@ -206,36 +476,6 @@ class FAPISession(AuthBase):
             LOG.debug('Acquired client_credentials token')
             return response.json()
         LOG.error(f'Unable to acquire client_credentials token : {response.json()}')
-        response.raise_for_status()
-
-    def _get_jwt_bearer_token(self) -> Dict:
-        """
-        Method to get a token using jwt-bearer grant
-
-        :return:
-            A dict containing the response from the token endpoint
-        :raises:
-            HTTPError if the call doesn't return status 200
-        """
-        now = int(time())
-        data = {'client_id': self.client_id,
-                'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                'scope': self.scopes,
-                'assertion': jwt.encode({'iss': self.client_id,
-                                         'sub': self._jwt_bearer_email,
-                                         'aud': self.openid_configuration.token_endpoint,
-                                         'exp': now + 60 * 1,
-                                         'iat': now,
-                                         'jti': str(uuid.uuid4())},
-                                        key=self._signing_private_key,
-                                        algorithm='PS256')}
-        LOG.debug(f'Attempting to acquire jwt-bearer token for {self._jwt_bearer_email} : {data}')
-        response = self.plain_session.post(url=self.openid_configuration.token_endpoint,
-                                           data=data)
-        if response.status_code == 200:
-            LOG.debug(f'Acquired jwt-bearer token for {self._jwt_bearer_email}')
-            return response.json()
-        LOG.error(f'Unable to acquire jwt-bearer token : {response.json()}')
         response.raise_for_status()
 
     def __call__(self, r):
@@ -526,8 +766,10 @@ class OpenIDConfiguration:
     token_endpoint: str
     introspection_endpoint: str
     issuer: str
+    authorization_endpoint: str
     scopes_supported: List[str]
     grant_types_supported: List[str]
+    jwks_uri: str
 
     @staticmethod
     def oidc_configuration_url(issuer_url: str):
@@ -607,9 +849,15 @@ def build(d: Dict, cls: Type[D], date_format_string='%Y-%m-%dT%H:%M:%S.%fZ') -> 
         return value
 
     known_fields = list(cls.__dataclass_fields__.keys())
-    return cls(**{camelcase_to_python(key): map_field(camelcase_to_python(key), d[key])
-                  for key in d
-                  if camelcase_to_python(key) in known_fields})
+    try:
+        return cls(**{camelcase_to_python(key): map_field(camelcase_to_python(key), d[key])
+                      for key in d
+                      if camelcase_to_python(key) in known_fields})
+    except TypeError as te:
+        # Handle this for logging, it's not recoverable, indicates that the data class and
+        # the supplied JSON don't match in some fashion
+        LOG.error(f'unable to construct instance of {cls} from {d}')
+        raise te
 
 
 class RaidiamDirectory:
@@ -621,6 +869,46 @@ class RaidiamDirectory:
     def __init__(self, fapi: FAPISession, base_url: str = 'https://matls-dirapi.directory.energydata.org.uk/'):
         self.fapi = fapi
         self.base_url = base_url
+        self._jwks_uri = None
+        self._ss_id = None
+
+    @property
+    def self_org_id(self) -> str:
+        """
+        Introspect on our own token to get the org ID of the org to which the token was issued
+        """
+        return self.fapi.introspection_response['organisation_id']
+
+    @property
+    def self_ss_id(self) -> str:
+        """
+        Introspect on our own token to get the software statement ID corresponding to our internal client ID,
+        caches the value as this cannot change and we have to traverse the directory model to find it.
+        """
+        if self._ss_id is None:
+            for ss in self.software_statements(org_id=self.self_org_id):
+                if ss.client_id is not None and ss.client_id == self.fapi.client_id:
+                    self._ss_id = ss.software_statement_id
+                    break
+        return self._ss_id
+
+    def get_ssa_claims(self, org_id: str, ss_id: str) -> Dict:
+        """
+        Retrieves the SSA claims (currently does not perform signature verification)
+
+        :param org_id:
+            organisation ID
+        :param ss_id:
+            software statement ID
+        :return:
+            dict of claims in the SSA
+        """
+        ssa_response = self.fapi.session.get(
+            f'{self.base_url}organisations/{org_id}/softwarestatements/{ss_id}/assertion')
+        ssa_response.raise_for_status()
+        encoded_jwt = ssa_response.text
+        decoded_jwt = jwt.decode(jwt=encoded_jwt, options={"verify_signature": False})
+        return decoded_jwt
 
     def update_client_metadata(self, org_id: str, client_metadata: dict) -> bool:
         """
@@ -652,6 +940,7 @@ class RaidiamDirectory:
                                   'RedirectUri', 'TermsOfServiceUri', 'Version', 'AdditionalSoftwareMetadata']}
                 if 'RedirectUri' not in filtered or len(filtered['RedirectUri']) == 0:
                     filtered['RedirectUri'] = ['https://fakeuri.example.org']
+                filtered['RedirectUri'] = ['https://127.0.0.1:5001/login/callback']
                 filtered['AdditionalSoftwareMetadata'] = json.dumps(client_metadata)
                 response = self.fapi.session.put(url=f'{u}/{quote_plus(ss_id)}', json=filtered)
                 response.raise_for_status()

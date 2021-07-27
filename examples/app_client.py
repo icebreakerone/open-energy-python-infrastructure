@@ -15,5 +15,9 @@ f = FAPISession(client_id='kZuAsn7UYZ98WWh29hDPf',
                 private_key='/home/tom/Desktop/certs/a.key',
                 certificate='/home/tom/Desktop/certs/a.pem')
 
+print(f.openid_configuration.jwks_uri)
+print(f.introspection_response)
+print(f.plain_session.get(f'{f.openid_configuration.jwks_uri}').json())
+
 # Call the server running on localhost, this assumes the server in 'app.py' is running
-f.session.get(url='https://127.0.0.1:5000')
+#f.session.get(url='https://127.0.0.1:5000')
