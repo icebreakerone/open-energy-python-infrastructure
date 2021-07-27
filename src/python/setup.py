@@ -2,7 +2,7 @@ from setuptools import setup, find_namespace_packages
 
 setup(
     name='ib1.openenergy.support',
-    version='0.2.13',
+    version='0.2.14',
     author='Tom Oinn',
     author_email='tom.oinn@icebreakerone.org',
     url='https://github.com/icebreakerone/open-energy-python-infrastructure',

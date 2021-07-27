@@ -55,7 +55,7 @@ class Metadata:
         def require_dict(keyname: str):
             if keyname not in d:
                 raise ValueError(f'no {keyname} section defined')
-            result = d['keyname']
+            result = d[keyname]
             if not isinstance(result, dict):
                 raise ValueError(f'{keyname} does not contain nested content')
             return result
