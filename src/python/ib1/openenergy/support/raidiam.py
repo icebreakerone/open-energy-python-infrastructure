@@ -27,7 +27,6 @@ class Organisation:
 @dataclass(frozen=True)
 class SoftwareStatement:
     status: str
-    client_id: str
     client_name: str
     environment: str
     organisation_id: str
@@ -42,6 +41,7 @@ class SoftwareStatement:
     terms_of_service_uri: str = ''
     version: int = 0
     locked: bool = ''
+    client_id: str = None
     redirect_url: List[str] = field(default_factory=list)
 
 
