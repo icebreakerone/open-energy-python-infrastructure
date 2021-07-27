@@ -52,17 +52,17 @@ class Metadata:
                                      DC: ['title', 'description'],
                                      OE: ['sensitivityClass', 'dataSetStableIdentifier']})
 
-        if 'transport' not in d:
-            raise ValueError('no transport item defined')
-        self.transport = d['transport']
+        def require_dict(keyname: str):
+            if keyname not in d:
+                raise ValueError(f'no {keyname} section defined')
+            result = d['keyname']
+            if not isinstance(result, dict):
+                raise ValueError(f'{keyname} does not contain nested content')
+            return result
 
-        if 'access' not in d:
-            raise ValueError('no access item defined')
-        self.access = d['access']
-
-        if 'representation' not in d:
-            raise ValueError('no representation item defined')
-        self.representation = d['representation']
+        self.transport = require_dict('transport')
+        self.access = require_dict('access')
+        self.representation = require_dict('representation')
 
     @property
     def mime(self) -> str:
@@ -157,6 +157,7 @@ class JSONLDContainer:
                     fterm = f'{ns}{term}'
                     if fterm not in self.ld:
                         yield fterm
+
         missing = list(missing_values())
         if missing:
             raise ValueError(f'container is missing required values {", ".join(missing)}')

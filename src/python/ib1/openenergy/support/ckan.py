@@ -209,7 +209,7 @@ def update_or_create_ckan_record(org: Organisation,
                     **ckan_dict_from_metadata(
                         data_set,
                         description_template=description_template),
-                    resources=resources,
+                    resources=[],
                     owner_org=org.organisation_id,
                     return_package_dict=True)
                 for resource in resources:
