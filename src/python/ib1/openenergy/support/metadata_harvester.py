@@ -9,7 +9,7 @@ from typing import List, Dict, Tuple, Generator, Optional
 import jinja2
 from jinja2 import TemplateNotFound, Template
 
-from ib1.openenergy.support import RaidiamDirectory
+from ib1.openenergy.support import RaidiamDirectory, httpclient_logging_patch
 from ib1.openenergy.support.ckan import update_or_create_ckan_record, ckan_dataset_name, ckan_dict_from_metadata
 from ib1.openenergy.support.directory_tools import get_directory_client
 from ib1.openenergy.support.metadata import Metadata, load_metadata, MetadataLoadResult
@@ -29,7 +29,13 @@ def configure_logging(options):
             return logging.WARNING
         return logging.ERROR
 
-    logging.basicConfig(level=level())
+    # Enable logging for httpclient at debug level
+    httpclient_logging_patch(level=logging.DEBUG)
+
+    # Configure logging with timestamps etc
+    logging.basicConfig(level=level(),
+                        format='%(asctime)s %(levelname)-8s %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
 
 
 def get_template(options) -> Optional[Template]:
