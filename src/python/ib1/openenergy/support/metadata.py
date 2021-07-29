@@ -234,6 +234,7 @@ class MetadataLoadResult:
     exception: Exception = None
     metadata: List[Metadata] = field(default_factory=list)
     server: AuthorisationServer = None
+    metadata_records_found: int = 0
 
     def __repr__(self):
         from pprint import pformat
@@ -365,13 +366,15 @@ def load_metadata(server: AuthorisationServer = None, url: str = None, file: str
                         yield Metadata(item)
                     except ValueError as ve:
                         errors.append(f'Unable to parse metadata item {index} : {str(ve)}')
+
             metadata_items = list(build_metadata())
             if errors:
                 raise ValueError('. '.join(errors))
-            return MetadataLoadResult(location=location, metadata=metadata_items, server=server)
+            return MetadataLoadResult(location=location, metadata=metadata_items, server=server,
+                                      metadata_records_found=len(result))
         except ValueError as ve:
             return MetadataLoadResult(location=location, error='invalid metadata description', exception=ve,
-                                      server=server)
+                                      server=server, metadata_records_found=len(result))
 
     # No list item, this is a failure
     return MetadataLoadResult(location=location, error='metadata does not contain a list as top level item',

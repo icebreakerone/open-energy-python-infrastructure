@@ -166,6 +166,8 @@ def build_report_csv(org_to_reports: Dict[Organisation, List[MetadataLoadResult]
             'org_id': o.organisation_id,
             'org_name': o.organisation_name,
             'success': rep.error is None,
+            'records_found': rep.metadata_records_found,
+            'records_imported': len(rep.metadata),
             'auth_server_id': rep.server.authorisation_server_id,
             'metadata_location': rep.location,
             'error': error_string,
@@ -174,7 +176,8 @@ def build_report_csv(org_to_reports: Dict[Organisation, List[MetadataLoadResult]
         }
 
     si = StringIO()
-    cw = csv.DictWriter(si, fieldnames=['org_id', 'org_name', 'success', 'auth_server_id', 'metadata_location', 'error',
+    cw = csv.DictWriter(si, fieldnames=['org_id', 'org_name', 'success', 'records_found', 'records_imported',
+                                        'auth_server_id', 'metadata_location', 'error',
                                         'ckan_dataset_name', 'ckan_dataset_title'], dialect=dialect)
     cw.writeheader()
     for org, reports in org_to_reports.items():
