@@ -43,26 +43,53 @@ class Metadata:
         :raises ValueError:
             if the structure of the dict is invalid in some way
         """
+        errors = []
+
         if 'content' not in d:
-            raise ValueError('no content item defined')
-        # Attempt to parse the JSON-LD content
-        self.content = JSONLDContainer(d['content'])
-        # Complain if we don't have the necessary mandatory values present in the content section
-        self.content.require_values({DCAT: ['version', 'versionNotes'],
-                                     DC: ['title', 'description'],
-                                     OE: ['sensitivityClass', 'dataSetStableIdentifier']})
+            errors.append('no content section defined')
+        else:
+            # Attempt to parse the JSON-LD content
+            try:
+                self.content = JSONLDContainer(d['content'])
+                # Complain if we don't have the necessary mandatory values present in the content section
+                self.content.require_values({DCAT: ['version', 'versionNotes'],
+                                             DC: ['title', 'description'],
+                                             OE: ['sensitivityClass', 'dataSetStableIdentifier']})
+            except ValueError as ve:
+                errors.append(f'failed JSON-LD validation with error {str(ve)}')
 
-        def require_dict(keyname: str):
+        def require_dict(keyname: str, error_list):
             if keyname not in d:
-                raise ValueError(f'no {keyname} section defined')
-            result = d[keyname]
-            if not isinstance(result, dict):
-                raise ValueError(f'{keyname} does not contain nested content')
-            return result
+                error_list.append(f'no {keyname} section defined')
+            else:
+                result = d[keyname]
+                if not isinstance(result, dict):
+                    error_list.append(f'{keyname} does not contain nested dict content, value was "{d[keyname]}"')
+                else:
+                    return result
 
-        self.transport = require_dict('transport')
-        self.access = require_dict('access')
-        self.representation = require_dict('representation')
+        def require_list(keyname: str, error_list):
+            if keyname not in d:
+                error_list.append(f'no {keyname} section defined')
+            else:
+                result = d[keyname]
+                if not isinstance(result, list):
+                    error_list.append(f'{keyname} does not contain nested list content, value was "{d[keyname]}"')
+                else:
+                    return result
+
+        self.transport = require_dict('transport', errors)
+        self.access = require_list('access', errors)
+        self.representation = require_dict('representation', errors)
+
+        # Check for invalid top level tags
+        for key in d:
+            if key not in ['content', 'access', 'transport', 'representation']:
+                errors.append(f'unknown top level key "{key}" in metadata file')
+
+        # If we have errors, raise ValueError with all the error messages
+        if errors:
+            raise ValueError('; '.join(errors))
 
     @property
     def mime(self) -> str:
@@ -330,16 +357,18 @@ def load_metadata(server: AuthorisationServer = None, url: str = None, file: str
 
     if isinstance(result, list):
         LOG.debug(f'fetched and parsed location={location}, contains {len(result)} items')
-
+        errors = []
         try:
             def build_metadata():
                 for index, item in enumerate(result):
                     try:
                         yield Metadata(item)
                     except ValueError as ve:
-                        raise ValueError(f'Unable to parse metadata item {index} : {str(ve)}') from ve
-
-            return MetadataLoadResult(location=location, metadata=list(build_metadata()), server=server)
+                        errors.append(f'Unable to parse metadata item {index} : {str(ve)}')
+            metadata_items = list(build_metadata())
+            if errors:
+                raise ValueError('. '.join(errors))
+            return MetadataLoadResult(location=location, metadata=metadata_items, server=server)
         except ValueError as ve:
             return MetadataLoadResult(location=location, error='invalid metadata description', exception=ve,
                                       server=server)
