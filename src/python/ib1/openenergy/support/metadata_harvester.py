@@ -58,12 +58,14 @@ def check_metadata():
                          'individual metadata file locations for compatibility with the harvester.'
     parser.add_argument('-l', '--log_level', type=str, help='log level, defaults to ERROR', default='ERROR',
                         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'])
-    parser.add_argument('-u', '--url', type=str, help='url for metadata file', required=True)
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-u', '--url', type=str, help='url for metadata file', default=None)
+    group.add_argument('-f', '--file', type=str, help='file location for metadata file', default=None)
     parser.add_argument('-t', '--template', type=str, help='location for a Jinja2 template on disk to use',
                         default=None, required=False)
     options = parser.parse_args()
     configure_logging(options)
-    result = load_metadata(url=options.url)
+    result = load_metadata(url=options.url, file=options.file)
     print(f'Metadata load result [{"error" if result.error else "success"}]:')
     print(result)
 
@@ -153,13 +155,14 @@ def build_report_csv(org_to_reports: Dict[Organisation, List[MetadataLoadResult]
         :return:
             dict of items to add to a single row in the report
         """
+        error_string = f'{rep.error} : {str(rep.exception)}' if rep.error else ''
         return {
             'org_id': o.organisation_id,
             'org_name': o.organisation_name,
             'success': rep.error is None,
             'auth_server_id': rep.server.authorisation_server_id,
             'metadata_location': rep.location,
-            'error': rep.error,
+            'error': error_string,
             'ckan_dataset_name': ckan_dataset_name(org=org, data_set=meta) if meta else '',
             'ckan_dataset_title': meta.title if meta else ''
         }
