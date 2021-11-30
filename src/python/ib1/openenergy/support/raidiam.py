@@ -8,7 +8,7 @@ class Organisation:
     organisation_id: str
     status: str
     organisation_name: str
-    created_on: datetime
+    #created_on: datetime
     legal_entity_name: str
     country_of_registration: str
     company_register: str
@@ -17,7 +17,7 @@ class Organisation:
     city: str
     postcode: str
     country: str
-    requires_participant_terms_and_conditions_signing: bool
+    #requires_participant_terms_and_conditions_signing: bool
     registration_id: str = ''
     address_line1: str = ''
     address_line2: str = ''
@@ -95,7 +95,7 @@ class OrganisationAuthorityDomainClaim:
 
 @dataclass(frozen=True)
 class OrganisationContact:
-    contact_id: str
+    #contact_id: str
     organisation_id: str
     contact_type: dict
     first_name: str
@@ -103,13 +103,13 @@ class OrganisationContact:
     department: str
     email_address: str
     phone_number: str
-    address_line1: str
-    address_line2: str
-    city: str
-    postcode: str
-    country: str
-    additional_information: str
-    pgp_public_key: str
+    #address_line1: str
+    #address_line2: str
+    #city: str
+    #postcode: str
+    #country: str
+    #additional_information: str
+    #pgp_public_key: str
 
 
 @dataclass(frozen=True)

@@ -959,7 +959,12 @@ class RaidiamDirectory:
         return self._resolve(entity_type=raidiam.AuthorisationServer,
                              url=f'{self.base_url}organisations/{quote_plus(org_id)}/authorisationservers')
 
-    def _resolve(self, entity_type, url, wrap=None) -> List:
+    def create_organisation(self, org_data=raidiam.Organisation):
+        return self._resolve(entity_type=raidiam.Organisation,
+                             url=f'{self.base_url}organisations',
+                             http_request_method='post')
+
+    def _resolve(self, entity_type, url, wrap=None, http_request_method='get') -> List:
         """
         Retrieve JSON and build entities
 
@@ -974,7 +979,13 @@ class RaidiamDirectory:
         """
         caller_name = inspect.getouterframes(inspect.currentframe())[1][3]
         try:
-            response = self.fapi.session.get(url=url)
+            if http_request_method == 'get':
+                response = self.fapi.session.get(url=url)
+            elif http_request_method == 'post':
+                response = self.fapi.session.post(url=url)
+            else:
+                raise f'http_request_method "{http_request_method}" unknown'
+
             try:
                 response.raise_for_status()
             except Exception as e:
