@@ -208,6 +208,9 @@ def update_or_create_ckan_record(org: Organisation,
                             existing_resources.pop(res_name)
                         else:
                             ckan.action.resource_create(**resource)
+                    # While we use package_update(), the block below deleting resources might be
+                    # unnecessary, but if we use package_patch() instead we will need it.  Before
+                    # deleting this, check it doesn't leave orphaned resources.
                     for obsolete_resource_name in existing_resources:
                         obsolete_resource = existing_resources[obsolete_resource_name]
                         ckan.action.resource_delete(id=obsolete_resource['id'])
