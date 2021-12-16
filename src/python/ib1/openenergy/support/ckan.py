@@ -188,18 +188,32 @@ def update_or_create_ckan_record(org: Organisation,
 
                 # Check whether the data package already exists in CKAN
                 try:
-                    ckan.action.package_show(id=dataset_id)
+                    existing_package = ckan.action.package_show(id=dataset_id)
                     LOG.info(f'data package id={dataset_id} already exists in CKAN, updating')
                     # Found existing package, use package update
                     result = ckan.action.package_update(name=dataset_id,
                                                         **ckan_dict_from_metadata(
                                                             data_set,
                                                             description_template=description_template),
-                                                        resources=[],
                                                         owner_org=org.organisation_id,
                                                         return_package_dict=True)
+                    existing_resources = { res['name']: res for res in existing_package['resources'] }
                     for resource in resources:
-                        ckan.action.resource_create(**resource)
+                        res_name = resource['name']
+                        if res_name in existing_resources:
+                            res_id = existing_resources[res_name]['id']
+                            # package_update() above removes any existing resources,
+                            # so create a new resource with the previously existing ID.
+                            ckan.action.resource_create(id=res_id, **resource)
+                            existing_resources.pop(res_name)
+                        else:
+                            ckan.action.resource_create(**resource)
+                    # While we use package_update(), the block below deleting resources might be
+                    # unnecessary, but if we use package_patch() instead we will need it.  Before
+                    # deleting this, check it doesn't leave orphaned resources.
+                    for obsolete_resource_name in existing_resources:
+                        obsolete_resource = existing_resources[obsolete_resource_name]
+                        ckan.action.resource_delete(id=obsolete_resource['id'])
                     yield result
                 except NotFound:
                     # Not found in CKAN, use package_create to build a new one
@@ -209,7 +223,6 @@ def update_or_create_ckan_record(org: Organisation,
                         **ckan_dict_from_metadata(
                             data_set,
                             description_template=description_template),
-                        resources=[],
                         owner_org=org.organisation_id,
                         return_package_dict=True)
                     for resource in resources:
