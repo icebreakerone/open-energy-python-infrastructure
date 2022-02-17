@@ -13,11 +13,11 @@ class Organisation:
     country_of_registration: str
     company_register: str
     registration_number: str
-    registered_name: str
     city: str
     postcode: str
     country: str
     requires_participant_terms_and_conditions_signing: bool
+    registered_name: str = ''
     registration_id: str = ''
     address_line1: str = ''
     address_line2: str = ''
