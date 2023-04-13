@@ -28,9 +28,9 @@ from requests.auth import AuthBase
 from requests.exceptions import RetryError
 from requests.packages.urllib3.util.retry import Retry
 
-import ib1.openenergy.support.raidiam as raidiam
+import icebreakerone.trust.raidiam as raidiam
 
-LOG = logging.getLogger('ib1.oe.support')
+LOG = logging.getLogger('icebreakerone.trust')
 
 
 def httpclient_logging_patch(level=logging.DEBUG):
@@ -529,7 +529,7 @@ def nginx_cert_parser():
     :return:
         A parsed x509 Certificate object, or None if no cert presented in the header
     """
-    log = logging.getLogger('ib1.oe.support.nginx_cert_parser')
+    log = logging.getLogger('icebreakerone.trust.nginx_cert_parser')
     try:
         cert_str = flask.request.headers['X-OE-CLIENT-CERT'].replace('\t', '')
         log.info(f'found cert in header \n{cert_str}')
@@ -554,7 +554,7 @@ class AccessTokenValidator:
     against an introspection endpoint for part 6.2.1.13
     """
 
-    LOG = logging.getLogger('ib1.oe.support.validator')
+    LOG = logging.getLogger('icebreakerone.trust.validator')
 
     def __init__(self, client_id: str, private_key: str, certificate: str,
                  issuer_url: str = 'https://matls-auth.directory.energydata.org.uk/',
@@ -863,7 +863,7 @@ def build(d: Dict, cls: Type[D], date_format_string='%Y-%m-%dT%H:%M:%S.%fZ') -> 
 class RaidiamDirectory:
     """
     Encapsulates access to the Raidiam Directory, currently just the read API. Parses responses and builds the
-    appropriate dataclasses from the `ib1.openenergy.support.raidiam` module.
+    appropriate dataclasses from the `icebreakerone.trust.raidiam` module.
     """
 
     def __init__(self, fapi: FAPISession, base_url: str = 'https://matls-dirapi.directory.energydata.org.uk/'):

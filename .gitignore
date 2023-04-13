@@ -129,3 +129,8 @@ dmypy.json
 .pyre/
 /src/docs/substitutions.txt
 /src/docs/generated_glossary.txt
+
+# Project specific
+certificates/*.csr
+certificates/*.key
+certificates/*.pem

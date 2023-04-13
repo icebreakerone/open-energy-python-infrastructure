@@ -1,4 +1,4 @@
-Python API : ib1.openenergy.support
+Python API : icebreakerone.trust
 ===================================
 
 Python docs and source for this package
@@ -6,7 +6,7 @@ Python docs and source for this package
 External APIs
 -------------
 
-.. automodule:: ib1.openenergy.support
+.. automodule:: icebreakerone.trust
     :members:
 
 Metadata APIs
@@ -14,7 +14,7 @@ Metadata APIs
 
 API to handle the metadata format described in `Data Set Metadata <https://icebreakerone.github.io/open-energy-technical-docs/main/metadata.html>`_
 
-.. automodule:: ib1.openenergy.support.metadata
+.. automodule:: icebreakerone.trust.metadata
     :members:
 
 Gunicorn support APIs
@@ -22,7 +22,7 @@ Gunicorn support APIs
 
 Support for running data providers within the `Gunicorn <https://gunicorn.org/>`_ WSGI container
 
-.. automodule:: ib1.openenergy.support.gunicorn
+.. automodule:: icebreakerone.trust.gunicorn
     :members:
 
 SSL Development APIs
@@ -32,7 +32,7 @@ SSL Development APIs
 
     This is deprecated since 0.2.4, use the gunicorn support above instead.
 
-.. automodule:: ib1.openenergy.support.flask_ssl_dev
+.. automodule:: icebreakerone.trust.flask_ssl_dev
     :members:
 
 Internal APIs
@@ -44,11 +44,11 @@ Internal APIs
    membership directory and CKAN servers, they are unlikely to be of interest to third parties implementing
    Data Provider or Consumer components.
 
-.. automodule:: ib1.openenergy.support.raidiam
+.. automodule:: icebreakerone.trust.raidiam
     :members:
 
-.. automodule:: ib1.openenergy.support.ckan
+.. automodule:: icebreakerone.trust.ckan
     :members:
 
-.. automodule:: ib1.openenergy.support.directory_tools
+.. automodule:: icebreakerone.trust.directory_tools
     :members:

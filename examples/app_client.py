@@ -1,6 +1,6 @@
 import logging
 
-from ib1.openenergy.support import FAPISession, httpclient_logging_patch
+from icebreakerone.trust import FAPISession, httpclient_logging_patch
 
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
                     level=logging.INFO,

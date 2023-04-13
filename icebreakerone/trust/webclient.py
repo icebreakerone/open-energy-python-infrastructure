@@ -6,14 +6,14 @@ import flask
 import jwt
 from flask import request, redirect, session
 
-from ib1.openenergy.support import FAPISession, CodeAuthMethod, code_verifier, RaidiamDirectory
+from icebreakerone.trust import FAPISession, CodeAuthMethod, code_verifier, RaidiamDirectory
 
-JWT_SYMMETRIC_KEY_CONFIG = 'ib1.openenergy.support.webclient.config.jwt_symmetric_key'
-CODE_AUTH_SESSION_KEY = 'ib1.openenergy.support.webclient.session.code_auth'
-FAPI_SESSION_KEY = 'ib1.openenergy.support.webclient.session.fapi'
-REDIRECT_AFTER_LOGIN_KEY = 'ib1.openenergy.support.webclient.session.redirect'
+JWT_SYMMETRIC_KEY_CONFIG = 'icebreakerone.trust.webclient.config.jwt_symmetric_key'
+CODE_AUTH_SESSION_KEY = 'icebreakerone.trust.webclient.session.code_auth'
+FAPI_SESSION_KEY = 'icebreakerone.trust.webclient.session.fapi'
+REDIRECT_AFTER_LOGIN_KEY = 'icebreakerone.trust.webclient.session.redirect'
 
-LOG = logging.getLogger('ib1.openenergy.support.webclient')
+LOG = logging.getLogger('icebreakerone.trust.webclient')
 
 
 class FAPIFlaskClient:

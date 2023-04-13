@@ -9,7 +9,7 @@ particular it must:
 
 Tokens are short-lived, opaque, and bound to the certificate of the client which requested them.
 
-This library provides a class `ib1.openenergy.support.FAPISession` which automatically acquires tokens when needed (on
+This library provides a class `icebreakerone.trust.FAPISession` which automatically acquires tokens when needed (on
 first access, or when a token has expired), and configures the necessary header information required to successfully
 call a protected endpoint.
 

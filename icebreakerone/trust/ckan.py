@@ -13,10 +13,10 @@ from typing import List, Dict, Optional
 from ckanapi import RemoteCKAN, NotFound
 from jinja2 import Template
 
-from ib1.openenergy.support.metadata import Metadata
-from ib1.openenergy.support.raidiam import Organisation
+from icebreakerone.trust.metadata import Metadata
+from icebreakerone.trust.raidiam import Organisation
 
-LOG = logging.getLogger('ib1.openenergy.support.ckan')
+LOG = logging.getLogger('icebreakerone.trust.ckan')
 
 
 def ckan_dataset_name(org: Organisation, data_set: Metadata) -> str:

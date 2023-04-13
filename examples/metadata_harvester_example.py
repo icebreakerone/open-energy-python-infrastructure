@@ -3,9 +3,9 @@ import pprint
 from concurrent.futures import ThreadPoolExecutor, Future
 from typing import List, Dict, Tuple
 
-from ib1.openenergy.support import FAPISession, httpclient_logging_patch, RaidiamDirectory
-from ib1.openenergy.support.metadata import Metadata, load_metadata
-from ib1.openenergy.support.raidiam import Organisation, AuthorisationServer
+from icebreakerone.trust import FAPISession, httpclient_logging_patch, RaidiamDirectory
+from icebreakerone.trust.metadata import Metadata, load_metadata
+from icebreakerone.trust.raidiam import Organisation, AuthorisationServer
 
 LOG = logging.getLogger('ib1.sample_metadata_harvester')
 

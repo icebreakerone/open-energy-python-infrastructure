@@ -8,7 +8,7 @@ import certifi
 import werkzeug.serving
 from cryptography import x509
 
-LOG = logging.getLogger('ib1.oe.support.flask_ssl_dev')
+LOG = logging.getLogger('icebreakerone.trust.flask_ssl_dev')
 
 
 class _PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):

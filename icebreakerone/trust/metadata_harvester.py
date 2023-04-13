@@ -9,13 +9,13 @@ from typing import List, Dict, Tuple, Generator, Optional
 import jinja2
 from jinja2 import TemplateNotFound, Template
 
-from ib1.openenergy.support import RaidiamDirectory, httpclient_logging_patch
-from ib1.openenergy.support.ckan import update_or_create_ckan_record, ckan_dataset_name, ckan_dict_from_metadata
-from ib1.openenergy.support.directory_tools import get_directory_client
-from ib1.openenergy.support.metadata import Metadata, load_metadata, MetadataLoadResult
-from ib1.openenergy.support.raidiam import Organisation, AuthorisationServer
+from icebreakerone.trust import RaidiamDirectory, httpclient_logging_patch
+from icebreakerone.trust.ckan import update_or_create_ckan_record, ckan_dataset_name, ckan_dict_from_metadata
+from icebreakerone.trust.directory_tools import get_directory_client
+from icebreakerone.trust.metadata import Metadata, load_metadata, MetadataLoadResult
+from icebreakerone.trust.raidiam import Organisation, AuthorisationServer
 
-LOG = logging.getLogger('ib1.openenergy.support.metadata_harvester')
+LOG = logging.getLogger('icebreakerone.trust.metadata_harvester')
 
 
 def configure_logging(options):

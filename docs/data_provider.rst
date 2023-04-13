@@ -14,7 +14,7 @@ parsing and processing the response to ensure that the supplied token is valid, 
 client. Only once these checks have passed should your API process the request (and it may then make use of other
 information from the token introspection response to determine access control if appropriate).
 
-To simplify this process, the library provides a class `ib1.openenergy.support.AccessTokenValidator` which encapsulates
+To simplify this process, the library provides a class `icebreakerone.trust.AccessTokenValidator` which encapsulates
 the process of checking that a request has presented a valid access token. When correctly instantiated, the
 `AccessTokenValidator.introspects` can be used as a decorator on regular `Flask`_ routes to automatically perform these
 checks before your route handler is called.

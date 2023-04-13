@@ -2,7 +2,7 @@ import logging
 
 import flask
 
-from ib1.openenergy.support import AccessTokenValidator, nginx_cert_parser
+from icebreakerone.trust import AccessTokenValidator, nginx_cert_parser
 
 LOG = logging.getLogger('example.energydata.org.uk')
 

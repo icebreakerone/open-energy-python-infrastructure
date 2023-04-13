@@ -12,8 +12,8 @@ from cryptography import x509
 from cryptography.x509 import Certificate
 from gunicorn.workers.sync import SyncWorker
 
-#: Log to ib1.openenergy.support.gunicorn
-LOG = logging.getLogger('ib1.openenergy.support.gunicorn')
+#: Log to icebreakerone.trust.gunicorn
+LOG = logging.getLogger('icebreakerone.trust.gunicorn')
 
 #: Name for the header containing the client certificate as a BASE64 encoded DER file
 CERT_NAME = 'X-OE-CLIENT-CERT'
@@ -85,7 +85,7 @@ class ClientAuthApplication(gunicorn.app.base.BaseApplication):
         self.options = {
             'bind': f'{hostname}:{port}',
             'workers': num_workers,
-            'worker_class': 'ib1.openenergy.support.gunicorn.CustomSyncWorker',
+            'worker_class': 'icebreakerone.trust.gunicorn.CustomSyncWorker',
             'timeout': timeout,
             'ca_certs': certifi.where(),
             'certfile': cert_path,

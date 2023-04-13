@@ -1,7 +1,7 @@
 import logging
 import pprint
 
-from ib1.openenergy.support import FAPISession, RaidiamDirectory, JWTBearerAuthMethod
+from icebreakerone.trust import FAPISession, RaidiamDirectory, JWTBearerAuthMethod
 
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
                     level=logging.DEBUG,

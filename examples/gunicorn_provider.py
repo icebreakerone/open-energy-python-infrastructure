@@ -2,19 +2,20 @@ import logging
 
 import flask
 
-from ib1.openenergy.support import AccessTokenValidator
-from ib1.openenergy.support.flask_ssl_dev import get_command_line_ssl_args
-from ib1.openenergy.support.gunicorn import ClientAuthApplication, gunicorn_cert_parser
+from icebreakerone.trust import AccessTokenValidator
+from icebreakerone.trust.flask_ssl_dev import get_command_line_ssl_args
+from icebreakerone.trust.gunicorn import ClientAuthApplication, gunicorn_cert_parser
 
 logging.basicConfig(level=logging.INFO)
 
-LOG = logging.getLogger('ib1.oe.testapp')
+LOG = logging.getLogger('icebreakerone.trust.testapp')
 
 options = get_command_line_ssl_args(default_client_private_key='/home/tom/Desktop/certs/a.key',
                                     default_client_certificate='/home/tom/Desktop/certs/a.pem',
                                     default_server_private_key='/home/tom/Desktop/certs/127.0.0.1/key.pem',
                                     default_server_certificate='/home/tom/Desktop/certs/127.0.0.1/cert.pem',
                                     default_client_id='kZuAsn7UYZ98WWh29hDPf')
+
 
 validator = AccessTokenValidator(client_id=options.client_id, certificate=options.client_certificate,
                                  private_key=options.client_private_key,

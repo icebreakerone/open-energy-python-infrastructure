@@ -3,7 +3,7 @@ import certifi
 
 bind = '127.0.0.1:5000'
 workers = multiprocessing.cpu_count() * 2 + 1
-worker_class = 'ib1.openenergy.support.gunicorn.CustomSyncWorker'
+worker_class = 'icebreakerone.trust.gunicorn.CustomSyncWorker'
 timeout = 30
 # Use certifi.where so we use the certifi CA store when handling SSL certs
 ca_certs = certifi.where()

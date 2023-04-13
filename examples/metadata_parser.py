@@ -1,4 +1,4 @@
-from ib1.openenergy.support.metadata import load_metadata, Metadata
+from icebreakerone.trust.metadata import load_metadata, Metadata
 
 m = load_metadata(file='metadata_file.json')
 
