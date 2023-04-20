@@ -4,7 +4,7 @@ import requests
 import logging
 from argparse import ArgumentParser
 
-LOG = logging.getLogger('ib1.openenergy.support.castore')
+LOG = logging.getLogger('icebreakerone.trust.castore')
 
 UAT_CACERT_URL = 'https://raw.githubusercontent.com/icebreakerone/open-energy-python-infrastructure/main/certificates/raidiam_certificate_chain.pem'
 

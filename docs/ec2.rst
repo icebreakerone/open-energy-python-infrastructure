@@ -48,7 +48,7 @@ certificates:
     > cd ~
     > python3.9 -m venv venv --upgrade-deps
     > source ./venv/bin/activate
-    > pip install ib1.openenergy.support
+    > pip install icebreakerone.trust
     > oe_install_cacerts
 
 Installing Nginx

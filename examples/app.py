@@ -2,12 +2,12 @@ import logging
 
 import flask
 
-from ib1.openenergy.support import AccessTokenValidator
-from ib1.openenergy.support.flask_ssl_dev import get_command_line_ssl_args, run_app
+from icebreakerone.trust import AccessTokenValidator
+from icebreakerone.trust.flask_ssl_dev import get_command_line_ssl_args, run_app
 
 logging.basicConfig(level=logging.INFO)
 
-LOG = logging.getLogger('ib1.oe.testapp')
+LOG = logging.getLogger('icebreakerone.trust.testapp')
 
 options = get_command_line_ssl_args(default_client_private_key='a.key',
                                     default_client_certificate='a.pem',

@@ -9,9 +9,9 @@ import yaml
 from pyld import jsonld
 from yaml import YAMLError
 
-from ib1.openenergy.support.raidiam import AuthorisationServer
+from icebreakerone.trust.raidiam import AuthorisationServer
 
-LOG = logging.getLogger('ib1.openenergy.support.metadata')
+LOG = logging.getLogger('icebreakerone.trust.metadata')
 
 #: Data Catalogue namespace
 DCAT = 'http://www.w3.org/ns/dcat#'

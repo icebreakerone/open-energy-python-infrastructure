@@ -14,7 +14,7 @@ from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 from cryptography.x509 import CertificateSigningRequest
 from cryptography.x509.oid import NameOID
 
-LOG = logging.getLogger('ib1.openenergy.support.keygen')
+LOG = logging.getLogger('icebreakerone.trust.keygen')
 
 
 def create_private_key() -> RSAPrivateKey:

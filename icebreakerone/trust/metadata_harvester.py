@@ -9,23 +9,27 @@ from typing import List, Dict, Tuple, Generator, Optional
 import jinja2
 from jinja2 import TemplateNotFound, Template
 
-from ib1.openenergy.support import RaidiamDirectory, httpclient_logging_patch
-from ib1.openenergy.support.ckan import update_or_create_ckan_record, ckan_dataset_name, ckan_dict_from_metadata
-from ib1.openenergy.support.directory_tools import get_directory_client
-from ib1.openenergy.support.metadata import Metadata, load_metadata, MetadataLoadResult
-from ib1.openenergy.support.raidiam import Organisation, AuthorisationServer
+from icebreakerone.trust import RaidiamDirectory, httpclient_logging_patch
+from icebreakerone.trust.ckan import (
+    update_or_create_ckan_record,
+    ckan_dataset_name,
+    ckan_dict_from_metadata,
+)
+from icebreakerone.trust.directory_tools import get_directory_client
+from icebreakerone.trust.metadata import Metadata, load_metadata, MetadataLoadResult
+from icebreakerone.trust.raidiam import Organisation, AuthorisationServer
 
-LOG = logging.getLogger('ib1.openenergy.support.metadata_harvester')
+LOG = logging.getLogger("icebreakerone.trust.metadata_harvester")
 
 
 def configure_logging(options):
     def level():
         lv = options.log_level
-        if lv == 'DEBUG':
+        if lv == "DEBUG":
             return logging.DEBUG
-        if lv == 'INFO':
+        if lv == "INFO":
             return logging.INFO
-        if lv == 'WARNING':
+        if lv == "WARNING":
             return logging.WARNING
         return logging.ERROR
 
@@ -33,9 +37,11 @@ def configure_logging(options):
     httpclient_logging_patch(level=logging.DEBUG)
 
     # Configure logging with timestamps etc
-    logging.basicConfig(level=level(),
-                        format='%(asctime)s %(levelname)-8s %(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S')
+    logging.basicConfig(
+        level=level(),
+        format="%(asctime)s %(levelname)-8s %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
 
 
 def get_template(options) -> Optional[Template]:
@@ -45,11 +51,13 @@ def get_template(options) -> Optional[Template]:
     """
     if options.template:
         try:
-            template_loader = jinja2.FileSystemLoader(searchpath='./')
+            template_loader = jinja2.FileSystemLoader(searchpath="./")
             template_environment = jinja2.Environment(loader=template_loader)
             return template_environment.get_template(options.template)
         except TemplateNotFound:
-            LOG.error(f'unable to find jinja2 template at {options.template}, using default description')
+            LOG.error(
+                f"unable to find jinja2 template at {options.template}, using default description"
+            )
     return None
 
 
@@ -60,15 +68,33 @@ def check_metadata():
     Run with ``oe_check_metadata --url=URL [-l=[DEBUG|INFO|WARN|ERROR]]``
     """
     parser = ArgumentParser()
-    parser.description = 'Fetch a metadata file and attempt to parse it, printing the results. Use this to check ' \
-                         'individual metadata file locations for compatibility with the harvester.'
-    parser.add_argument('-l', '--log_level', type=str, help='log level, defaults to ERROR', default='ERROR',
-                        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'])
+    parser.description = (
+        "Fetch a metadata file and attempt to parse it, printing the results. Use this to check "
+        "individual metadata file locations for compatibility with the harvester."
+    )
+    parser.add_argument(
+        "-l",
+        "--log_level",
+        type=str,
+        help="log level, defaults to ERROR",
+        default="ERROR",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+    )
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-u', '--url', type=str, help='url for metadata file', default=None)
-    group.add_argument('-f', '--file', type=str, help='file location for metadata file', default=None)
-    parser.add_argument('-t', '--template', type=str, help='location for a Jinja2 template on disk to use',
-                        default=None, required=False)
+    group.add_argument(
+        "-u", "--url", type=str, help="url for metadata file", default=None
+    )
+    group.add_argument(
+        "-f", "--file", type=str, help="file location for metadata file", default=None
+    )
+    parser.add_argument(
+        "-t",
+        "--template",
+        type=str,
+        help="location for a Jinja2 template on disk to use",
+        default=None,
+        required=False,
+    )
     options = parser.parse_args()
     configure_logging(options)
     result = load_metadata(url=options.url, file=options.file)
@@ -77,9 +103,10 @@ def check_metadata():
 
     if result.metadata:
         for index, m in enumerate(result.metadata):
-            print(f'\nCKAN dictionary from item {index}:')
+            print(f"\nCKAN dictionary from item {index}:")
             pprint.PrettyPrinter(indent=2).pprint(
-                ckan_dict_from_metadata(m=m, description_template=get_template(options)))
+                ckan_dict_from_metadata(m=m, description_template=get_template(options))
+            )
 
 
 def harvest():
@@ -88,18 +115,43 @@ def harvest():
     """
     # Add extra arguments to capture CKAN properties
     parser = ArgumentParser()
-    parser.description = 'Runs the Open Energy metadata harvester. Traverses the directory looking for metadata file ' \
-                         'links, resolves them, fetches files, parses as metadata, pushes information to CKAN'
-    parser.add_argument('-l', '--log_level', type=str, help='log level, defaults to ERROR', default='ERROR',
-                        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'])
-    parser.add_argument('-ck', '--ckan_api_key', type=str, help='CKAN API key', default=None)
-    parser.add_argument('-cu', '--ckan_url', type=str,
-                        help='CKAN URL, defaults to http://search-beta.energydata.org.uk/',
-                        default='http://search-beta.energydata.org.uk/')
-    parser.add_argument('-t', '--template', type=str, help='location for a Jinja2 template on disk to use',
-                        default=None, required=False)
-    parser.add_argument('-d', '--dry_run', default=False, action='store_true',
-                        help='set this flag to prevent all write operations')
+    parser.description = (
+        "Runs the Open Energy metadata harvester. Traverses the directory looking for metadata file "
+        "links, resolves them, fetches files, parses as metadata, pushes information to CKAN"
+    )
+    parser.add_argument(
+        "-l",
+        "--log_level",
+        type=str,
+        help="log level, defaults to ERROR",
+        default="ERROR",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+    )
+    parser.add_argument(
+        "-ck", "--ckan_api_key", type=str, help="CKAN API key", default=None
+    )
+    parser.add_argument(
+        "-cu",
+        "--ckan_url",
+        type=str,
+        help="CKAN URL, defaults to http://search-beta.energydata.org.uk/",
+        default="http://search-beta.energydata.org.uk/",
+    )
+    parser.add_argument(
+        "-t",
+        "--template",
+        type=str,
+        help="location for a Jinja2 template on disk to use",
+        default=None,
+        required=False,
+    )
+    parser.add_argument(
+        "-d",
+        "--dry_run",
+        default=False,
+        action="store_true",
+        help="set this flag to prevent all write operations",
+    )
 
     # Get cryptographic and directory properties
     directory = get_directory_client(parser=parser)
@@ -110,13 +162,13 @@ def harvest():
     ckan_api_key = options.ckan_api_key
 
     if ckan_api_key is None and not options.dry_run:
-        print('Dry-run not specified but no CKAN API key provided - unable to proceed.')
+        print("Dry-run not specified but no CKAN API key provided - unable to proceed.")
         exit(0)
 
     configure_logging(options)
 
     if options.dry_run:
-        LOG.info('Dry run flag set, results will not be written to CKAN')
+        LOG.info("Dry run flag set, results will not be written to CKAN")
 
     # Access directory, get metadata URLs, fetch and parse metadata
     org_to_reports = gather_metadata_files(directory=directory)
@@ -124,19 +176,29 @@ def harvest():
     # Iterate over results
     for org in org_to_reports:
         # Flatten the list of lists of `Metadata` objects
-        metadata_list = [item for sublist in [report.metadata for report in org_to_reports[org]] for item in sublist]
+        metadata_list = [
+            item
+            for sublist in [report.metadata for report in org_to_reports[org]]
+            for item in sublist
+        ]
         if metadata_list and not options.dry_run:
             # If we had any metadata, update the entries in CKAN
-            update_or_create_ckan_record(org=org, data_sets=metadata_list,
-                                         ckan_url=ckan_url, ckan_api_key=ckan_api_key,
-                                         description_template=get_template(options))
+            update_or_create_ckan_record(
+                org=org,
+                data_sets=metadata_list,
+                ckan_url=ckan_url,
+                ckan_api_key=ckan_api_key,
+                description_template=get_template(options),
+            )
 
     # Print out the CSV format report to stdout, we'd expect this to be pushed somewhere as a report of
     # the metadata load process.
     print(build_report_csv(org_to_reports=org_to_reports))
 
 
-def build_report_csv(org_to_reports: Dict[Organisation, List[MetadataLoadResult]], dialect='excel'):
+def build_report_csv(
+    org_to_reports: Dict[Organisation, List[MetadataLoadResult]], dialect="excel"
+):
     """
     Produce a CSV summary of the metadata load process
 
@@ -148,7 +210,9 @@ def build_report_csv(org_to_reports: Dict[Organisation, List[MetadataLoadResult]
         string containing a CSV format summary of the load
     """
 
-    def row(o: Organisation, rep: MetadataLoadResult, meta: Metadata = None) -> Dict[str, str]:
+    def row(
+        o: Organisation, rep: MetadataLoadResult, meta: Metadata = None
+    ) -> Dict[str, str]:
         """
         Build a single row of the report
 
@@ -161,24 +225,39 @@ def build_report_csv(org_to_reports: Dict[Organisation, List[MetadataLoadResult]
         :return:
             dict of items to add to a single row in the report
         """
-        error_string = f'{rep.error} : {str(rep.exception)}' if rep.error else ''
+        error_string = f"{rep.error} : {str(rep.exception)}" if rep.error else ""
         return {
-            'org_id': o.organisation_id,
-            'org_name': o.organisation_name,
-            'success': rep.error is None,
-            'records_found': rep.metadata_records_found,
-            'records_imported': len(rep.metadata),
-            'auth_server_id': rep.server.authorisation_server_id,
-            'metadata_location': rep.location,
-            'error': error_string,
-            'ckan_dataset_name': ckan_dataset_name(org=org, data_set=meta) if meta else '',
-            'ckan_dataset_title': meta.title if meta else ''
+            "org_id": o.organisation_id,
+            "org_name": o.organisation_name,
+            "success": rep.error is None,
+            "records_found": rep.metadata_records_found,
+            "records_imported": len(rep.metadata),
+            "auth_server_id": rep.server.authorisation_server_id,
+            "metadata_location": rep.location,
+            "error": error_string,
+            "ckan_dataset_name": ckan_dataset_name(org=org, data_set=meta)
+            if meta
+            else "",
+            "ckan_dataset_title": meta.title if meta else "",
         }
 
     si = StringIO()
-    cw = csv.DictWriter(si, fieldnames=['org_id', 'org_name', 'success', 'records_found', 'records_imported',
-                                        'auth_server_id', 'metadata_location', 'error',
-                                        'ckan_dataset_name', 'ckan_dataset_title'], dialect=dialect)
+    cw = csv.DictWriter(
+        si,
+        fieldnames=[
+            "org_id",
+            "org_name",
+            "success",
+            "records_found",
+            "records_imported",
+            "auth_server_id",
+            "metadata_location",
+            "error",
+            "ckan_dataset_name",
+            "ckan_dataset_title",
+        ],
+        dialect=dialect,
+    )
     cw.writeheader()
     for org, reports in org_to_reports.items():
         for report in reports:
@@ -190,8 +269,9 @@ def build_report_csv(org_to_reports: Dict[Organisation, List[MetadataLoadResult]
     return si.getvalue().strip()
 
 
-def gather_metadata_files(directory: RaidiamDirectory, max_url_workers=4) -> \
-        Dict[Organisation, List[MetadataLoadResult]]:
+def gather_metadata_files(
+    directory: RaidiamDirectory, max_url_workers=4
+) -> Dict[Organisation, List[MetadataLoadResult]]:
     """
     Get all organisations from the directory, crawl over them looking for auth servers. Pull URLs out of
     auth servers and fetch from these URLs in parallel, gather results and parse as `Metadata` objects,
@@ -209,18 +289,26 @@ def gather_metadata_files(directory: RaidiamDirectory, max_url_workers=4) -> \
     # Fetch all authorisation servers for organisations within the directory, building a
     # map of org ID to list of authorisation server objects
     orgid_to_auth: Dict[str, List[AuthorisationServer]] = {
-        org.organisation_id: directory.authorisation_servers(org_id=org.organisation_id) for org
-        in organisations}
+        org.organisation_id: directory.authorisation_servers(org_id=org.organisation_id)
+        for org in organisations
+    }
 
     # Build a map of org_id to org to use later when looking things up
-    orgid_to_org: Dict[str, Organisation] = {org.organisation_id: org for org in organisations}
+    orgid_to_org: Dict[str, Organisation] = {
+        org.organisation_id: org for org in organisations
+    }
 
     # Build a map of org_id to metadata url list for all orgs, ignoring
-    # ones that don't specify any metadata urls in the customer_friendly_logo_uri
+    # ones that don't specify any metadata urls in the payload_signing_cert_location_uri
     # property of an authorisation server
     orgid_to_urls: Dict[str, List[Tuple[AuthorisationServer, str]]] = {
-        org_id: [(server, server.customer_friendly_logo_uri) for server in orgid_to_auth[org_id]]
-        for org_id in orgid_to_auth if orgid_to_auth[org_id]}
+        org_id: [
+            (server, server.payload_signing_cert_location_uri)
+            for server in orgid_to_auth[org_id]
+        ]
+        for org_id in orgid_to_auth
+        if orgid_to_auth[org_id]
+    }
 
     # Schedules all URL fetch and parse jobs on a thread pool executor, returning a generator
     # over futures to lists of dictionaries from organisation to lists of metadata objects
@@ -229,7 +317,6 @@ def gather_metadata_files(directory: RaidiamDirectory, max_url_workers=4) -> \
         with ThreadPoolExecutor(max_workers=max_url_workers) as executor:
             # Iterate over the previously determined list of metadata URLs for each org
             for org_id, urls in orgid_to_urls.items():
-
                 # Fetch from the locally bound url list for this org
                 def fetch_and_parse() -> List[Tuple[Organisation, MetadataLoadResult]]:
                     def inner():
@@ -237,15 +324,19 @@ def gather_metadata_files(directory: RaidiamDirectory, max_url_workers=4) -> \
                         for server, url in urls:
                             metadata_report = load_metadata(server, url)
                             if metadata_report.metadata:
-                                LOG.info(f'org_id={org_id} : fetched metadata for url={url}')
+                                LOG.info(
+                                    f"org_id={org_id} : fetched metadata for url={url}"
+                                )
                             else:
                                 if metadata_report.error:
                                     LOG.warning(
-                                        f'org_id={org_id} : unable to retrieve and parse metadata from url={url}, '
-                                        f'error={metadata_report.error}')
+                                        f"org_id={org_id} : unable to retrieve and parse metadata from url={url}, "
+                                        f"error={metadata_report.error}"
+                                    )
                                 else:
                                     LOG.warning(
-                                        f'org_id={org_id} : location url={url} parsed but contained no datasets')
+                                        f"org_id={org_id} : location url={url} parsed but contained no datasets"
+                                    )
                             yield orgid_to_org[org_id], metadata_report
 
                     # Fully exhaust the generator, returning the list of {org:metadata} dicts

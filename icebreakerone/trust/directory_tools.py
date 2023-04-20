@@ -5,9 +5,9 @@ import logging
 from argparse import ArgumentParser
 from os.path import abspath, isfile
 
-from ib1.openenergy.support import FAPISession, RaidiamDirectory
+from icebreakerone.trust import FAPISession, RaidiamDirectory
 
-LOG = logging.getLogger('ib1.openenergy.support.directory_tools')
+LOG = logging.getLogger('icebreakerone.trust.directory_tools')
 
 
 def get_directory_client(parser=None) -> RaidiamDirectory:

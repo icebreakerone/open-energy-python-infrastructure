@@ -36,7 +36,7 @@ Running in dev mode
 -------------------
 
 Once you have a certificate for your server to hand, and have installed the appropriate root cert, you can use the
-helper functions in `ib1.openenergy.support.flask_ssl_dev` to run your app.
+helper functions in `icebreakerone.trust.flask_ssl_dev` to run your app.
 
 The function `get_command_line_ssl_args` can be used to parse command line arguments and add help functionality, putting
 this in your app then calling it with ``myapp.py --help`` will produce output similar to this:

@@ -2,10 +2,10 @@ import logging
 
 import flask
 
-from ib1.openenergy.support import AccessTokenValidator
-from ib1.openenergy.support.gunicorn import gunicorn_cert_parser
+from icebreakerone.trust import AccessTokenValidator
+from icebreakerone.trust.gunicorn import gunicorn_cert_parser
 
-LOG = logging.getLogger('ib1.oe.testapp')
+LOG = logging.getLogger('icebreakerone.trust.testapp')
 
 validator = AccessTokenValidator(client_id='kZuAsn7UYZ98WWh29hDPf', certificate='/home/tom/Desktop/certs/a.pem',
                                  private_key='/home/tom/Desktop/certs/a.key',
