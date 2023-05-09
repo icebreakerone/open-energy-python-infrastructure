@@ -26,7 +26,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from requests.adapters import HTTPAdapter
 from requests.auth import AuthBase
 from requests.exceptions import RetryError
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util.retry import Retry
 
 import icebreakerone.trust.raidiam as raidiam
 
@@ -334,7 +334,7 @@ class FAPISession(AuthBase):
         # Configure retries
         retry_strategy = Retry(total=retries,
                                status_forcelist=[429, 502, 503, 504],
-                               method_whitelist=["HEAD", "GET", "OPTIONS"],
+                               allowed_methods=["HEAD", "GET", "OPTIONS"],
                                backoff_factor=1)
         adapter = HTTPAdapter(max_retries=retry_strategy)
         self._session.mount('https://', adapter)
